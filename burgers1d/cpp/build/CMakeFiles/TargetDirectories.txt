@@ -1,3 +1,0 @@
-/Users/fnrizzi/Desktop/work/ROM/pressio_sisc_results/burgers1d/cpp/build/CMakeFiles/rebuild_cache.dir
-/Users/fnrizzi/Desktop/work/ROM/pressio_sisc_results/burgers1d/cpp/build/CMakeFiles/edit_cache.dir
-/Users/fnrizzi/Desktop/work/ROM/pressio_sisc_results/burgers1d/cpp/build/CMakeFiles/burgers1d_fom.dir
