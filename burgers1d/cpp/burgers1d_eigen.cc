@@ -71,8 +71,8 @@ Burgers1dEigen::applyJacobian(const state_type & y,
 			      const mv_t & B,
 			      const scalar_type & t,
 			      mv_t & A) const{
-  auto JJ = jacobian(y, t);
-  A = JJ * B;
+  jacobian(y, t, JJ_);
+  A = JJ_ * B;
 }
 
 Burgers1dEigen::mv_t

@@ -10,5 +10,13 @@ set(SOURCES_FOM
   ${CMAKE_CURRENT_SOURCE_DIR}/burgers1d_eigen.cc
   main_fom.cc
 )
+set(SOURCES_ROM
+  ${CMAKE_CURRENT_SOURCE_DIR}/burgers1d_eigen.cc
+  main_rom.cc
+)
+
 # fom executable
 add_executable(burgers1d_fom ${SOURCES_FOM} ${HEADERS})
+
+# rom executable
+add_executable(burgers1d_rom ${SOURCES_ROM} ${HEADERS})

@@ -10,6 +10,7 @@ class Burgers1dEigen{
   using ui_t	= unsigned int;
   using sc_t	= double;
   using eigVec	= Eigen::VectorXd;
+  using muVec	= Eigen::Vector3d;
   using mv_t	= Eigen::MatrixXd;
   using eigSM	= Eigen::SparseMatrix<sc_t, Eigen::RowMajor, int32_t>;
   using Tr	= Eigen::Triplet<sc_t>;
@@ -21,8 +22,13 @@ public:
   using jacobian_type	= eigSM;
 
 public:
-  Burgers1dEigen(eigVec params, ui_t Ncell)
+  Burgers1dEigen(muVec params, ui_t Ncell)
     : mu_(params), Ncell_(Ncell){
+    setup();
+  }
+
+  explicit Burgers1dEigen(ui_t Ncell)
+    : Ncell_(Ncell){
     setup();
   }
 
@@ -59,7 +65,7 @@ private:
 private:
   const scalar_type xL_ = 0.0;		// left side of domain
   const scalar_type xR_ = 100.0;	// right side of domain
-  eigVec mu_ = {};			// parameters
+  muVec mu_ = {5., 0.02, 0.02};		// parameters
   ui_t Ncell_ = {};			// # of cells
   scalar_type dx_ = {};			// cell size
   scalar_type dxInv_ = {};		// inv of cell size
