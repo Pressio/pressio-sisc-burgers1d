@@ -16,7 +16,7 @@ int main(int argc, char *argv[]){
   Eigen::Vector3d mu(5.0, 0.02, 0.02);
   constexpr int Ncell = 20;
   app_t appObj(mu, Ncell);
-  appObj.setup();
+
   app_state_t y0n(Ncell);
   y0n.setConstant(1);
 
