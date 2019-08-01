@@ -1,28 +1,7 @@
 #!/bin/bash
 
 # purpose: builds all exe for the C++ Burgers1d
-# tpls needed: Eigen, Pressio
-# assume the environemnt is already set,
-#   i.e. CC,CXX are set
 
-# set environment in some way, as long as CC,CXX are set
-envScript=/Users/fnrizzi/Desktop/work/ROM/setenv_ompi400_clang700.sh
-source ${envScript}
-# TODO: test environment
-
-# the working directory where everything will be put
-WORKINGDIR=/Users/fnrizzi/Desktop/testFR
-
-
-#--------------------------------------------
-# Nothing should be changed below her
-#--------------------------------------------
-startDir=${PWD}
-
-# test if workdir exists
-if [ ! -d $WORKINGDIR ]; then
-    echo "creating $WORKINGDIR" && mkdir -p $WORKINGDIR
-fi
 # go to working dir
 cd ${WORKINGDIR}
 
@@ -52,7 +31,7 @@ if [ ! -d ${WORKINGDIR}/tpls/eigen ]; then
 	 --target-dir=${WORKINGDIR}/tpls \
 	 --wipe-existing=1 \
 	 -target-type=dynamic
-    cd -
+    cd ${WORKINGDIR}
 fi
 
 # install pressio
@@ -69,7 +48,11 @@ if [ ! -d ${WORKINGDIR}/tpls/pressio ]; then
 	 -target-type=dynamic \
 	 -with-cmake-fnc=sisc_paper_burgcpp \
 	 -with-packages=rom
-    cd -
+    cd ${WORKINGDIR}
+else
+    cd ${WORKINGDIR}/tpls/pressio/build
+    make install
+    cd ${WORKINGDIR}
 fi
 
 # set paths for eigen and pressio
@@ -77,7 +60,6 @@ EIGENPATH="${WORKINGDIR}/tpls/eigen/install/include/eigen3"
 PRESSIOPATH="${WORKINGDIR}/tpls/pressio/install/include"
 
 # build Burgers1d C++ exes
-SRCDIR=${startDir}/cpp
 bdirname=build
 #check if build dir exists
 [[ ! -d ${bdirname} ]] && mkdir ${bdirname}
@@ -89,27 +71,9 @@ cmake -DCMAKE_CXX_COMPILER=${CC} \
       -DCMAKE_BUILD_TYPE:STRING=Release \
       -DEIGEN_INCLUDE_DIR=${EIGENPATH} \
       -DPRESSIO_INCLUDE_DIR=${PRESSIOPATH} \
-      ${SRCDIR}
+      ${CPPSRC}
 make -j4
 cd ..
 
 # go back where we started
-cd ${startDir}
-
-
-
-
-
-
-
-# n_args=$#
-# if test $n_args -lt 1
-# then
-#     str+="[cmake-line-generator-fnc] "
-#     # str+="[linux/mac] "
-#     # str+="[dynamic/static] "
-
-#     echo "usage:"
-#     echo "$0 $str"
-#     exit 1;
-# fi
+cd ${topDir}

@@ -1,0 +1,11 @@
+numCell numCellValue
+dt dtValue
+finalTime finalTimeValue
+
+observerOn observerOnValue
+shapshotsFreq shapshotsFreqValue
+shapshotsFileName shapshotsFileNameValue
+
+romOn romOnValue
+romSize romSizeValue
+basisFileName basisFileNameValue

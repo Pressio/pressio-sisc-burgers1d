@@ -4,7 +4,9 @@
 #include "SOLVERS_NONLINEAR"
 #include "ROM_LSPG"
 #include "utils.hpp"
+#include "burgers1d_input_parser.hpp"
 #include "burgers1d_eigen.hpp"
+#include "eigen_observer.hpp"
 
 int main(int argc, char *argv[]){
   using fom_t		= Burgers1dEigen;
@@ -20,16 +22,29 @@ int main(int argc, char *argv[]){
   constexpr auto zero = ::pressio::utils::constants::zero<scalar_t>();
   constexpr auto one  = ::pressio::utils::constants::one<scalar_t>();
 
-  // app object
-  constexpr int numCell = 20;
-  fom_t appobj(numCell);
-  scalar_t dt = 0.01;
-  constexpr auto t0 = zero;
+  // Record start time
+  auto startTime = std::chrono::high_resolution_clock::now();
 
-  // read from file the jacobian of the decoder
-  constexpr int romSize = 11;
+  // parse input file
+  InputParser parser;
+  int err = parser.parse(argc, argv);
+  if (err == 1) return 1;
+
+  // store inputs
+  const auto numCell = parser.numCell_;
+  const auto dt = parser.dt_;
+  const auto finalT = parser.finalT_;
+  const auto observerOn = parser.observerOn_;
+  const auto Nsteps = static_cast<unsigned int>(finalT/dt);
+
+  const auto romSize = parser.romSize_;
+  const auto basisFileName = parser.basisFileName_;
+
+  // app object
+  fom_t appobj(numCell);
+
   // store modes computed before from file
-  decoder_jac_t phi = readBasis("basis.txt", romSize, numCell);
+  decoder_jac_t phi = readBasis(basisFileName, romSize, numCell);
   const int numBasis = phi.numVectors();
   if( numBasis != romSize ) return 0;
 
@@ -42,8 +57,9 @@ int main(int argc, char *argv[]){
 
   // define ROM state
   lspg_state_t yROM(romSize);
-  // initialize to zero
   yROM.putScalar(zero);
+
+  constexpr auto t0 = zero;
 
   // define LSPG type
   constexpr auto ode_case  = pressio::ode::ImplicitEnum::Euler;
@@ -73,11 +89,25 @@ int main(int argc, char *argv[]){
   solver.setMaxIterations(5);
 
   // integrate in time
-  pressio::ode::integrateNSteps(lspgProblem.stepperObj_, yROM, t0, dt, 10, solver);
+  pressio::ode::integrateNSteps(lspgProblem.stepperObj_, yROM, t0, dt, Nsteps, solver);
+
+  // Record end time
+  auto finishTime = std::chrono::high_resolution_clock::now();
+  std::chrono::duration<double> elapsed = finishTime - startTime;
+  std::cout << "Elapsed time: " <<
+    std::fixed << std::setprecision(10) <<
+    elapsed.count() << std::endl;
 
   // compute the fom corresponding to our rom final state
   auto yFomFinal = lspgProblem.yFomReconstructor_(yROM);
   std::cout << *yFomFinal.data() << std::endl;
+
+  // std::cout << checkStr <<  std::endl;
+  return 0;
+}
+
+
+
 
   // // this is a reproducing ROM test, so the final reconstructed state
   // // has to match the FOM solution obtained with euler, same time-step, for 10 steps
@@ -88,7 +118,3 @@ int main(int argc, char *argv[]){
 
   //   auto n1 = ::pressio::containers::ops::norm2(yFomFinal);
   //   std::cout << n1 << std::endl;
-
-  // std::cout << checkStr <<  std::endl;
-  return 0;
-}
