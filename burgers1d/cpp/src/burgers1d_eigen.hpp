@@ -12,7 +12,7 @@ class Burgers1dEigen{
   using eigVec	= Eigen::VectorXd;
   using muVec	= Eigen::Vector3d;
   using mv_t	= Eigen::MatrixXd;
-  using eigSM	= Eigen::SparseMatrix<sc_t, Eigen::RowMajor, int32_t>;
+  using eigSM	= Eigen::SparseMatrix<sc_t, Eigen::ColMajor, int32_t>;
   using Tr	= Eigen::Triplet<sc_t>;
 
 public:

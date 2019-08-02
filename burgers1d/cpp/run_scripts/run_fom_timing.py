@@ -31,6 +31,7 @@ for iMesh in range(0, len(constants.numCell_cases)):
   data[iMesh][0] = numCell
 
   for i in range(0, constants.numSamplesForTiming):
+    print("replica # = ", i)
     popen = subprocess.Popen(args, stdout=subprocess.PIPE)
     popen.wait()
     output = popen.stdout.read()
@@ -40,6 +41,7 @@ for iMesh in range(0, len(constants.numCell_cases)):
     time = float(res.group().split()[2])
     # store
     data[iMesh][i+1] = time
+    print("time = ", time)
 
 np.savetxt("fom_timings.txt", data, fmt='%.12f')
 print(data)

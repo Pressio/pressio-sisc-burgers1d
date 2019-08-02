@@ -98,23 +98,11 @@ int main(int argc, char *argv[]){
     std::fixed << std::setprecision(10) <<
     elapsed.count() << std::endl;
 
-  // compute the fom corresponding to our rom final state
-  auto yFomFinal = lspgProblem.yFomReconstructor_(yROM);
-  std::cout << *yFomFinal.data() << std::endl;
+  std::cout << *yROM.data() << std::endl;
 
-  // std::cout << checkStr <<  std::endl;
+  // // compute the fom corresponding to our rom final state
+  // auto yFomFinal = lspgProblem.yFomReconstructor_(yROM);
+  // std::cout << *yFomFinal.data() << std::endl;
+
   return 0;
 }
-
-
-
-
-  // // this is a reproducing ROM test, so the final reconstructed state
-  // // has to match the FOM solution obtained with euler, same time-step, for 10 steps
-  // // const auto trueY = pressio::apps::test::Burg1DtrueImpEulerN20t010;
-  // const auto trueY = pressio::apps::test::Burgers1dImpGoldStates<ode_case>::get(numCell, dt, 0.10);
-  // for (auto i=0; i<yFomFinal.size(); i++)
-  //   if (std::abs(yFomFinal[i] - trueY[i]) > 1e-10) checkStr = "FAILED";
-
-  //   auto n1 = ::pressio::containers::ops::norm2(yFomFinal);
-  //   std::cout << n1 << std::endl;

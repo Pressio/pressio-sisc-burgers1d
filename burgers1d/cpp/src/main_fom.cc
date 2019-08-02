@@ -54,7 +54,7 @@ int main(int argc, char *argv[]){
 
   // define solver
   using lin_solver_t = pressio::solvers::iterative::EigenIterative<
-    pressio::solvers::linear::iterative::Bicgstab, ode_j_t>;
+    pressio::solvers::linear::iterative::LSCG, ode_j_t>;
   pressio::solvers::NewtonRaphson<scalar_t, lin_solver_t> solverO;
   solverO.setMaxIterations(10);
   // by default, newton raphson exits when norm of correction is below tolerance
@@ -99,8 +99,8 @@ int main(int argc, char *argv[]){
     std::fixed << std::setprecision(10) <<
     elapsed.count() << std::endl;
 
-  // print solution
-  std::cout << std::setprecision(14) << *x.data() << std::endl;
+  // // print solution
+  // std::cout << std::setprecision(14) << *x.data() << std::endl;
 
   return 0;
 }

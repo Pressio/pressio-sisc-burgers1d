@@ -43,12 +43,6 @@ void
 Burgers1dEigen::jacobian(const state_type & u,
 			 const scalar_type & t,
 			 jacobian_type & J) const{
-
-  //evaluate jacobian
-  if (J.rows() == 0 || J.cols()==0 ){
-    J.resize(Ncell_, Ncell_);
-  }
-
   tripletList.clear();
   tripletList.push_back( Tr( 0, 0, -dxInv_*u(0)) );
   for (ui_t i=1; i<Ncell_; ++i){

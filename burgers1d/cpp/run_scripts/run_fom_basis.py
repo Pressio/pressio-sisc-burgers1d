@@ -38,8 +38,7 @@ for iMesh in range(0, len(constants.numCell_cases)):
 
     popen = subprocess.Popen(args, stdout=subprocess.PIPE)
     popen.wait()
-    output = popen.stdout.read()
-    print( output)
+    #output = popen.stdout.read()
 
     childDir=parentDir + '/basis' + str(romSize)
     if not os.path.exists(childDir):
