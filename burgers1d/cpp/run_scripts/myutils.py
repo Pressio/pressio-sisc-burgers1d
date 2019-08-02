@@ -10,7 +10,6 @@ import constants
 # store current directory
 pwd = os.getcwd()
 
-
 # regex for getting timing from code output
 timerRegExp = re.compile(r'Elapsed time: [0-9].\d{9}')
 
@@ -30,10 +29,21 @@ def createInputFileFomForBasis(numCell, samplingFreq):
   os.system("sed -i '' s/numCellValue/" + str(numCell) + "/g input.txt")
   os.system("sed -i '' s/dtValue/" + str(constants.dt) + "/g input.txt")
   os.system("sed -i '' s/finalTimeValue/" + str(constants.finalTime) + "/g input.txt")
-
   os.system("sed -i '' s/observerOnValue/" + str(1) + "/g input.txt")
   os.system("sed -i '' s/shapshotsFreqValue/" + str(samplingFreq) + "/g input.txt")
   os.system("sed -i '' s/shapshotsFileNameValue/snapshots.txt/g input.txt")
   os.system("sed -i '' s/basisFileNameValue/basis.txt/g input.txt")
-
   os.system("sed -i '' s/romOnValue/" + str(0) + "/g input.txt")
+
+
+def createInputFileRom(numCell, romSize):
+  # copy template
+  os.system('cp input.template input.txt')
+  os.system("sed -i '' s/numCellValue/" + str(numCell) + "/g input.txt")
+  os.system("sed -i '' s/dtValue/" + str(constants.dt) + "/g input.txt")
+  os.system("sed -i '' s/finalTimeValue/" + str(constants.finalTime) + "/g input.txt")
+
+  os.system("sed -i '' s/observerOnValue/" + str(0) + "/g input.txt")
+  os.system("sed -i '' s/basisFileNameValue/basis.txt/g input.txt")
+  os.system("sed -i '' s/romOnValue/" + str(1) + "/g input.txt")
+  os.system("sed -i '' s/romSizeValue/" + str(romSize) + "/g input.txt")

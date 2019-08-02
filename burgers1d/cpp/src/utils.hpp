@@ -6,8 +6,8 @@
 
 template <typename T = int>
 void readAsciiMatrixStdVecVec(std::string filename,
-			std::vector<std::vector<double>> & A0,
-			T ncols)
+			      std::vector<std::vector<double>> & A0,
+			      T ncols)
 {
   assert( A0.empty() );
   std::ifstream source;
@@ -26,13 +26,11 @@ void readAsciiMatrixStdVecVec(std::string filename,
 }
 
 template <typename T = int>
-auto convertFromVVecToMultiVec(
-      const std::vector<std::vector<double>> & A0,
-      T nrows, T ncols)
+auto convertFromVVecToMultiVec(const std::vector<std::vector<double>> & A0,
+			       T nrows, T ncols)
   -> pressio::containers::MultiVector<Eigen::MatrixXd>{
 
   pressio::containers::MultiVector<Eigen::MatrixXd> ADW(nrows, ncols);
-
   for (int i=0; i<nrows; i++){
     for (int j=0; j<ncols; j++)
       ADW(i,j) = A0[i][j];
@@ -41,9 +39,8 @@ auto convertFromVVecToMultiVec(
 }
 
 template <typename T = int>
-auto readBasis(
-  std::string filename,
-  T romSize, T numCell)
+auto readBasis(std::string filename,
+	       T romSize, T numCell)
   ->pressio::containers::MultiVector<Eigen::MatrixXd>
 {
   std::vector<std::vector<double>> A0;

@@ -19,13 +19,13 @@ for iMesh in range(0, len(constants.numCell_cases)):
   print("Current numCell = ", numCell)
 
   # create folder
-  parentDir='bases_numCell' + str(numCell)
+  parentDir='numCell' + str(numCell)
   if not os.path.exists(parentDir):
     os.system('mkdir ' + parentDir)
 
   # loop over various basis size
-  for i in range(0, len(constants.romSizes_cases)):
-    romSize = constants.romSizes_cases[i]
+  for i in range(0, len(constants.romSize_cases)):
+    romSize = constants.romSize_cases[i]
     print("Current romSize = ", romSize)
 
     # based on the size of rom and number of ode steps,

@@ -16,6 +16,10 @@ for option; do
 	    WORKINGDIR=`expr "x$option" : "x-*working-dir=\(.*\)"`
 	    ;;
 
+	-with-env-script=* | --with-env-script=* )
+	    SETENVscript=`expr "x$option" : "x-*with-env-script=\(.*\)"`
+	    ;;
+
 	-wipe-existing=* | --wipe-existing=* )
 	    WIPEEXISTING=`expr "x$option" : "x-*wipe-existing=\(.*\)"`
 	    ;;
@@ -48,12 +52,15 @@ Configuration:
 
 --working-dir=				the working directory where we build/run
 
+--with-env-script=<path-to-file>	full path to script to set the environment.
+					default = assumes environment is set.
+
 --wipe-existing=[0/1]			if =1 (true), the build and installation subdirectories of the
 					destination folder set by --target-dir will be wiped and remade.
 					default = 1.
 
 --do=					which case/stage to execute
-					options=buildOnly, fomTiming, fomBasis, rom
+					options=build, fomTiming, fomBasis, rom
 
 EOF
 fi

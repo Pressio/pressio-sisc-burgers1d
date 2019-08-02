@@ -31,13 +31,12 @@ int main(int argc, char *argv[]){
   if (err == 1) return 1;
 
   // store inputs
-  const auto numCell = parser.numCell_;
-  const auto dt = parser.dt_;
-  const auto finalT = parser.finalT_;
+  const auto numCell	= parser.numCell_;
+  const auto dt		= parser.dt_;
+  const auto finalT	= parser.finalT_;
   const auto observerOn = parser.observerOn_;
-  const auto Nsteps = static_cast<unsigned int>(finalT/dt);
-
-  const auto romSize = parser.romSize_;
+  const auto Nsteps	= static_cast<unsigned int>(finalT/dt);
+  const auto romSize	= parser.romSize_;
   const auto basisFileName = parser.basisFileName_;
 
   // app object
@@ -51,7 +50,7 @@ int main(int argc, char *argv[]){
   // create decoder obj
   decoder_t decoderObj(phi);
 
-  // for this problem, my reference state = initial state
+  // the reference state = initial condition
   typename fom_t::state_type yRef(numCell);
   yRef.setConstant(one);
 
@@ -59,6 +58,7 @@ int main(int argc, char *argv[]){
   lspg_state_t yROM(romSize);
   yROM.putScalar(zero);
 
+  // initial time
   constexpr auto t0 = zero;
 
   // define LSPG type

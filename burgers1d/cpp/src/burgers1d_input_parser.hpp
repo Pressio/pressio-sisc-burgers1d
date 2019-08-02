@@ -76,6 +76,9 @@ struct InputParser{
 	  if (col1 == "romSize"){
 	    romSize_ = std::stoi(col2);
 	  }
+	  if (col1 == "basisFileName"){
+	    basisFileName_ = col2;
+	  }
 	}
       }
     source.close();
@@ -84,7 +87,11 @@ struct InputParser{
 	      << dt_ << " "
 	      << finalT_ << " "
 	      << observerOn_ << " "
-	      << shapshotsFileName_
+	      << shapshotsFileName_ << " "
+	      << snapshotsFreq_ << " "
+	      << romOn_ << " "
+	      << romSize_ << " "
+	      << basisFileName_
 	      << std::endl;
 
     if (numCell_==0){
@@ -118,6 +125,10 @@ struct InputParser{
     if (romOn_==1){
       if (romSize_==0){
     	std::cerr << "Invalid rom size" << std::endl;
+    	return 1;
+      }
+      if (basisFileName_=="empty"){
+    	std::cerr << "Invalid basisFileName" << std::endl;
     	return 1;
       }
     }
