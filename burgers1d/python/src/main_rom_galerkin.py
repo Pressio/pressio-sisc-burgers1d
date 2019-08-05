@@ -1,18 +1,16 @@
 
 import numpy as np
 import sys, time
-import pressio4py
+
+# local app class
 from burgers1d import Burgers1d
+
+# pressio bindings modules
+import pressio4py
+import pressio4pyGalerkin
 import pressio4pyOps
 
 np.set_printoptions(linewidth=400)
-
-class MyLinSolver:
-  def __init__(self): pass
-
-  def solve(self,A,b,x):
-    x[:] = np.linalg.solve(A,b)
-
 
 Ncell   = int(float(sys.argv[1]))
 romSize = int(float(sys.argv[2]))
@@ -47,21 +45,12 @@ yRom = np.zeros(romSize)
 
 # the problem
 t0 = 0.
-lspgObj = pressio4py.LspgProblemEuler(appObj, yRef, decoder, yRom, t0, ops)
+galerkinObj = pressio4pyGalerkin.ProblemRK4(appObj, yRef, decoder, yRom, t0, ops)
 
 # get stepper
-stepper = lspgObj.getStepper()
+stepper = galerkinObj.getStepper()
 
-# linear solver
-#lsO = pressio4pyOps.LinSolver()
-lsO = MyLinSolver()
-
-# non linear solver
-nlsO = pressio4py.GaussNewton(stepper, yRom, lsO, ops)
-nlsO.setMaxIterations(5)
-nlsO.setTolerance(1e-13)
-
-pressio4py.integrateNSteps(stepper, yRom, 0.0, dt, Nsteps, nlsO)
+pressio4pyGalerkin.integrateNSteps(stepper, yRom, 0.0, dt, Nsteps)
 
 endTime = time.time()
 elapsed = endTime-startTime

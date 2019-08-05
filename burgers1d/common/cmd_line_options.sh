@@ -12,7 +12,7 @@ for option; do
 	    want_help=yes
 	    ;;
 
-	-working-dir=* | --working-dir=* )
+	-working-dir=* | --working-dir=* | -work-dir=* | --work-dir=*)
 	    WORKINGDIR=`expr "x$option" : "x-*working-dir=\(.*\)"`
 	    ;;
 
@@ -55,12 +55,14 @@ Configuration:
 --with-env-script=<path-to-file>	full path to script to set the environment.
 					default = assumes environment is set.
 
---wipe-existing=[0/1]			if =1 (true), the build and installation subdirectories of the
-					destination folder set by --target-dir will be wiped and remade.
-					default = 1.
+--wipe-existing=[0/1]			if =1 (true), the destination folder set by
+					--target-dir will be wiped and remade.
+					default = 0
 
 --do=					which case/stage to execute
-					options=build, fomTiming, fomBasis, rom
+					options for cpp=build, fomBdf1Timing, fomBdf1Basis,
+							lspg, fomRk4Timing, fomRk4Basis, galerkin
+					options for python=build, fomTiming, fomBasis, rom
 
 EOF
 fi

@@ -1,6 +1,9 @@
 #!/bin/bash
 
+# -----------------------------------------------
 # purpose: builds all exe for the C++ Burgers1d
+# this script is run by do_all_cpp.sh at the top level directory
+# -----------------------------------------------
 
 # go to working dir
 cd ${CPPWORKINGDIR}
@@ -22,7 +25,9 @@ else
 fi
 
 # get tpls (in this case only eigen)
-# Note: does not matter dynamic/static since for Eigen nothing is compiled yet
+# Note that:
+# arch: does not matter for now
+# target-type: does not matter since for Eigen nothing is compiled yet
 if [ ! -d ${CPPWORKINGDIR}/tpls/eigen ]; then
     cd pressio_auto_build/tpls
     bash main_tpls.sh -arch=mac \
@@ -36,7 +41,9 @@ fi
 
 # install pressio
 # (do not build tests, just install with cmake which we need because of the cmakedefines)
-# Note: does not matter dynamic/static/release/debug since nothing is compiled yet
+# Note that:
+# arch: does not matter for now
+# target-type: does not matter since for Eigen nothing is compiled yet
 if [ ! -d ${CPPWORKINGDIR}/tpls/pressio ]; then
     cd pressio_auto_build/pressio
     bash main_pressio.sh -arch=mac \
@@ -62,18 +69,21 @@ PRESSIOPATH="${CPPWORKINGDIR}/tpls/pressio/install/include"
 # build Burgers1d C++ exes
 bdirname=build
 #check if build dir exists
-[[ ! -d ${bdirname} ]] && mkdir ${bdirname}
-# enter
-cd ${bdirname}
-cmake -DCMAKE_C_COMPILER=${CC} \
-      -DCMAKE_CXX_COMPILER=${CXX} \
-      -DCMAKE_VERBOSE_MAKEFILE:BOOL=TRUE \
-      -DCMAKE_BUILD_TYPE=Release \
-      -DEIGEN_INCLUDE_DIR=${EIGENPATH} \
-      -DPRESSIO_INCLUDE_DIR=${PRESSIOPATH} \
-      ${CPPSRC}
-make -j4
-cd ..
+if [ ! -d ${bdirname} ]; then
+    mkdir ${bdirname}
+else
+    # enter
+    cd ${bdirname} && rm -rf *
+    cmake -DCMAKE_C_COMPILER=${CC} \
+	  -DCMAKE_CXX_COMPILER=${CXX} \
+	  -DCMAKE_VERBOSE_MAKEFILE:BOOL=TRUE \
+	  -DCMAKE_BUILD_TYPE=Release \
+	  -DEIGEN_INCLUDE_DIR=${EIGENPATH} \
+	  -DPRESSIO_INCLUDE_DIR=${PRESSIOPATH} \
+	  ${CPPSRC}
+    make -j4
+    cd ..
+fi
 
 # go back where we started
 cd ${topDir}

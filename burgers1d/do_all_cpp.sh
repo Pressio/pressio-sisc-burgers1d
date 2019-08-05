@@ -5,13 +5,13 @@
 # -----------------------------------------------
 
 # load global variables
-source global_vars.sh
+source ${PWD}/common/global_vars.sh
 
 # parse cline arguments
-source cmd_line_options.sh
+source ${PWD}/common/cmd_line_options.sh
 
 # check that all basic variables are set, otherwise leave
-check_minimum_vars_set
+check_minimum_vars_set_cpp
 
 echo ""
 echo "--------------------------------------------"
@@ -39,16 +39,17 @@ CPPWORKINGDIR=${WORKINGDIR}/cpp
 [[ $WIPEEXISTING = 1 ]] && rm -rf ${CPPWORKINGDIR}/*
 
 #---------------------------
-# only build all exes
+# do build all c++ exes
 #---------------------------
 if [ $WHICHTASK = "build" ]; then
     source ${topDir}/cpp/build_scripts/build.sh
 fi
 
 #---------------------------
-# only run fom timing
+# fom timing
 #---------------------------
-if [ $WHICHTASK = "fomTiming" ]; then
+if [ $WHICHTASK = "fomBdf1Timing" ] || [ $WHICHTASK = "fomRk4Timing" ];
+then
     # check if the build was already done
     if [ ! -d ${CPPWORKINGDIR}/build ]; then
 	echo "there is no build in the target folder, do that first"
@@ -56,29 +57,34 @@ if [ $WHICHTASK = "fomTiming" ]; then
     fi
 
     # create folder inside workindir
-    destDir=${CPPWORKINGDIR}/fom_timings
+    destDir=${CPPWORKINGDIR}/"data_"${WHICHTASK}
     mkdir ${destDir}
-    # copy all pything scripts there
-    cp ${topDir}/cpp/run_scripts/myutils.py ${destDir}/
-    cp ${topDir}/cpp/run_scripts/run_fom_timing.py ${destDir}/
-    cp ${topDir}/common/*.py ${destDir}/
 
-    # link the executable
-    ln -s ${CPPWORKINGDIR}/build/burgers1d_fom ${destDir}
+    # link the executable from build directory
+    EXENAME=
+    [[ $WHICHTASK = "fomBdf1Timing" ]] && EXENAME=burgers1d_fom_bdf1
+    [[ $WHICHTASK = "fomRk4Timing" ]] && EXENAME=burgers1d_fom_rk4
+    ln -s ${CPPWORKINGDIR}/build/${EXENAME} ${destDir}
 
     # copy the template input
     cp ${topDir}/cpp/src/input.template ${destDir}
 
-    # enter there and run
+    # copy python scripts there
+    cp ${topDir}/cpp/run_scripts/myutils.py ${destDir}/
+    cp ${topDir}/cpp/run_scripts/run_fom_timing.py ${destDir}/
+    cp ${topDir}/common/*.py ${destDir}/
+
+    # enter and run
     cd ${destDir}
-    python run_fom_timing.py
+    python run_fom_timing.py --exe ${EXENAME}
     cd ${topDir}
 fi
 
 #---------------------------
-# run fom to generate basis
+# fom to generate basis
 #---------------------------
-if [ $WHICHTASK = "fomBasis" ]; then
+if [ $WHICHTASK = "fomBdf1Basis" ] || [ $WHICHTASK = "fomRk4Basis" ];
+then
     # check if the build was already done
     if [ ! -d ${CPPWORKINGDIR}/build ]; then
 	echo "there is no build in the target folder, do that first"
@@ -86,57 +92,70 @@ if [ $WHICHTASK = "fomBasis" ]; then
     fi
 
     # create folder inside workindir
-    destDir=${CPPWORKINGDIR}/fom_basis
+    destDir=${CPPWORKINGDIR}/"data_"${WHICHTASK}
     mkdir ${destDir}
+
+    # link the executable from build directory
+    EXENAME=
+    [[ $WHICHTASK = "fomBdf1Basis" ]] && EXENAME=burgers1d_fom_bdf1
+    [[ $WHICHTASK = "fomRk4Basis" ]] && EXENAME=burgers1d_fom_rk4
+    ln -s ${CPPWORKINGDIR}/build/${EXENAME} ${destDir}
+
+    # copy the template input
+    cp ${topDir}/cpp/src/input.template ${destDir}
+
     # copy all pything scripts there
     cp ${topDir}/cpp/run_scripts/myutils.py ${destDir}/
     cp ${topDir}/cpp/run_scripts/run_fom_basis.py ${destDir}/
     cp ${topDir}/common/*.py ${destDir}/
 
-    # link the executable
-    ln -s ${CPPWORKINGDIR}/build/burgers1d_fom ${destDir}
-
-    # copy the template input
-    cp ${topDir}/cpp/src/input.template ${destDir}
-
     # enter there and run
     cd ${destDir}
-    python run_fom_basis.py
+    python run_fom_basis.py --exe ${EXENAME}
     cd ${topDir}
 fi
 
 
 #---------------------------
-# rom
+# rom: lspg or galerkin
 #---------------------------
-if [ $WHICHTASK = "rom" ]; then
+if [ $WHICHTASK = "lspg" ] || [ $WHICHTASK = "galerkin" ];
+then
     # check if the build was already done
     if [ ! -d ${CPPWORKINGDIR}/build ]; then
 	echo "there is no build in the target folder, do that first"
 	exit 0
     fi
+
     # check if the basis are present
-    if [ ! -d ${CPPWORKINGDIR}/fom_basis ]; then
+    BASISDIRNAME=
+    [[ $WHICHTASK = "lspg" ]] && BASISDIRNAME=fomBdf1Basis
+    [[ $WHICHTASK = "galerkin" ]] && BASISDIRNAME=fomRk4Basis
+    if [ ! -d ${CPPWORKINGDIR}/"data_"${BASISDIRNAME} ]; then
 	echo "there is not basis dir in the target folder, do that first"
 	exit 0
     fi
 
     # create folder inside workindir
-    destDir=${CPPWORKINGDIR}/rom_timings
+    destDir=${CPPWORKINGDIR}/"data_"${WHICHTASK}
     mkdir ${destDir}
-    # copy all pything scripts there
-    cp ${topDir}/cpp/run_scripts/myutils.py ${destDir}/
-    cp ${topDir}/cpp/run_scripts/run_rom_timing.py ${destDir}/
-    cp ${topDir}/common/*.py ${destDir}/
 
     # link the executable
-    ln -s ${CPPWORKINGDIR}/build/burgers1d_rom ${destDir}
+    EXENAME=
+    [[ $WHICHTASK = "lspg" ]] && EXENAME=burgers1d_rom_lspg
+    [[ $WHICHTASK = "galerkin" ]] && EXENAME=burgers1d_rom_galerkin
+    ln -s ${CPPWORKINGDIR}/build/${EXENAME} ${destDir}
 
     # copy the template input
     cp ${topDir}/cpp/src/input.template ${destDir}
 
+    # copy all python scripts there
+    cp ${topDir}/cpp/run_scripts/myutils.py ${destDir}/
+    cp ${topDir}/cpp/run_scripts/run_rom_timing.py ${destDir}/
+    cp ${topDir}/common/*.py ${destDir}/
+
     # enter there and run
     cd ${destDir}
-    python run_rom_timing.py
+    python run_rom_timing.py --exe ${EXENAME} --basis-dir-name=${BASISDIRNAME}
     cd ${topDir}
 fi

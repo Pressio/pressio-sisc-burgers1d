@@ -5,63 +5,73 @@ import subprocess
 import numpy as np
 import os.path
 import re
+from argparse import ArgumentParser
 
 import constants
-
-# regex for getting timing from code output
-timerRegExp = re.compile(r'Elapsed time: [0-9].\d{9}')
 
 #-------------------------------------------------------
 # scope: generate timings for Python Burgers1D rom
 #-------------------------------------------------------
 
-# data stored as:
-# - first col  = mesh size
-# - second col = rom size
-# - then       = timings
+# regex for getting timing from code output
+timerRegExp = re.compile(r'Elapsed time: [0-9].\d{9}')
 
-nCols = constants.numSamplesForTiming+2
-data = np.zeros((len(constants.numCell_cases), nCols))
+def main(exename, basisDirName):
+  # data stored as:
+  # - first col  = mesh size
+  # - second col = rom size
+  # - then       = timings
 
-# store parent directory where all basis are stored
-basisParentDir = os.getcwd() + "/../../cpp/fom_basis"
+  nCols = constants.numSamplesForTiming+2
+  data = np.zeros((len(constants.numCell_cases), nCols))
 
-# loop over mesh sizes
-for iMesh in range(0, len(constants.numCell_cases)):
-  numCell = constants.numCell_cases[iMesh]
-  print("Current numCell = ", numCell)
+  # store parent directory where all basis are stored
+  basisParentDir = os.getcwd() + "/../../cpp/data_" + basisDirName
 
-  # loop over ROM sizes
-  for iRom in range(0, len(constants.romSize_cases)):
-    romSize = constants.romSize_cases[iRom]
-    print("Current romSize = ", romSize)
+  # loop over mesh sizes
+  for iMesh in range(0, len(constants.numCell_cases)):
+    numCell = constants.numCell_cases[iMesh]
+    print("Current numCell = ", numCell)
 
-    data[iMesh][0] = numCell
-    data[iMesh][1] = romSize
+    # loop over ROM sizes
+    for iRom in range(0, len(constants.romSize_cases)):
+      romSize = constants.romSize_cases[iRom]
+      print("Current romSize = ", romSize)
 
-    # copy basis here
-    subs1 = "numCell" + str(numCell)
-    subs2 = "basis" + str(romSize)
-    basisDir = basisParentDir + "/" + subs1 + "/" + subs2
-    os.system("cp "+basisDir+"/basis.txt .")
+      data[iMesh][0] = numCell
+      data[iMesh][1] = romSize
 
-    # args to run (args changes since each replica
-    # is done with different values of inputs)
-    args = ("python", "main_rom.py",
-            str(numCell), str(romSize),
-            str(constants.numSteps), str(constants.dt))
+      # copy basis here
+      subs1 = "numCell" + str(numCell)
+      subs2 = "basis" + str(romSize)
+      basisDir = basisParentDir + "/" + subs1 + "/" + subs2
+      os.system("cp "+basisDir+"/basis.txt .")
 
-    for i in range(0, constants.numSamplesForTiming):
-      popen = subprocess.Popen(args, stdout=subprocess.PIPE)
-      popen.wait()
-      output = popen.stdout.read()
-      # find timing
-      res = re.search(timerRegExp, str(output))
-      time = float(res.group().split()[2])
-      print("time = ", time)
-      # store
-      data[iMesh][i+2] = time
+      # args to run (args changes since each replica
+      # is done with different values of inputs)
+      args = ("python", exename+".py",
+              str(numCell), str(romSize),
+              str(constants.numSteps), str(constants.dt))
 
-#np.savetxt("rom_timings.txt", data, fmt='%.12f')
-#print(data)
-print ("done")
+      for i in range(0, constants.numSamplesForTiming):
+        popen = subprocess.Popen(args, stdout=subprocess.PIPE)
+        popen.wait()
+        output = popen.stdout.read()
+        # find timing
+        res = re.search(timerRegExp, str(output))
+        time = float(res.group().split()[2])
+        print("time = ", time)
+        # store
+        data[iMesh][i+2] = time
+
+  np.savetxt(exename+"_timings.txt", data, fmt='%.12f')
+  print(data)
+
+
+if __name__== "__main__":
+  parser = ArgumentParser()
+  parser.add_argument("-exe", "--exe", dest="exename")
+  parser.add_argument("-basis-dir-name", "--basis-dir-name",
+                      dest="basisDirName")
+  args = parser.parse_args()
+  main(args.exename, args.basisDirName)
