@@ -13,9 +13,6 @@ import constants
 # scope: generate timings for Python Burgers1D rom
 #-------------------------------------------------------
 
-# regex for getting timing from code output
-timerRegExp = re.compile(r'Elapsed time: [0-9].\d{9}')
-
 def main(exename, basisDirName):
   # data stored as:
   # - first col  = mesh size
@@ -57,8 +54,9 @@ def main(exename, basisDirName):
         popen = subprocess.Popen(args, stdout=subprocess.PIPE)
         popen.wait()
         output = popen.stdout.read()
+        print(output)
         # find timing
-        res = re.search(timerRegExp, str(output))
+        res = re.search(constants.timerRegExp, str(output))
         time = float(res.group().split()[2])
         print("time = ", time)
         # store

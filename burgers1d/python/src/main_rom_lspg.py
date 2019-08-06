@@ -64,7 +64,7 @@ lsO = MyLinSolver()
 
 # non linear solver
 nlsO = pressio4pyLspg.GaussNewton(stepper, yRom, lsO, ops)
-nlsO.setMaxIterations(5)
+nlsO.setMaxIterations(10)
 nlsO.setTolerance(1e-13)
 
 pressio4pyLspg.integrateNSteps(stepper, yRom, 0.0, dt, Nsteps, nlsO)
@@ -74,4 +74,5 @@ elapsed = endTime-startTime
 
 print("Elapsed time: {0:10.10f} ".format(elapsed) )
 
-print (yRom)
+print ("Printing first 5 elements of gen coords")
+print (np.atleast_2d(yRom[:5]).T)

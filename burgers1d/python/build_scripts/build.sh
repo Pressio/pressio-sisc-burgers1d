@@ -84,7 +84,7 @@ cmake -DCMAKE_C_COMPILER=${CC} \
       -DPYBIND11_DIR=${PYBIND11PATH} \
       -DPRESSIO_INCLUDE_DIR=${PRESSIOPATH} \
       ../pressio4py
-make -j4
+make -j6
 
 # I also need the ops
 cp ../pressio4py/src/ops/pressio4pyOps.py .

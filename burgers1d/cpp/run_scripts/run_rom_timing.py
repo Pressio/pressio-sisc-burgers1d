@@ -55,8 +55,9 @@ def main(exename, basisDirName):
         popen = subprocess.Popen(args, stdout=subprocess.PIPE)
         popen.wait()
         output = popen.stdout.read()
+        print(output)
         # find timing
-        res = re.search(myutils.timerRegExp, str(output))
+        res = re.search(constants.timerRegExp, str(output))
         time = float(res.group().split()[2])
         print("time = ", time)
         # store

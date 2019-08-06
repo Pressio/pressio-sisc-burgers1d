@@ -38,7 +38,7 @@ def main(exename):
       output = popen.stdout.read()
 
       # find timing
-      res = re.search(myutils.timerRegExp, str(output))
+      res = re.search(constants.timerRegExp, str(output))
       time = float(res.group().split()[2])
       # store
       data[iMesh][i+1] = time

@@ -4,6 +4,8 @@
 # handle all steps for the C++ Burgers1d
 # -----------------------------------------------
 
+export OPENBLAS_NUM_THREADS=1
+
 # load global variables
 source ${PWD}/common/global_vars.sh
 
@@ -64,6 +66,7 @@ then
     EXENAME=
     [[ $WHICHTASK = "fomBdf1Timing" ]] && EXENAME=burgers1d_fom_bdf1
     [[ $WHICHTASK = "fomRk4Timing" ]] && EXENAME=burgers1d_fom_rk4
+    [[ -f ${destDir}/${EXENAME} ]] && rm ${destDir}/${EXENAME}
     ln -s ${CPPWORKINGDIR}/build/${EXENAME} ${destDir}
 
     # copy the template input
@@ -99,6 +102,7 @@ then
     EXENAME=
     [[ $WHICHTASK = "fomBdf1Basis" ]] && EXENAME=burgers1d_fom_bdf1
     [[ $WHICHTASK = "fomRk4Basis" ]] && EXENAME=burgers1d_fom_rk4
+    [[ -f ${destDir}/${EXENAME} ]] && rm ${destDir}/${EXENAME}
     ln -s ${CPPWORKINGDIR}/build/${EXENAME} ${destDir}
 
     # copy the template input
@@ -144,6 +148,7 @@ then
     EXENAME=
     [[ $WHICHTASK = "lspg" ]] && EXENAME=burgers1d_rom_lspg
     [[ $WHICHTASK = "galerkin" ]] && EXENAME=burgers1d_rom_galerkin
+    [[ -f ${destDir}/${EXENAME} ]] && rm ${destDir}/${EXENAME}
     ln -s ${CPPWORKINGDIR}/build/${EXENAME} ${destDir}
 
     # copy the template input

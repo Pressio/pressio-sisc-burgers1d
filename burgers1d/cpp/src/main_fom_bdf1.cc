@@ -58,7 +58,7 @@ int main(int argc, char *argv[]){
   pressio::solvers::NewtonRaphson<scalar_t, lin_solver_t> solverO;
   solverO.setMaxIterations(10);
   // by default, newton raphson exits when norm of correction is below tolerance
-  solverO.setTolerance(1e-12);
+  solverO.setTolerance(1e-13);
 
   // integrate in time
   if (observerOn == 1){

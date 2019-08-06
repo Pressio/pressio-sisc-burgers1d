@@ -81,7 +81,7 @@ else
 	  -DEIGEN_INCLUDE_DIR=${EIGENPATH} \
 	  -DPRESSIO_INCLUDE_DIR=${PRESSIOPATH} \
 	  ${CPPSRC}
-    make -j4
+    make -j6
     cd ..
 fi
 

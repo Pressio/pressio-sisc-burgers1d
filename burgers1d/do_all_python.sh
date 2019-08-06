@@ -4,6 +4,8 @@
 # handle all steps for the Python Burgers1d
 # -----------------------------------------------
 
+export OPENBLAS_NUM_THREADS=1
+
 # load global variables
 source ${PWD}/common/global_vars.sh
 
@@ -75,14 +77,18 @@ then
     [[ $WHICHTASK = "galerkin" ]] && EXENAME=main_rom_galerkin
 
     # link the bindings library
+    [[ -f ${destDir}/pressio4py.so ]] && rm ${destDir}/pressio4py.so
     ln -s ${PYWORKINGDIR}/build/pressio4py.so ${destDir}
     if [ $WHICHTASK = "lspg" ]; then
+	[[ -f ${destDir}/pressio4pyLspg.so ]] && rm ${destDir}/pressio4pyLspg.so
 	ln -s ${PYWORKINGDIR}/build/pressio4pyLspg.so ${destDir}
     fi
     if [ $WHICHTASK = "galerkin" ]; then
+	[[ -f ${destDir}/pressio4pyGalerkin.so ]] && rm ${destDir}/pressio4pyGalerkin.so
 	ln -s ${PYWORKINGDIR}/build/pressio4pyGalerkin.so ${destDir}
     fi
     # link the ops
+    [[ -f ${destDir}/pressio4pyOps.so ]] && rm ${destDir}/pressio4pyOps.so
     ln -s ${PYWORKINGDIR}/build/pressio4pyOps.py ${destDir}
 
     # copy all pything scripts there

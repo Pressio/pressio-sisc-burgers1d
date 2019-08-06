@@ -10,9 +10,6 @@ import constants
 # store current directory
 pwd = os.getcwd()
 
-# regex for getting timing from code output
-timerRegExp = re.compile(r'Elapsed time: [0-9].\d{9}')
-
 def createInputFileFomTiming(numCell):
   # copy template
   os.system('cp input.template input.txt')

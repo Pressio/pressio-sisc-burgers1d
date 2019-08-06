@@ -17,10 +17,7 @@ romSize = int(float(sys.argv[2]))
 Nsteps  = int(float(sys.argv[3]))
 dt      = float(sys.argv[4])
 
-print(Ncell)
-print(romSize)
-print(Nsteps)
-print(dt)
+print(Ncell, romSize, Nsteps, dt)
 
 # start timer
 startTime = time.time()
@@ -50,11 +47,12 @@ galerkinObj = pressio4pyGalerkin.ProblemRK4(appObj, yRef, decoder, yRom, t0, ops
 # get stepper
 stepper = galerkinObj.getStepper()
 
-pressio4pyGalerkin.integrateNSteps(stepper, yRom, 0.0, dt, Nsteps)
+pressio4pyGalerkin.integrateNStepsRK4(stepper, yRom, 0.0, dt, Nsteps)
 
 endTime = time.time()
 elapsed = endTime-startTime
 
 print("Elapsed time: {0:10.10f} ".format(elapsed) )
 
-print (yRom)
+print ("Printing first 5 elements of gen coords")
+print (np.atleast_2d(yRom[:5]).T)

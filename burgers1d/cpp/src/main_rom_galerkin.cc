@@ -77,7 +77,9 @@ int main(int argc, char *argv[]){
     std::fixed << std::setprecision(10) <<
     elapsed.count() << std::endl;
 
-  std::cout << *yROM.data() << std::endl;
+  std::cout << "Printing first 5 elements of gen coords" << std::endl;
+  for (int i=0; i<5; ++i)
+    std::cout << (*yROM.data())[i] << std::endl;
 
   // // compute the fom corresponding to our rom final state
   // auto yFomFinal = romProblem.yFomReconstructor_(yROM);

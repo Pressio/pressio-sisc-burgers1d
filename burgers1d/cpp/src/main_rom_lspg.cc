@@ -86,7 +86,7 @@ int main(int argc, char *argv[]){
   gnsolver_t solver(lspgProblem.stepperObj_, yROM, linSolverObj);
   solver.setTolerance(1e-13);
   // I know this should converge in few iters every step
-  solver.setMaxIterations(5);
+  solver.setMaxIterations(10);
 
   // integrate in time
   pressio::ode::integrateNSteps(lspgProblem.stepperObj_, yROM, t0, dt, Nsteps, solver);
@@ -98,7 +98,9 @@ int main(int argc, char *argv[]){
     std::fixed << std::setprecision(10) <<
     elapsed.count() << std::endl;
 
-  std::cout << *yROM.data() << std::endl;
+  std::cout << "Printing first 5 elements of gen coords" << std::endl;
+  for (int i=0; i<5; ++i)
+    std::cout << (*yROM.data())[i] << std::endl;
 
   // // compute the fom corresponding to our rom final state
   // auto yFomFinal = lspgProblem.yFomReconstructor_(yROM);
