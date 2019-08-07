@@ -4,8 +4,6 @@
 # handle all steps for the Python Burgers1d
 # -----------------------------------------------
 
-export OPENBLAS_NUM_THREADS=1
-
 # load global variables
 source ${PWD}/common/global_vars.sh
 
