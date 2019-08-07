@@ -62,7 +62,7 @@ Configuration:
 --do=					which case/stage to execute
 					options for cpp=build, fomBdf1Timing, fomBdf1Basis,
 							lspg, fomRk4Timing, fomRk4Basis, galerkin
-					options for python=build, fomTiming, fomBasis, rom
+					options for python=build, lspg, galerkin
 
 EOF
 fi
