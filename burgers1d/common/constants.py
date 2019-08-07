@@ -13,7 +13,7 @@ numSteps = 1000
 finalTime = numSteps*dt
 
 # mesh sizes
-numCell_cases = np.array([5000])#, 5000, 10000, 50000, 100000])
+numCell_cases = np.array([500])#, 5000, 10000, 50000, 100000])
 
 # rom sizes: remember that ROM size has to be smaller than mesh
 romSize_cases = np.array([50])#, 50, 100])
