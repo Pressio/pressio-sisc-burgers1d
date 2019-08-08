@@ -3,6 +3,7 @@
 #include "ODE_ALL"
 #include "SOLVERS_NONLINEAR"
 #include "ROM_LSPG"
+#include <chrono>
 #include "utils.hpp"
 #include "burgers1d_input_parser.hpp"
 #include "burgers1d_eigen.hpp"

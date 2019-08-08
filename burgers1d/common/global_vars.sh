@@ -47,7 +47,7 @@ check_minimum_vars_set(){
 	echo " for do_all_cpp, choose one of: build, fomBdf1Timing,"\
 	     "fomBdf1Basis, lspg, fomRk4Timing, fomRk4Basis, galerkin"
 
-	echo " for do_all_python, choose one of: build, rom"
+	echo " for do_all_python, choose one of: build, lspg, galerkin"
 	exit 0
     fi
 }

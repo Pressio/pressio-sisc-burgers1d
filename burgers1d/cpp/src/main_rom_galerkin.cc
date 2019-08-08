@@ -2,6 +2,7 @@
 #include "CONTAINERS_ALL"
 #include "ODE_ALL"
 #include "ROM_GALERKIN"
+#include <chrono>
 #include "utils.hpp"
 #include "burgers1d_input_parser.hpp"
 #include "burgers1d_eigen.hpp"
