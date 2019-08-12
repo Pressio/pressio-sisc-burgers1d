@@ -12,11 +12,9 @@ int main(int argc, char *argv[]){
   using scalar_t	= typename app_t::scalar_type;
   using app_state_t	= typename app_t::state_type;
   using app_velo_t	= typename app_t::velocity_type;
-  using app_jacob_t	= typename app_t::jacobian_type;
 
   using ode_state_t = pressio::containers::Vector<app_state_t>;
-  using ode_r_t	    = pressio::containers::Vector<app_velo_t>;
-  using ode_j_t     = pressio::containers::Matrix<app_jacob_t>;
+  using ode_velo_t  = pressio::containers::Vector<app_velo_t>;
 
   constexpr auto zero = ::pressio::utils::constants::zero<scalar_t>();
   constexpr auto one  = ::pressio::utils::constants::one<scalar_t>();
@@ -48,7 +46,7 @@ int main(int argc, char *argv[]){
   // define stepper
   constexpr auto ode_case = pressio::ode::ExplicitEnum::RungeKutta4;
   using stepper_t = pressio::ode::ExplicitStepper<
-    ode_case, ode_state_t, ode_r_t, scalar_t, app_t>;
+    ode_case, ode_state_t, ode_velo_t, scalar_t, app_t>;
   stepper_t stepperObj(x, appObj);
 
   // integrate in time

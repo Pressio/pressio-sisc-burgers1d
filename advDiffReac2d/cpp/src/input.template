@@ -1,0 +1,15 @@
+
+meshFileName meshFileNameValue
+
+dt dtValue
+finalTime finalTimeValue
+
+diffusion diffusionValue
+chemReaction chemReactionValue
+
+observerOn observerOnValue
+shapshotsFreq shapshotsFreqValue
+shapshotsFileName shapshotsFileNameValue
+romOn romOnValue
+romSize romSizeValue
+basisFileName basisFileNameValue
