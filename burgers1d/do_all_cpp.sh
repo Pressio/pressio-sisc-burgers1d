@@ -48,7 +48,7 @@ fi
 #---------------------------
 # fom timing
 #---------------------------
-if [ $WHICHTASK = "fomBdf1Timing" ] || [ $WHICHTASK = "fomRk4Timing" ];
+if [ $WHICHTASK = "fom_bdf1_timing" ] || [ $WHICHTASK = "fom_rk4_timing" ];
 then
     # check if the build was already done
     if [ ! -d ${CPPWORKINGDIR}/build ]; then
@@ -62,8 +62,8 @@ then
 
     # link the executable from build directory
     EXENAME=
-    [[ $WHICHTASK = "fomBdf1Timing" ]] && EXENAME=burgers1d_fom_bdf1
-    [[ $WHICHTASK = "fomRk4Timing" ]] && EXENAME=burgers1d_fom_rk4
+    [[ $WHICHTASK = "fom_bdf1_timing" ]] && EXENAME=burgers1d_fom_bdf1
+    [[ $WHICHTASK = "fom_rk4_timing" ]] && EXENAME=burgers1d_fom_rk4
     [[ -f ${destDir}/${EXENAME} ]] && rm ${destDir}/${EXENAME}
     ln -s ${CPPWORKINGDIR}/build/${EXENAME} ${destDir}
 
@@ -84,7 +84,7 @@ fi
 #---------------------------
 # fom to generate basis
 #---------------------------
-if [ $WHICHTASK = "fomBdf1Basis" ] || [ $WHICHTASK = "fomRk4Basis" ];
+if [ $WHICHTASK = "fom_bdf1_basis" ] || [ $WHICHTASK = "fom_rk4_basis" ];
 then
     # check if the build was already done
     if [ ! -d ${CPPWORKINGDIR}/build ]; then
@@ -98,8 +98,8 @@ then
 
     # link the executable from build directory
     EXENAME=
-    [[ $WHICHTASK = "fomBdf1Basis" ]] && EXENAME=burgers1d_fom_bdf1
-    [[ $WHICHTASK = "fomRk4Basis" ]] && EXENAME=burgers1d_fom_rk4
+    [[ $WHICHTASK = "fom_bdf1_basis" ]] && EXENAME=burgers1d_fom_bdf1
+    [[ $WHICHTASK = "fom_rk4_basis" ]] && EXENAME=burgers1d_fom_rk4
     [[ -f ${destDir}/${EXENAME} ]] && rm ${destDir}/${EXENAME}
     ln -s ${CPPWORKINGDIR}/build/${EXENAME} ${destDir}
 
@@ -131,8 +131,8 @@ then
 
     # check if the basis are present
     BASISDIRNAME=
-    [[ $WHICHTASK = "lspg" ]] && BASISDIRNAME=fomBdf1Basis
-    [[ $WHICHTASK = "galerkin" ]] && BASISDIRNAME=fomRk4Basis
+    [[ $WHICHTASK = "lspg" ]] && BASISDIRNAME=fom_bdf1_basis
+    [[ $WHICHTASK = "galerkin" ]] && BASISDIRNAME=fom_rk4_basis
     if [ ! -d ${CPPWORKINGDIR}/"data_"${BASISDIRNAME} ]; then
 	echo "there is not basis dir in the target folder, do that first"
 	exit 0

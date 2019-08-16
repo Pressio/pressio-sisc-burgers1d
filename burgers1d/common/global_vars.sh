@@ -44,8 +44,9 @@ check_minimum_vars_set(){
     fi
     if [ -z $WHICHTASK ]; then
 	echo "--do is empty, must be set"
-	echo " for do_all_cpp, choose one of: build, fomBdf1Timing,"\
-	     "fomBdf1Basis, lspg, fomRk4Timing, fomRk4Basis, galerkin"
+	echo " for do_all_cpp, choose one of: build, fom_bdf1_timing,"\
+	     "fom_bdf1_basis, lspg, fom_rk4_timing,"\
+	     "fom_rk4_basis, galerkin"
 
 	echo " for do_all_python, choose one of: build, lspg, galerkin"
 	exit 0
@@ -57,16 +58,17 @@ check_minimum_vars_set_cpp(){
     check_minimum_vars_set
 
     if [ ${WHICHTASK} != build ] &&\
-	   [ ${WHICHTASK} != fomBdf1Timing ] &&\
-	   [ ${WHICHTASK} != fomBdf1Basis ] &&\
+	   [ ${WHICHTASK} != fom_bdf1_timing ] &&\
+	   [ ${WHICHTASK} != fom_bdf1_basis ] &&\
 	   [ ${WHICHTASK} != lspg ] &&\
-	   [ ${WHICHTASK} != fomRk4Timing ] &&\
-	   [ ${WHICHTASK} != fomRk4Basis ] &&\
+	   [ ${WHICHTASK} != fom_rk4_timing ] &&\
+	   [ ${WHICHTASK} != fom_rk4_basis ] &&\
 	   [ ${WHICHTASK} != galerkin ];
     then
 	echo "--do is set to non-admissible value"
-	echo "choose one of: build, fomBdf1Timing,"\
-	     "fomBdf1Basis, lspg, fomRk4Timing, fomRk4Basis, galerkin"
+	echo "choose one of: build, fom_bdf1_timing,"\
+	     "fom_bdf1_basis, lspg, fom_rk4_timing,"\
+	     "fom_rk4_basis, galerkin"
 	exit 0
     fi
 }
