@@ -85,7 +85,7 @@ def createListTargetResidualGIDs(nx, ny, numCells, x, y):
 
 
 L = [1., 1.]
-Nx = 20
+Nx = 5
 Ny = Nx
 numCells = Nx*Ny
 dx,dy = L[0]/Nx, L[1]/Ny

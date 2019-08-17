@@ -10,20 +10,20 @@ import os.path
 #------------------------------------------------------
 
 dt = 0.005
-numSteps = 1000
+numSteps = 50
 finalTime = numSteps*dt
 
 diffusion = 0.001
 chemReaction = 10.
 
 # mesh sizes
-numCell_cases = np.array([5])
+numCell_cases = np.array([128])
 
 # rom sizes: remember that ROM size has to be smaller than mesh
-romSize_cases = np.array([10])#, 50, 100])
+romSize_cases = np.array([5, 10])#, 50, 100])
 
 # number of samples to run to compute timing statistics
-numSamplesForTiming = 1
+numSamplesForTiming = 5
 
 # regex for getting timing from code output
 # \d{1,} match one or more (any) digits before the .

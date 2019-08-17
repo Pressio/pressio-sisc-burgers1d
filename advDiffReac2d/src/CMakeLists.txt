@@ -1,11 +1,14 @@
 
 cmake_minimum_required(VERSION 2.8.12)
-project(burgers1dcpp)
+project(adr2d)
 
+# every exe needs these includes and link dirs
 include_directories(
   ${EIGEN_INCLUDE_DIR} ${TRILINOS_INCLUDE_DIR} ${PRESSIO_INCLUDE_DIR}
   )
-link_directories(${TRILINOS_LIBRARY_DIR})
+link_directories(
+  ${BLAS_LIB_DIR} ${LAPACK_LIB_DIR} ${TRILINOS_LIBRARY_DIR}
+  )
 
 set(TRILLIBNAMES
   kokkosalgorithms kokkoscontainers kokkoscore teuchoskokkoscomm teuchoskokkoscompat
@@ -16,46 +19,65 @@ set(TRILLIBNAMES
   kokkosalgorithms teuchosparameterlist
 )
 
-# where the mains are located
-set(MAINDIR ${CMAKE_CURRENT_SOURCE_DIR}/mains)
-
-# common headers
-set(COMMONHEADERS
-  ${CMAKE_CURRENT_SOURCE_DIR}/input_parser.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/utils.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/functors/advection_field_functors.hpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/functors/source_term_functors.hpp)
-
-# headers just for eigen
-set(EIGENHEADERS ${CMAKE_CURRENT_SOURCE_DIR}/adr2d_eigen.hpp)
-
 #-------------------
 # EIGEN exes
 #-------------------
-# Manufactured solution problem, Eigen, fom, rk4
-set(SRCS_EIGEN_MS_FOM_RK4 ${MAINDIR}/main_eigen_ms_fom_rk4.cc)
-add_executable(adr2d_eigen_ms_fom_rk4 ${SRCS_EIGEN_MS_FOM_RK4} ${COMMONHEADERS} ${EIGENHEADERS})
-target_link_libraries(adr2d_eigen_ms_fom_rk4 ${TRILLIBNAMES})
+# where the mains are located
+set(EIGENMAINDIR ${CMAKE_CURRENT_SOURCE_DIR}/mains_eigen)
 
-# Manufactured solution problem, Eigen, fom, bdf1
-set(SRCS_EIGEN_MS_FOM_BDF1 ${MAINDIR}/main_eigen_ms_fom_bdf1.cc)
-add_executable(adr2d_eigen_ms_fom_bdf1 ${SRCS_EIGEN_MS_FOM_BDF1} ${COMMONHEADERS} ${EIGENHEADERS})
-target_link_libraries(adr2d_eigen_ms_fom_bdf1 ${TRILLIBNAMES})
+# eigen includes
+set(EIGENINCDIRS
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/functors)
 
-# chemical problem, Eigen, fom, rk4
-set(SRCS_EIGEN_CHEM_FOM_RK4 ${MAINDIR}/main_eigen_chem_fom_rk4.cc)
-add_executable(adr2d_eigen_chem_fom_rk4 ${SRCS_EIGEN_CHEM_FOM_RK4} ${COMMONHEADERS} ${EIGENHEADERS})
-target_link_libraries(adr2d_eigen_chem_fom_rk4 ${TRILLIBNAMES})
+# # Manufactured solution problem, fom, rk4
+# add_executable(adr2d_eigen_ms_fom_rk4 ${EIGENMAINDIR}/main_eigen_ms_fom_rk4.cc)
+# target_include_directories(adr2d_eigen_ms_fom_rk4 BEFORE PUBLIC ${EIGENINCDIRS})
+# target_link_libraries(adr2d_eigen_ms_fom_rk4 ${TRILLIBNAMES})
 
-# chemical problem, Eigen, fom, bdf1
-set(SRCS_EIGEN_CHEM_FOM_BDF1 ${MAINDIR}/main_eigen_chem_fom_bdf1.cc)
-add_executable(adr2d_eigen_chem_fom_bdf1 ${SRCS_EIGEN_CHEM_FOM_BDF1} ${COMMONHEADERS} ${EIGENHEADERS})
-target_link_libraries(adr2d_eigen_chem_fom_bdf1 ${TRILLIBNAMES})
+# # Manufactured solution problem, fom, bdf1
+# add_executable(adr2d_eigen_ms_fom_bdf1 ${EIGENMAINDIR}/main_eigen_ms_fom_bdf1.cc)
+# target_include_directories(adr2d_eigen_ms_fom_bdf1 BEFORE PUBLIC ${EIGENINCDIRS})
+# target_link_libraries(adr2d_eigen_ms_fom_bdf1 ${TRILLIBNAMES})
+
+# # chemical problem, fom, rk4
+# add_executable(adr2d_eigen_chem_fom_rk4 ${EIGENMAINDIR}/main_eigen_chem_fom_rk4.cc)
+# target_include_directories(adr2d_eigen_chem_fom_rk4 BEFORE PUBLIC ${EIGENINCDIRS})
+# target_link_libraries(adr2d_eigen_chem_fom_rk4 ${TRILLIBNAMES})
+
+# # chemical problem, fom, bdf1
+# add_executable(adr2d_eigen_chem_fom_bdf1 ${EIGENMAINDIR}/main_eigen_chem_fom_bdf1.cc)
+# target_include_directories(adr2d_eigen_chem_fom_bdf1 BEFORE PUBLIC ${EIGENINCDIRS})
+# target_link_libraries(adr2d_eigen_chem_fom_bdf1 ${TRILLIBNAMES})
 
 
+# eigen fom
+add_executable(adr2d_eigen_fom ${EIGENMAINDIR}/main_eigen_fom.cc)
+target_include_directories(adr2d_eigen_fom BEFORE PUBLIC ${EIGENINCDIRS})
+target_link_libraries(adr2d_eigen_fom ${TRILLIBNAMES})
 
+# chemical problem, LSPG with full mesh bdf1
+add_executable(adr2d_eigen_chem_lspg_full_mesh_bdf1 ${EIGENMAINDIR}/main_eigen_chem_lspg_full_mesh_bdf1.cc)
+target_include_directories(adr2d_eigen_chem_lspg_full_mesh_bdf1 BEFORE PUBLIC ${EIGENINCDIRS})
+target_link_libraries(adr2d_eigen_chem_lspg_full_mesh_bdf1 ${TRILLIBNAMES})
 
+#-------------------
+# KOKKOS exes
+#-------------------
+# where the mains are located
+set(KOKKOSMAINDIR ${CMAKE_CURRENT_SOURCE_DIR}/mains_kokkos)
 
+# kokkos includes
+set(KOKKOSINCDIRS
+  ${CMAKE_CURRENT_SOURCE_DIR}
+  ${CMAKE_CURRENT_SOURCE_DIR}/functors)
 
-#FILE(GLOB HEADERS RELATIVE
-#  "${CMAKE_CURRENT_SOURCE_DIR}" "${CMAKE_CURRENT_SOURCE_DIR}/*.hpp")
+# chemical problem, fom, rk4
+add_executable(adr2d_kokkos_chem_fom_rk4 ${KOKKOSMAINDIR}/main_kokkos_chem_fom_rk4.cc)
+target_include_directories(adr2d_kokkos_chem_fom_rk4 BEFORE PUBLIC ${KOKKOSINCDIRS})
+target_link_libraries(adr2d_kokkos_chem_fom_rk4 ${TRILLIBNAMES} openblas)
+
+# chemical problem, LSPG with full mesh bdf1
+add_executable(adr2d_kokkos_chem_lspg_full_mesh_bdf1 ${KOKKOSMAINDIR}/main_kokkos_chem_lspg_full_mesh_bdf1.cc)
+target_include_directories(adr2d_kokkos_chem_lspg_full_mesh_bdf1 BEFORE PUBLIC ${KOKKOSINCDIRS})
+target_link_libraries(adr2d_kokkos_chem_lspg_full_mesh_bdf1 ${TRILLIBNAMES} openblas)

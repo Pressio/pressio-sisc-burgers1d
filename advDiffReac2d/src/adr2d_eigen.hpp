@@ -60,12 +60,21 @@ public:
   ~Adr2dEigen() = default;
 
 public:
-  size_t getStateSize() const{ return numDof_; }
-  const state_type & getState() const{ return state_; }
-  eigVec getX() const { return x_; }
-  eigVec getY() const { return y_; }
-  // eigVec getVx() const { return vx_; }
-  // eigVec getVy() const { return vy_; }
+  size_t getStateSize() const{
+    return numDof_;
+  }
+
+  const state_type & getState() const{
+    return state_;
+  }
+
+  eigVec getX() const {
+    return x_;
+  }
+
+  eigVec getY() const {
+    return y_;
+  }
 
   void velocity(const state_type  & u,
 		const scalar_type & t,
@@ -97,23 +106,26 @@ public:
     return J;
   }
 
-// // void
-// // Adr2dEigen::applyJacobian(const state_type & y,
-// // 			      const mv_t & B,
-// // 			      const scalar_type & t,
-// // 			      mv_t & A) const{
-// //   jacobian(y, t, JJ_);
-// //   A = JJ_ * B;
-// // }
+  void applyJacobian(const state_type & y,
+  		     const mv_t & B,
+  		     const scalar_type & t,
+  		     mv_t & A) const{
+    /* the jacobian has
+     * num of rows = number of residuals dofs
+     * num of cols = number of state dofs
+     */
+    jacobian_type J(numDof_r_, numDof_);
+    this->jacobian_impl(y, J, t);
+    A = J * B;
+  }
 
-// // Adr2dEigen::mv_t
-// // Adr2dEigen::applyJacobian(const state_type & y,
-// // 			      const mv_t & B,
-// // 			      const scalar_type & t) const{
-// //   mv_t A( y.size(), B.cols() );
-// //   applyJacobian(y, B, t, A);
-// //   return A;
-// // }
+  mv_t applyJacobian(const state_type & y,
+  		     const mv_t & B,
+  		     const scalar_type & t) const{
+    mv_t A( numDof_r_, B.cols() );
+    this->applyJacobian(y, B, t, A);
+    return A;
+  }
 
 private:
   void readMesh(){
@@ -232,7 +244,7 @@ private:
 
     // loop over cells where velocity needs to be computed
     // i.e. over all cells where we want residual
-    for (gid_t rPt=0; rPt < graph_.size(); ++rPt)
+    for (gid_t rPt=0; rPt < numGpt_r_; ++rPt)
     {
       // gID of this cell
       const auto & cellGID_ = graph_[rPt][0];

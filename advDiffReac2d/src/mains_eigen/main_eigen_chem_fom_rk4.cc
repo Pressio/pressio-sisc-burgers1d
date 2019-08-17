@@ -1,11 +1,12 @@
 
 #include "CONTAINERS_ALL"
-#include "ODE_ALL"
-#include "../adr2d_eigen.hpp"
-#include "../input_parser.hpp"
-#include "../observers/eigen_observer.hpp"
-#include "../functors/source_term_functors.hpp"
-#include "../functors/advection_field_functors.hpp"
+#include "ODE_EXPLICIT"
+#include "ODE_INTEGRATORS"
+#include "adr2d_eigen.hpp"
+#include "input_parser.hpp"
+#include "eigen_observer.hpp"
+#include "advection_cellular_flow_functor.hpp"
+#include "source_term_chemABC_functor.hpp"
 
 int main(int argc, char *argv[]){
 
@@ -24,8 +25,8 @@ int main(int argc, char *argv[]){
 
   // types
   using scalar_t	= double;
-  using src_fnct_t	= ChemistryABCSource<void, scalar_t>;
-  using adv_fnct_t	= CellularFlow<void, scalar_t>;
+  using src_fnct_t	= ChemistryABCSource<scalar_t>;
+  using adv_fnct_t	= CellularFlow<scalar_t>;
   using app_t		= Adr2dEigen<src_fnct_t, adv_fnct_t>;
   using app_state_t	= typename app_t::state_type;
   using app_velo_t	= typename app_t::velocity_type;
@@ -59,7 +60,7 @@ int main(int argc, char *argv[]){
   if (observerOn == 1){
     //construct observer, pass y which now contains init condition
     const auto stateSize = appObj.getStateSize();
-    using obs_t = EigenObserver<ode_state_t>;
+    using obs_t = EigenObserver<ode_state_t, true>;
     obs_t Obs(Nsteps, stateSize, x, parser.snapshotsFreq_);
     pressio::ode::integrateNSteps(stepperObj, x, zero, dt, Nsteps, Obs);
 
@@ -103,12 +104,12 @@ int main(int argc, char *argv[]){
   // Record end time
   auto finishTime = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = finishTime - startTime;
-  std::cout << "Elapsed time: " <<
-    std::fixed << std::setprecision(10) <<
-    elapsed.count() << std::endl;
+  std::cout << "Elapsed time: "
+	    << std::fixed << std::setprecision(10)
+	    << elapsed.count() << std::endl;
 
-  // // print solution
-  // std::cout << std::setprecision(15) << *x.data() << std::endl;
+  // print solution
+  std::cout << std::setprecision(15) << *x.data() << std::endl;
 
   return 0;
 }

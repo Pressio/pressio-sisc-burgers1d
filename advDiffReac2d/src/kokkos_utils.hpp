@@ -1,15 +1,15 @@
 
-#ifndef UTILS_HPP_
-#define UTILS_HPP_
+#ifndef KOKKOS_UTILS_HPP_
+#define KOKKOS_UTILS_HPP_
 
+#include "UTILS_ALL"
 #include "CONTAINERS_ALL"
 
 template <typename T = int>
-void readAsciiMatrixStdVecVec(std::string filename,
-			      std::vector<std::vector<double>> & A0,
-			      T ncols)
-{
-  assert( A0.empty() );
+void readMatrixFromFile(std::string filename,
+			std::vector<std::vector<double>> & A0,
+			T ncols){
+
   std::ifstream source;
   source.open( filename, std::ios_base::in);
   std::string line, colv;
@@ -26,11 +26,13 @@ void readAsciiMatrixStdVecVec(std::string filename,
 }
 
 template <typename T = int>
-auto convertFromVVecToMultiVec(const std::vector<std::vector<double>> & A0,
-			       T nrows, T ncols)
+auto convertFromVVecToMultiVec(
+      const std::vector<std::vector<double>> & A0,
+      T nrows, T ncols)
   -> pressio::containers::MultiVector<Eigen::MatrixXd>{
 
   pressio::containers::MultiVector<Eigen::MatrixXd> ADW(nrows, ncols);
+
   for (int i=0; i<nrows; i++){
     for (int j=0; j<ncols; j++)
       ADW(i,j) = A0[i][j];
@@ -38,17 +40,24 @@ auto convertFromVVecToMultiVec(const std::vector<std::vector<double>> & A0,
   return ADW;
 }
 
-template <typename T = int>
-auto readBasis(std::string filename,
-	       T romSize, T numCell)
-  ->pressio::containers::MultiVector<Eigen::MatrixXd>
+template <typename phi_d_t>
+void readBasis(std::string filename,
+	       int romSize,
+	       int numCell,
+	       phi_d_t phi_d)
 {
   std::vector<std::vector<double>> A0;
-  readAsciiMatrixStdVecVec(filename, A0, romSize);
-  // read basis into a MultiVector
-  auto phi = convertFromVVecToMultiVec(A0, numCell, romSize);
-  //  phi.data()->Print(std::cout);
-  return phi;
+  readMatrixFromFile(filename, A0, romSize);
+
+  using view_h_t = typename phi_d_t::HostMirror;
+  view_h_t phi_h("phi_h", numCell, romSize);
+
+  for (int i=0; i<numCell; i++){
+    for (int j=0; j<romSize; j++)
+      phi_h(i,j) = A0[i][j];
+  }
+  // deep copy to device
+  Kokkos::deep_copy(phi_d, phi_h);
 }
 
 #endif

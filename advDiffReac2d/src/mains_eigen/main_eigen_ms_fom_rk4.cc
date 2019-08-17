@@ -1,11 +1,12 @@
 
 #include "CONTAINERS_ALL"
-#include "ODE_ALL"
-#include "../adr2d_eigen.hpp"
-#include "../input_parser.hpp"
-#include "../observers/eigen_observer.hpp"
-#include "../functors/source_term_functors.hpp"
-#include "../functors/advection_field_functors.hpp"
+#include "ODE_EXPLICIT"
+#include "ODE_INTEGRATORS"
+#include "adr2d_eigen.hpp"
+#include "input_parser.hpp"
+#include "eigen_observer.hpp"
+#include "advection_manuf_sol_functor.hpp"
+#include "source_term_manuf_sol_functor.hpp"
 
 int main(int argc, char *argv[]){
 
@@ -24,8 +25,8 @@ int main(int argc, char *argv[]){
 
   // types
   using scalar_t	= double;
-  using src_fnct_t	= ManufacturedSolutionSource<void, scalar_t>;
-  using adv_fnct_t	= ManufacturedSolutionAdvection<void, scalar_t>;
+  using src_fnct_t	= ManufacturedSolutionSource<scalar_t>;
+  using adv_fnct_t	= ManufacturedSolutionAdvection<scalar_t>;
   using app_t		= Adr2dEigen<src_fnct_t, adv_fnct_t>;
   using app_state_t	= typename app_t::state_type;
   using app_velo_t	= typename app_t::velocity_type;

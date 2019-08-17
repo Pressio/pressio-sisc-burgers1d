@@ -12,7 +12,7 @@ import constants_chem as constants
 
 # this Python script computes timings for chem adr2d
 
-def main(exename, meshDir):
+def main(exename, meshDir, stepperName):
   numMeshes = len(constants.numCell_cases)
   numRomSizes = len(constants.romSize_cases)
 
@@ -37,25 +37,29 @@ def main(exename, meshDir):
       romSize = constants.romSize_cases[i]
       print("Current romSize = ", romSize)
 
-      # based on the size of rom and number of ode steps,
-      # compute the sampling frequency
-      assert(constants.numSteps % romSize == 0)
-      samplingFreq = int(constants.numSteps/romSize)
+      # skip cases where num basis is > time steps
+      if romSize > constants.numSteps:
+        print(" skipping case because romSize > numSteps, romSize, numSteps ")
+      else:
+        # based on the size of rom and number of ode steps,
+        # compute the sampling frequency
+        assert(constants.numSteps % romSize == 0)
+        samplingFreq = int(constants.numSteps/romSize)
 
-      # create input file
-      myutils.createInputFileFomChemForBasis(pathToMeshFile, samplingFreq)
+        # create input file
+        myutils.createInputFileFomChemForBasis(stepperName, pathToMeshFile, samplingFreq)
 
-      popen = subprocess.Popen(args, stdout=subprocess.PIPE)
-      popen.wait()
-      #output = popen.stdout.read()
+        popen = subprocess.Popen(args, stdout=subprocess.PIPE)
+        popen.wait()
+        #output = popen.stdout.read()
 
-      childDir=parentDir + '/basis' + str(romSize)
-      if not os.path.exists(childDir): os.system('mkdir ' + childDir)
+        childDir=parentDir + '/basis' + str(romSize)
+        if not os.path.exists(childDir): os.system('mkdir ' + childDir)
 
-      os.system('mv input.txt ' + childDir)
-      os.system('mv basis.txt ' + childDir)
-      os.system('mv snapshots.txt ' + childDir)
-      os.system('mv xy.txt ' + childDir)
+        os.system('mv input.txt ' + childDir)
+        os.system('mv basis.txt ' + childDir)
+        os.system('mv snapshots.txt ' + childDir)
+        os.system('mv xy.txt ' + childDir)
 
   print("Done with basis runs")
 
@@ -64,5 +68,6 @@ if __name__== "__main__":
   parser = ArgumentParser()
   parser.add_argument("-exe", "--exe", dest="exename")
   parser.add_argument("-mesh-dir", "--mesh-dir", dest="meshdir")
+  parser.add_argument("-stepper-name", "--stepper-name", dest="stepperName")
   args = parser.parse_args()
-  main(args.exename, args.meshdir)
+  main(args.exename, args.meshdir, args.stepperName)

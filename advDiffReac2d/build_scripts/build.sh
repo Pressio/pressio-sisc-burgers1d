@@ -2,7 +2,7 @@
 
 # -----------------------------------------------
 # purpose: builds all exe for the C++ AdvReadDiff2d
-# this script is run by do_all_cpp.sh at the top level directory
+# this script is run by do_all.sh at the top level directory
 # -----------------------------------------------
 
 # go to working dir
@@ -92,21 +92,22 @@ bdirname=build
 #check if build dir exists
 if [ ! -d ${bdirname} ]; then
     mkdir ${bdirname}
-else
-    # enter
-    cd ${bdirname} && rm -rf *
-    cmake -DCMAKE_C_COMPILER=${CC} \
-	  -DCMAKE_CXX_COMPILER=${CXX} \
-	  -DCMAKE_VERBOSE_MAKEFILE:BOOL=TRUE \
-	  -DCMAKE_BUILD_TYPE=Release \
-	  -DEIGEN_INCLUDE_DIR=${EIGENPATH} \
-	  -DTRILINOS_INCLUDE_DIR=${TRILINOSINCPATH} \
-	  -DTRILINOS_LIBRARY_DIR=${TRILINOSLIBPATH} \
-	  -DPRESSIO_INCLUDE_DIR=${PRESSIOPATH} \
-	  ${CPPSRC}
-    make -j6
-    cd ..
 fi
+# enter
+cd ${bdirname} && rm -rf *
+cmake -DCMAKE_C_COMPILER=${CC} \
+      -DCMAKE_CXX_COMPILER=${CXX} \
+      -DCMAKE_VERBOSE_MAKEFILE:BOOL=TRUE \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DEIGEN_INCLUDE_DIR=${EIGENPATH} \
+      -DTRILINOS_INCLUDE_DIR=${TRILINOSINCPATH} \
+      -DTRILINOS_LIBRARY_DIR=${TRILINOSLIBPATH} \
+      -DPRESSIO_INCLUDE_DIR=${PRESSIOPATH} \
+      -DBLAS_LIB_DIR=${BLAS_ROOT}/lib \
+      -DLAPACK_LIB_DIR=${LAPACK_ROOT}/lib \
+      ${CPPSRC}
+make -j6
+cd ..
 
 # go back where we started
 cd ${topDir}

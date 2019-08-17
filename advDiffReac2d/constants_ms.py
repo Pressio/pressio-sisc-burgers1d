@@ -9,8 +9,8 @@ import os.path
 # constants to use for the manuf solution problem
 #------------------------------------------------------
 
-dt = 0.001
-numSteps = 1000
+dt = 0.005
+numSteps = 100
 finalTime = numSteps*dt
 
 diffusion = 0.01
@@ -19,7 +19,7 @@ diffusion = 0.01
 chemReaction = 0.0
 
 # freq to sample the state
-samplingFreq = 50
+samplingFreq = 10
 
 # mesh sizes
 numCell_cases = np.array([32, 64])

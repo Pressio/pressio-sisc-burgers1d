@@ -7,20 +7,18 @@ import os.path
 import re
 from argparse import ArgumentParser
 
-import myutils_ms as myutils
+import myutils_common as utc
+import myutils_ms as utms
 import constants_ms as cms
 
 # this Python script tests both accuracy and convergence
 # of the adr for the manufactued solution
 
-def main(exename, meshDir):
+def main(exename, meshDir, stepperName):
   # col 0      : contains mesh size
   # col 1,2,3  : l2 norm of error for species 0,1,2
   # col 4,5,6  : linf norm of error for species 0,1,2
   data = np.zeros((len(cms.numCell_cases), 7))
-
-  # args for the executable
-  args = ("./"+exename, "input.txt")
 
   # loop over meshes
   for iMesh in range(0, len(cms.numCell_cases)):
@@ -29,19 +27,16 @@ def main(exename, meshDir):
 
     data[iMesh][0] = numCell
 
-    pathToMeshFile = meshDir + "/mesh" + str(numCell) + ".dat"
-    print("Current mesh file = ", pathToMeshFile)
     # check if meshfile exists
+    pathToMeshFile = meshDir + "/mesh" + str(numCell) + ".dat"
     assert( os.path.exists(pathToMeshFile) )
+    print("Current mesh file = ", pathToMeshFile)
 
     # create input file for the ms fom problem
-    myutils.createInputFileFomEigenMs(pathToMeshFile)
+    utms.createInputFileFomEigenMs(stepperName, pathToMeshFile)
 
     # run exe
     os.system("./" + exename + " input.txt")
-    #popen = subprocess.Popen(args, stdout=subprocess.PIPE)
-    #popen.wait()
-    #output = popen.stdout.read()
 
     # load solution at final time, which we get from snapshots file
     snaps = np.loadtxt("snapshots.txt")
@@ -52,7 +47,7 @@ def main(exename, meshDir):
     c2 = finalPressioSol[2:len(finalPressioSol)+1:3]
 
     # the final col of the snapshots corresponds to the following time
-    finalTime = cms.finalTime
+    finalTime = utc.extractFinalTimeFromTargetInputFile(".")
 
     # load coords
     coords = np.loadtxt("xy.txt")
@@ -60,10 +55,10 @@ def main(exename, meshDir):
     # compute analytical solution
     [u0,u1,u2] = cms.msTrueSolution(x, y, finalTime)
 
-    # compute l2 norm error for each species
-    data[iMesh][1] = np.sqrt(((u0 - c0) ** 2).mean())
-    data[iMesh][2] = np.sqrt(((u1 - c1) ** 2).mean())
-    data[iMesh][3] = np.sqrt(((u2 - c2) ** 2).mean())
+    # compute normalized l2 error for each species
+    data[iMesh][1] = np.sqrt( ((u0 - c0) ** 2).mean() )
+    data[iMesh][2] = np.sqrt( ((u1 - c1) ** 2).mean() )
+    data[iMesh][3] = np.sqrt( ((u2 - c2) ** 2).mean() )
 
     # compute lInf norm error for each species
     data[iMesh][4] = np.max( np.abs(u0 - c0) )
@@ -86,5 +81,6 @@ if __name__== "__main__":
   parser = ArgumentParser()
   parser.add_argument("-exe", "--exe", dest="exename")
   parser.add_argument("-mesh-dir", "--mesh-dir", dest="meshdir")
+  parser.add_argument("-stepper-name", "--stepper-name", dest="stepperName")
   args = parser.parse_args()
-  main(args.exename, args.meshdir)
+  main(args.exename, args.meshdir, args.stepperName)

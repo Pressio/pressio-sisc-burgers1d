@@ -16,10 +16,10 @@ CPPWORKINGDIR=
 # bool to wipe existing content of target directory
 WIPEEXISTING=0
 
-WHICHTASK=
-
 # env script
 SETENVscript=
+
+WHICHTASK=
 
 # var to detect if we are on mac
 if [[ $OSTYPE == *"darwin"* ]]; then
@@ -30,15 +30,28 @@ print_global_vars(){
     echo "TOPDIR	 = $TOPDIR"
     echo "CPPSRC	 = $CPPSRC"
     echo "WORKINGDIR     = $WORKINGDIR"
+    echo "CPPWORKINGDIR  = $CPPWORKINGDIR"
     echo "WIPEEXISTING   = ${WIPEEXISTING}"
     echo "SETENVscript   = $SETENVscript"
+    echo "WHICHTASK	 = $WHICHTASK"
+    echo "ONMAC		 = $ONMAC"
 }
 
 display_admissible_options_for_do(){
-    echo " * build"
-    echo " * eigen_ms_rk4, eigen_ms_bdf1"
-    echo " * eigen_chem_fom_rk4_timing", "eigen_chem_fom_bdf1_timing"
-    echo " * eigen_chem_fom_rk4_basis", "eigen_chem_fom_bdf1_basis"
+    echo " "
+    echo " To build exes: build"
+    echo " "
+    echo " Eigen FOM choices:"
+    echo " - eigen_ms_rk4, eigen_ms_bdf1"
+    echo " - eigen_chem_fom_rk4_timing", "eigen_chem_fom_bdf1_timing"
+    echo " - eigen_chem_fom_rk4_basis", "eigen_chem_fom_bdf1_basis"
+    echo " "
+    echo " Kokkos FOM choices:"
+    echo " - kokkos_chem_fom_rk4_timing"
+    echo " "
+    echo " ROM choices:"
+    echo " - eigen_chem_lspg_full_mesh_bdf1_timing"
+    echo " - kokkos_chem_lspg_full_mesh_bdf1_timing"
 }
 
 check_minimum_vars_set(){
@@ -52,19 +65,17 @@ check_minimum_vars_set(){
 	display_admissible_options_for_do
 	exit 2
     fi
-}
-
-check_minimum_vars_set_cpp(){
-    # check for common
-    check_minimum_vars_set
 
     if [[ ${WHICHTASK} != build &&
 	      ${WHICHTASK} != eigen_ms_rk4 &&
 	      ${WHICHTASK} != eigen_ms_bdf1 &&
-	      ${WHICHTASK} != eigen_chem_fom_rk4_timing &&
+	      ${WHICHTASK} != eigen_chem_fom_rk4_timing	&&
 	      ${WHICHTASK} != eigen_chem_fom_bdf1_timing &&
 	      ${WHICHTASK} != eigen_chem_fom_rk4_basis &&
-	      ${WHICHTASK} != eigen_chem_fom_bdf1_basis ]];
+	      ${WHICHTASK} != eigen_chem_fom_bdf1_basis &&
+	      ${WHICHTASK} != eigen_chem_lspg_full_mesh_bdf1_timing &&
+	      ${WHICHTASK} != kokkos_chem_fom_rk4_timing &&
+	      ${WHICHTASK} != kokkos_chem_lspg_full_mesh_bdf1_timing ]];
     then
 	echo "you set --do to a non-admissible value, choose one of:"
 	display_admissible_options_for_do
