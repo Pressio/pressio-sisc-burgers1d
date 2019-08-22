@@ -16,6 +16,8 @@ template<
 class Adr2dKokkos
 {
   static constexpr int numSpecies_{3};
+  // each row of the jacobian has 7 non zeros
+  static constexpr int nonZerosPerRowJ_ = 7;
 
   using this_t	= Adr2dKokkos<source_functor, advection_functor>;
   using ui_t	= unsigned int;
@@ -90,8 +92,8 @@ public:
   Adr2dKokkos() = delete;
 
   Adr2dKokkos(const std::string & meshFile,
-	      source_functor_t & srcFnctIn,
-  	      advection_functor_t & advFnctIn,
+	      const source_functor_t & srcFnctIn,
+  	      const advection_functor_t & advFnctIn,
 	      scalar_type diffusion)
     : meshFile_{meshFile},
       srcFnct_{srcFnctIn},
@@ -114,6 +116,10 @@ public:
     return numDof_;
   }
 
+  const coords_h_t getCoordsHost() const{
+    return coords_h_;
+  }
+
   const state_type & getState() const{
     return state_;
   }
@@ -126,9 +132,8 @@ public:
 
   velocity_type velocity(const state_type  & u,
 			 const scalar_type & t) const{
-    velocity_type f("f", numDof_r_);
-    this->velocity_impl(u, t, f);
-    return f;
+    this->velocity_impl(u, t, f_);
+    return f_;
   }
 
   void jacobian(const state_type & u,
@@ -138,20 +143,139 @@ public:
   }
 
   jacobian_type jacobian(const state_type & u,
-			 const scalar_type t) const
+			 const scalar_type t) const{
+    this->createNewJacobian(u, t);
+    //jacobian_type J("J", numRows, numCols, numEnt, val, ptr, ind);
+    this->jacobian(u, t, J_);
+    return J_;
+  }
+
+  void applyJacobian(const state_type & u,
+  		     const mv_d_t & B,
+  		     scalar_type t,
+  		     mv_d_t & A) const{
+    //auto JJ = this->jacobian(u, t);
+    this->jacobian(u, t, J_);
+    constexpr auto zero = ::pressio::utils::constants::zero<sc_t>();
+    constexpr auto one = ::pressio::utils::constants::one<sc_t>();
+    const char ct = 'N';
+    KokkosSparse::spmv(&ct, one, J_, B, zero, A);
+  }
+
+  mv_d_t applyJacobian(const state_type & u,
+  		     const mvec_t & B,
+  		     scalar_type t) const
+  {
+    mv_d_t A("AA", numDof_r_, B.extent(1) );
+    this->applyJacobian(u, B, t, A);
+    return A;
+  }
+
+private:
+  void readMesh()
+  {
+    std::ifstream foundFile(meshFile_);
+    if(!foundFile){
+      std::cout << "meshfile not found" << std::endl;
+      exit(EXIT_FAILURE);
+    }
+
+    std::ifstream source;
+    source.open( meshFile_, std::ios_base::in);
+    std::string line;
+    gid_t count=-1;
+    while (std::getline(source, line) )
+      {
+	std::istringstream ss(line);
+	std::string colVal;
+	// get first column
+	ss >> colVal;
+
+	if (colVal == "dx"){
+	  ss >> colVal;
+	  dx_ = std::stod(colVal);
+	  std::cout << "dx = " << dx_ << std::endl;
+	}
+	else if (colVal == "dy"){
+	  ss >> colVal;
+	  dy_ = std::stod(colVal);
+	  std::cout << "dy = " << dy_ << std::endl;
+	}
+	else if (colVal == "numResidualPts"){
+	  ss >> colVal;
+	  numGpt_r_ = std::stoi(colVal);
+	  numDof_r_ = numGpt_r_ * this_t::numSpecies_;
+	  std::cout << "numGpt_r = " << numGpt_r_ << " "
+		    << "numDof_r = " << numDof_r_ << std::endl;
+	}
+	else if (colVal == "numStatePts"){
+	  ss >> colVal;
+	  numGpt_ = std::stoi(colVal);
+	  numDof_   = numGpt_ * this_t::numSpecies_;
+	  std::cout << "numGpt = " << numGpt_ << " "
+		    << "numDof = " << numDof_ << std::endl;
+	}
+	else{
+	  Kokkos::resize( state_, numDof_);
+	  Kokkos::resize( f_, numDof_r_);
+	  // since graph has fix num of cols, only resize rows
+	  Kokkos::resize( graph_h_, numGpt_r_);
+	  Kokkos::resize( graph_d_, numGpt_r_);
+	  // since coords has fix num of cols, only resize the rows
+	  Kokkos::resize( coords_h_, numGpt_);
+	  Kokkos::resize( coords_d_, numGpt_);
+
+	  ++count;
+	  // store first value and its coords
+	  auto thisGid = std::stoi(colVal);
+	  graph_h_(count, 0) = thisGid;
+	  ss >> colVal; coords_h_(thisGid, 0) = std::stod(colVal);
+	  ss >> colVal; coords_h_(thisGid, 1) = std::stod(colVal);
+	  // store others on same row
+	  for (auto i=1; i<=4; ++i){
+	    ss >> colVal; thisGid = std::stoi(colVal);
+	    graph_h_(count, i) = thisGid;
+	    ss >> colVal; coords_h_(thisGid,0) = std::stod(colVal);
+	    ss >> colVal; coords_h_(thisGid,1) = std::stod(colVal);
+	  }
+	}
+      }
+    source.close();
+
+    // for (auto i=0; i<numGpt_r_; ++i){
+    //   for (auto j=0; j<5; ++j){
+    // 	auto gid = graph_h_(i,j);
+    //     std::cout << " " << graph_h_(i,j)
+    //		     << " " << coords_h_(gid, 0) << " ";
+    //   }
+    //   std::cout << std::endl;
+    // }
+
+    // we initialized the graph on the host, so deep copy to device
+    Kokkos::deep_copy(graph_d_,  graph_h_);
+    Kokkos::deep_copy(coords_d_, coords_h_);
+
+  }//end readMesh
+
+  void computeCoefficients(){
+    dxSqInv_ = this_t::one/(dx_*dx_);
+    dySqInv_ = this_t::one/(dy_*dy_);
+    dx2Inv_  = this_t::one/(this_t::two*dx_);
+    dy2Inv_  = this_t::one/(this_t::two*dy_);
+    DovDxSq_ = D_*dxSqInv_;
+    DovDySq_ = D_*dySqInv_;
+    FDcoeff1_ = -this_t::two*(DovDxSq_ + DovDySq_);
+  }
+
+  void createNewJacobian(const state_type & u,
+			 const scalar_type & t) const
   {
     // this code basically creates the graph of the Jacobian only
-
-    // TODO: make sure we do this only once,
-    // if/when the jacobian needs to be recomputed,
-    // use the method above that accepts a Jacobian as positional argument
-
-    // each row of the jacobian has 7 non zeros
-    constexpr int nonZerosPerRow = 7;
+    // and stores it into member J_
 
     const gid_t numRows = numDof_r_;
     const gid_t numCols = numDof_;
-    const gid_t numEnt  = numRows * nonZerosPerRow;
+    const gid_t numEnt  = numRows * nonZerosPerRowJ_;
 
     state_type_h_t u_h = Kokkos::create_mirror_view(u);
 
@@ -169,7 +293,7 @@ public:
       // first, fill in how many elements per row
       ptr_h[0] = 0;
       for (gid_t iRow = 0; iRow < numRows; ++iRow) {
-	ptr_h[iRow+1] = ptr_h[iRow] + nonZerosPerRow;
+	ptr_h[iRow+1] = ptr_h[iRow] + nonZerosPerRowJ_;
       }
       Kokkos::deep_copy(ptr, ptr_h);
 
@@ -230,127 +354,9 @@ public:
     }
 
     jacobian_type J("J", numRows, numCols, numEnt, val, ptr, ind);
-    this->jacobian(u, t, J);
-    return J;
-  }
+    J_ = J;
+  }//end initJacobianStructure
 
-
-  void applyJacobian(const state_type & u,
-  		     const mv_d_t & B,
-  		     scalar_type t,
-  		     mv_d_t & A) const
-  {
-    auto JJ = this->jacobian(u, t);
-    constexpr auto zero = ::pressio::utils::constants::zero<sc_t>();
-    constexpr auto one = ::pressio::utils::constants::one<sc_t>();
-    const char ct = 'N';
-    KokkosSparse::spmv(&ct, one, JJ, B, zero, A);
-  }
-
-
-  mv_d_t applyJacobian(const state_type & u,
-  		     const mvec_t & B,
-  		     scalar_type t) const
-  {
-    mv_d_t A("AA", numDof_r_, B.extent(1) );
-    this->applyJacobian(u, B, t, A);
-    return A;
-  }
-
-private:
-  void readMesh()
-  {
-    std::ifstream foundFile(meshFile_);
-    if(!foundFile){
-      std::cout << "meshfile not found" << std::endl;
-      exit(EXIT_FAILURE);
-    }
-
-    std::ifstream source;
-    source.open( meshFile_, std::ios_base::in);
-    std::string line;
-    gid_t count=-1;
-    while (std::getline(source, line) )
-      {
-	std::istringstream ss(line);
-	std::string colVal;
-	// get first column
-	ss >> colVal;
-
-	if (colVal == "dx"){
-	  ss >> colVal;
-	  dx_ = std::stod(colVal);
-	  std::cout << "dx = " << dx_ << std::endl;
-	}
-	else if (colVal == "dy"){
-	  ss >> colVal;
-	  dy_ = std::stod(colVal);
-	  std::cout << "dy = " << dy_ << std::endl;
-	}
-	else if (colVal == "numResidualPts"){
-	  ss >> colVal;
-	  numGpt_r_ = std::stoi(colVal);
-	  numDof_r_ = numGpt_r_ * this_t::numSpecies_;
-	  std::cout << "numGpt_r = " << numGpt_r_ << " "
-		    << "numDof_r = " << numDof_r_ << std::endl;
-
-	  // since graph has fix num of cols, this only resizes rows
-	  Kokkos::resize( graph_h_, numGpt_r_);
-	  Kokkos::resize( graph_d_, numGpt_r_);
-	}
-	else if (colVal == "numStatePts"){
-	  ss >> colVal;
-	  numGpt_ = std::stoi(colVal);
-	  numDof_   = numGpt_ * this_t::numSpecies_;
-	  std::cout << "numGpt = " << numGpt_ << " "
-		    << "numDof = " << numDof_ << std::endl;
-
-	  Kokkos::resize( state_, numDof_);
-	  // since coords has fix num of cols, this only resizes the rows
-	  Kokkos::resize( coords_h_, numGpt_);
-	  Kokkos::resize( coords_d_, numGpt_);
-	}
-	else{
-	  ++count;
-	  // store first value and its coords
-	  auto thisGid = std::stoi(colVal);
-	  graph_h_(count, 0) = thisGid;
-	  ss >> colVal; coords_h_(thisGid, 0) = std::stod(colVal);
-	  ss >> colVal; coords_h_(thisGid, 1) = std::stod(colVal);
-	  // store others on same row
-	  for (auto i=1; i<=4; ++i){
-	    ss >> colVal; thisGid = std::stoi(colVal);
-	    graph_h_(count, i) = thisGid;
-	    ss >> colVal; coords_h_(thisGid,0) = std::stod(colVal);
-	    ss >> colVal; coords_h_(thisGid,1) = std::stod(colVal);
-	  }
-	}
-      }
-    source.close();
-
-    // for (auto i=0; i<numGpt_r_; ++i){
-    //   for (auto j=0; j<5; ++j){
-    // 	auto gid = graph_h_(i,j);
-    //     std::cout << " " << graph_h_(i,j) << " " << coords_h_(gid, 0) << " ";
-    //   }
-    //   std::cout << std::endl;
-    // }
-
-    // we initialized the graph on the host, so deep copy to device
-    Kokkos::deep_copy(graph_d_,  graph_h_);
-    Kokkos::deep_copy(coords_d_, coords_h_);
-
-  }//end readMesh
-
-  void computeCoefficients(){
-    dxSqInv_ = this_t::one/(dx_*dx_);
-    dySqInv_ = this_t::one/(dy_*dy_);
-    dx2Inv_  = this_t::one/(this_t::two*dx_);
-    dy2Inv_  = this_t::one/(this_t::two*dy_);
-    DovDxSq_ = D_*dxSqInv_;
-    DovDySq_ = D_*dySqInv_;
-    FDcoeff1_ = -this_t::two*(DovDxSq_ + DovDySq_);
-  }
 
   void velocity_impl(const state_type  & u,
 		     const scalar_type & t,
@@ -361,9 +367,10 @@ private:
       advection_functor_t, source_functor_t, scalar_type, numSpecies_>;
 
     func_t F(t, u, f, coords_d_, graph_d_, advFnct_, srcFnct_,
-	     dxSqInv_, dySqInv_, dx2Inv_, dy2Inv_, DovDxSq_, DovDySq_, FDcoeff1_);
+	     dxSqInv_, dySqInv_, dx2Inv_, dy2Inv_,
+	     DovDxSq_, DovDySq_, FDcoeff1_);
 
-    // launch pfor as large as number of cells where we need to evaluate velocity
+    // launch pfor as large as number of cells where we need velocity
     Kokkos::parallel_for(numGpt_r_, F);
     exe_space().fence();
   }//end velocity_impl
@@ -381,9 +388,10 @@ private:
 
     // construct functor
     func_t F(t, u, J, coords_d_, graph_d_, advFnct_, srcFnct_,
-	     dxSqInv_, dySqInv_, dx2Inv_, dy2Inv_, DovDxSq_, DovDySq_, FDcoeff1_);
+	     dxSqInv_, dySqInv_, dx2Inv_, dy2Inv_,
+	     DovDxSq_, DovDySq_, FDcoeff1_);
 
-    // launch pfor as large as number of cells where we need to evaluate velocity
+    // launch pfor as large as number of cells where we need velocity
     Kokkos::parallel_for( policy_type(0, numGpt_r_), F);
     exe_space().fence();
   }//end jacobian_impl
@@ -394,17 +402,13 @@ private:
   const std::string meshFile_ = {};
 
   // functor to evaluate source term
-  source_functor_t & srcFnct_;
+  const source_functor_t & srcFnct_;
+
   // functor to evaluate advection field
-  advection_functor_t & advFnct_;
+  const advection_functor_t & advFnct_;
 
   // diffusion
   const scalar_type D_ = this_t::zero;
-
-  const scalar_type Lx_{1.};
-  const scalar_type Ly_{1.};
-  const std::array<scalar_type,2> xAxisLim_{{0., Lx_}};
-  const std::array<scalar_type,2> yAxisLim_{{0., Ly_}};
 
   scalar_type dx_{};
   scalar_type dy_{};
@@ -449,8 +453,9 @@ private:
   coords_d_t coords_d_ = {};
 
   // state_ has size = numGpt_ * numSpecies_
-  // because we have multiple dofs per cell
   mutable state_type state_ = {};
+  mutable velocity_type f_ = {};
+  mutable jacobian_type J_ = {};
 
 };//end class
 

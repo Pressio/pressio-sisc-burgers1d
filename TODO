@@ -1,1 +1,20 @@
 
+------
+ADR2D
+------
+
+- add checks, e.g. num of basis cannot be larger than dofs, etc.
+
+- kokkos do FOM with bdf1
+
+MS problem:
+(a) eigen, fom, rk4	: done
+(b) eigen, fom, bdf1	: done
+(c) kokkos, fom, rk4	: done
+(d) kokkos, fom, bdf1	: missing
+
+ABCCHEM problem:
+(a) eigen, fom, rk4	: done
+(b) eigen, fom, bdf1	: done
+(c) kokkos, fom, rk4	: done
+(d) kokkos, fom, bdf1	: missing

@@ -47,11 +47,12 @@ display_admissible_options_for_do(){
     echo " - eigen_chem_fom_rk4_basis", "eigen_chem_fom_bdf1_basis"
     echo " "
     echo " Kokkos FOM choices:"
+    echo " - kokkos_ms_rk4"
     echo " - kokkos_chem_fom_rk4_timing"
     echo " "
-    echo " ROM choices:"
-    echo " - eigen_chem_lspg_full_mesh_bdf1_timing"
-    echo " - kokkos_chem_lspg_full_mesh_bdf1_timing"
+    # echo " ROM choices:"
+    # echo " - eigen_chem_lspg_full_mesh_bdf1_timing"
+    # echo " - kokkos_chem_lspg_full_mesh_bdf1_timing"
 }
 
 check_minimum_vars_set(){
@@ -69,12 +70,16 @@ check_minimum_vars_set(){
     if [[ ${WHICHTASK} != build &&
 	      ${WHICHTASK} != eigen_ms_rk4 &&
 	      ${WHICHTASK} != eigen_ms_bdf1 &&
+	      #
 	      ${WHICHTASK} != eigen_chem_fom_rk4_timing	&&
 	      ${WHICHTASK} != eigen_chem_fom_bdf1_timing &&
 	      ${WHICHTASK} != eigen_chem_fom_rk4_basis &&
 	      ${WHICHTASK} != eigen_chem_fom_bdf1_basis &&
 	      ${WHICHTASK} != eigen_chem_lspg_full_mesh_bdf1_timing &&
+	      #
+	      ${WHICHTASK} != kokkos_ms_rk4 &&
 	      ${WHICHTASK} != kokkos_chem_fom_rk4_timing &&
+	      ${WHICHTASK} != kokkos_chem_fom_rk4_basis &&
 	      ${WHICHTASK} != kokkos_chem_lspg_full_mesh_bdf1_timing ]];
     then
 	echo "you set --do to a non-admissible value, choose one of:"

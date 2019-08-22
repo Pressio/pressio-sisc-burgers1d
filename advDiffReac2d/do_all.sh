@@ -50,9 +50,10 @@ if [ $WHICHTASK = "build" ]; then
 fi
 
 #---------------------------------------------------------
-# eigen_ms: run the manufactured solution test with eigen
+# the manufactured solution test with eigen or kokkos
 #---------------------------------------------------------
-if [ $WHICHTASK = "eigen_ms_rk4" ] || [ $WHICHTASK = "eigen_ms_bdf1" ];
+if [[ $WHICHTASK = *"_ms_rk4"* ]] ||\
+       [[ $WHICHTASK = "_ms_bdf1" ]];
 then
     # check if the build was already done
     if [ ! -d ${CPPWORKINGDIR}/build ]; then
@@ -64,8 +65,11 @@ then
     destDir=${CPPWORKINGDIR}/"data_"${WHICHTASK}
     [[ ! -d ${destDir} ]] && mkdir ${destDir}
 
-    # link the executable from build directory
+    # set name of target executable to use
     EXENAME=adr2d_eigen_fom
+    [[ $WHICHTASK = *"eigen_"* ]] && EXENAME=adr2d_eigen_fom
+    [[ $WHICHTASK = *"kokkos_"* ]] && EXENAME=adr2d_kokkos_fom
+    # link the executable from build directory
     [[ -f ${destDir}/${EXENAME} ]] && rm ${destDir}/${EXENAME}
     ln -s ${CPPWORKINGDIR}/build/${EXENAME} ${destDir}
 
@@ -79,24 +83,21 @@ then
     fi
 
     # copy needed python scripts
-    cp ${topDir}/run_scripts/myutils_common.py ${destDir}
-    cp ${topDir}/run_scripts/myutils_ms.py ${destDir}
-    cp ${topDir}/run_scripts/run_fom_ms.py ${destDir}
     cp ${topDir}/constants_ms.py ${destDir}
-    cp ${topDir}/plot_scripts/plot_ms.py ${destDir}
+    cp ${topDir}/myutils_common.py ${destDir}
+    cp ${topDir}/myutils_ms.py ${destDir}
+    cp ${topDir}/run_scripts/run_fom_ms.py ${destDir}
     cp ${topDir}/plot_scripts/plot_common.py ${destDir}
+    cp ${topDir}/plot_scripts/plot_ms.py ${destDir}
 
     # enter and run
     cd ${destDir}
 
     # choose stepper name
     STEPPERNAME=
-    if [ $WHICHTASK = "eigen_ms_rk4" ]; then
-	STEPPERNAME="RungeKutta4"
-    fi
-    if [ $WHICHTASK = "eigen_ms_bdf1" ]; then
-	STEPPERNAME="bdf1"
-    fi
+    [[ $WHICHTASK = *"_ms_rk4"* ]] && STEPPERNAME="RungeKutta4"
+    [[ $WHICHTASK = *"_ms_bdf1"* ]] && STEPPERNAME="bdf1"
+
     python run_fom_ms.py \
 	   --exe ${EXENAME} \
 	   --mesh-dir ${meshDir}\
@@ -118,16 +119,13 @@ then
 
     # create folder inside workindir
     destDir=${CPPWORKINGDIR}/"data_"${WHICHTASK}
-    mkdir ${destDir}
+    [[ ! -d ${destDir} ]] && mkdir ${destDir}
 
-    # link the executable from build directory
+    # set the name of the target executable
     EXENAME=
-    if [[ $WHICHTASK == *"eigen_chem_fom"* ]]; then
-	EXENAME=adr2d_eigen_fom
-    fi
-    if [[ $WHICHTASK == *"kokkos_chem_fom_rk4_"* ]]; then
-	EXENAME=adr2d_kokkos_chem_fom_rk4
-    fi
+    [[ $WHICHTASK == *"eigen_chem_"* ]] && EXENAME=adr2d_eigen_fom
+    [[ $WHICHTASK == *"kokkos_chem_"* ]] && EXENAME=adr2d_kokkos_fom
+    # link the executable from build directory
     [[ -f ${destDir}/${EXENAME} ]] && rm ${destDir}/${EXENAME}
     ln -s ${CPPWORKINGDIR}/build/${EXENAME} ${destDir}
 
@@ -141,14 +139,17 @@ then
     fi
 
     # copy python scripts
-    cp ${topDir}/run_scripts/myutils_common.py ${destDir}
-    cp ${topDir}/run_scripts/myutils_chem.py ${destDir}/
     cp ${topDir}/constants_chem.py ${destDir}/
-    cp ${topDir}/plot_scripts/plot_common.py ${destDir}/
+    cp ${topDir}/myutils_common.py ${destDir}
+    cp ${topDir}/myutils_chem.py ${destDir}/
+
     if [[ $WHICHTASK == *"_timing"* ]]; then
 	cp ${topDir}/run_scripts/run_fom_timing.py ${destDir}/
     fi
     if [[ $WHICHTASK == *"_basis"* ]]; then
+	# the plotting scripts are only needed when we compute basis
+	# because when we do timing, we do not dump snapshots
+	cp ${topDir}/plot_scripts/plot_common.py ${destDir}/
 	cp ${topDir}/plot_scripts/plot_chem.py ${destDir}/
 	cp ${topDir}/run_scripts/run_fom_basis.py ${destDir}/
     fi
@@ -158,20 +159,14 @@ then
 
     # choose stepper name
     STEPPERNAME=
-    if [[ $WHICHTASK = *"_rk4"* ]]; then
-	STEPPERNAME="RungeKutta4"
-    fi
-    if [[ $WHICHTASK = *"_bdf1"* ]]; then
-	STEPPERNAME="bdf1"
-    fi
+    [[ $WHICHTASK = *"_rk4"* ]] && STEPPERNAME="RungeKutta4"
+    [[ $WHICHTASK = *"_bdf1"* ]] && STEPPERNAME="bdf1"
 
+    # set python exe
     PYTHONEXE=
-    if [[ $WHICHTASK == *"_timing"* ]]; then
-	PYTHONEXE=run_fom_timing.py
-    fi
-    if [[ $WHICHTASK == *"_basis"* ]]; then
-	PYTHONEXE=run_fom_basis.py
-    fi
+    [[ $WHICHTASK == *"_timing"* ]] && PYTHONEXE=run_fom_timing.py
+    [[ $WHICHTASK == *"_basis"* ]] && PYTHONEXE=run_fom_basis.py
+
     python ${PYTHONEXE} \
 	   --exe ${EXENAME} \
 	   --mesh-dir ${meshDir}\

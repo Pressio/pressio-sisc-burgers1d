@@ -10,7 +10,6 @@
 #include "advection_manuf_sol_functor.hpp"
 #include "source_term_manuf_sol_functor.hpp"
 
-
 struct MSTypes{
   using scalar_t	= double;
 
@@ -22,8 +21,8 @@ struct MSTypes{
   using app_velo_t	= typename app_t::velocity_type;
   using app_jacob_t	= typename app_t::jacobian_type;
   using ode_state_t	= pressio::containers::Vector<app_state_t>;
-  using ode_f_t   = pressio::containers::Vector<app_velo_t>;
-  using ode_r_t   = pressio::containers::Vector<app_velo_t>;
+  using ode_f_t		= pressio::containers::Vector<app_velo_t>;
+  using ode_r_t		= pressio::containers::Vector<app_velo_t>;
   using ode_j_t		= pressio::containers::Matrix<app_jacob_t>;
 
   using obs_t		= EigenObserver<ode_state_t>;
@@ -42,7 +41,7 @@ struct ChemTypes{
   using app_jacob_t	= typename app_t::jacobian_type;
   using ode_state_t	= pressio::containers::Vector<app_state_t>;
   using ode_f_t		= pressio::containers::Vector<app_velo_t>;
-  using ode_r_t   = pressio::containers::Vector<app_velo_t>;
+  using ode_r_t		= pressio::containers::Vector<app_velo_t>;
   using ode_j_t		= pressio::containers::Matrix<app_jacob_t>;
 
   using obs_t		= EigenObserver<ode_state_t>;
@@ -63,7 +62,9 @@ void printMeshCoordsToFile(const app_t & appObj){
 
 
 template <typename obs_t>
-void doSVD(const obs_t & Obs, std::string basisFileName){
+void doSVD(const obs_t & Obs,
+	   std::string basisFileName)
+{
   // compute SVD
   const auto & S = Obs.viewSnapshots();
   // do SVD and compute basis
@@ -81,6 +82,7 @@ void doSVD(const obs_t & Obs, std::string basisFileName){
   file.close();
   std::cout << "Done with basis" << std::endl;
 }
+
 
 
 template <typename pt>
@@ -140,7 +142,6 @@ void runRungeKutta4(const InputParser & parser,
 	    << std::fixed << std::setprecision(10)
 	    << elapsed.count() << std::endl;
 }//end runRK4
-
 
 
 
@@ -216,7 +217,6 @@ void runBDF1(const InputParser & parser,
 
 
 
-
 int main(int argc, char *argv[]){
 
   // parse input file
@@ -227,22 +227,6 @@ int main(int argc, char *argv[]){
   // get the problem name and stepper
   const auto problemName    = parser.problemName_;
   const auto odeStepperName = parser.odeStepperName_;
-
-  if ( problemName.compare("chemABC") == 0 ){
-    // types
-    using pt = ChemTypes;
-
-    // functors to use
-    typename pt::adv_fnct_t advFunctor;
-    typename pt::src_fnct_t srcFunctor(parser.K_);
-
-    if (odeStepperName.compare("RungeKutta4") == 0){
-      runRungeKutta4<pt>(parser, srcFunctor, advFunctor);
-    }
-    if (odeStepperName.compare("bdf1") == 0 ){
-      runBDF1<pt>(parser, srcFunctor, advFunctor);
-    }
-  }
 
   if ( problemName.compare("ms") == 0 ){
     // types
@@ -258,6 +242,24 @@ int main(int argc, char *argv[]){
     if (odeStepperName.compare("bdf1") == 0 ){
       runBDF1<pt>(parser, srcFunctor, advFunctor);
     }
+  }
+  if ( problemName.compare("chemABC") == 0 ){
+    // types
+    using pt = ChemTypes;
+
+    // functors to use
+    typename pt::adv_fnct_t advFunctor;
+    typename pt::src_fnct_t srcFunctor(parser.K_);
+
+    if (odeStepperName.compare("RungeKutta4") == 0){
+      runRungeKutta4<pt>(parser, srcFunctor, advFunctor);
+    }
+    if (odeStepperName.compare("bdf1") == 0 ){
+      runBDF1<pt>(parser, srcFunctor, advFunctor);
+    }
+  }
+  else{
+    std::cout << "Invalid problemName in input file " << std::endl;
   }
 
   return 0;

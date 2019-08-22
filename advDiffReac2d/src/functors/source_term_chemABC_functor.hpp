@@ -91,12 +91,17 @@ public:
 		  const cell_state_arr_t & u,
 		  cell_src_jac_t & srcJ) const
   {
-    // d_src0/dc0 d_src0/dc1 d_src0/dc2
-    srcJ[0][0] = -K_*u[1]; srcJ[0][1] = -K_*u[0]; srcJ[0][2] = zero;
-    // d_src1/dc0 d_src1/dc1 d_src1/dc2
-    srcJ[1][0] = -K_*u[1]; srcJ[1][1] = -K_*u[0]; srcJ[1][2] = zero;
-    // d_src2/dc0 d_src2/dc1 d_src2/dc2
-    srcJ[2][0] =  K_*u[1]; srcJ[2][1] =  K_*u[0]; srcJ[2][2] = -K_;
+    (*this)(x, y, t, u[0], u[1], u[2],
+	    srcJ[0][0], srcJ[0][1], srcJ[0][2],
+	    srcJ[1][0], srcJ[1][1], srcJ[1][2],
+	    srcJ[2][0], srcJ[2][1], srcJ[2][2]);
+
+    // // d_src0/dc0 d_src0/dc1 d_src0/dc2
+    // srcJ[0][0] = -K_*u[1]; srcJ[0][1] = -K_*u[0]; srcJ[0][2] = zero;
+    // // d_src1/dc0 d_src1/dc1 d_src1/dc2
+    // srcJ[1][0] = -K_*u[1]; srcJ[1][1] = -K_*u[0]; srcJ[1][2] = zero;
+    // // d_src2/dc0 d_src2/dc1 d_src2/dc2
+    // srcJ[2][0] =  K_*u[1]; srcJ[2][1] =  K_*u[0]; srcJ[2][2] = -K_;
   }
 };
 

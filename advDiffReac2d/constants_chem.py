@@ -10,7 +10,7 @@ import os.path
 #------------------------------------------------------
 
 dt = 0.005
-numSteps = 50
+numSteps = 500
 finalTime = numSteps*dt
 
 diffusion = 0.001

@@ -22,15 +22,7 @@ int main(int argc, char *argv[]){
   int err = parser.parse(argc, argv);
   if (err == 1) return 1;
 
-  const auto meshFile	= parser.meshFileName_;
-  const auto diffusion	= parser.D_;
-  const auto chemReact	= parser.K_;
-  const auto dt		= parser.dt_;
-  const auto finalT	= parser.finalT_;
-  const auto observerOn = parser.observerOn_;
-  const auto Nsteps	= parser.NSteps_;
-  const auto romSize	= parser.romSize_;
-  const auto basisFileName = parser.basisFileName_;
+  //const auto observerOn = parser.observerOn_;
 
   /*----------------------
    * TYPES
@@ -53,10 +45,10 @@ int main(int argc, char *argv[]){
    ----------------------*/
   // functors
   adv_fnct_t advFunctor;
-  src_fnct_t srcFunctor(chemReact);
+  src_fnct_t srcFunctor(parser.K_);
 
   // app object
-  fom_t appObj(meshFile, srcFunctor, advFunctor, diffusion);
+  fom_t appObj(parser.meshFileName_, srcFunctor, advFunctor, parser.D_);
   // get the number of total dofs
   const auto stateSize = appObj.getStateSize();
 
@@ -69,9 +61,9 @@ int main(int argc, char *argv[]){
    * CREATE LINEAR DECODER
    ----------------------*/
   // store modes from file
-  decoder_jac_t phi = readBasis<unsigned int>(basisFileName, romSize, stateSize);
+  decoder_jac_t phi = readBasis<unsigned int>(parser.basisFileName_, parser.romSize_, stateSize);
   const int numBasis = phi.numVectors();
-  if( numBasis != romSize ) return 0;
+  if( numBasis != parser.romSize_ ) return 0;
 
   // create decoder obj
   decoder_t decoderObj(phi);
@@ -80,22 +72,22 @@ int main(int argc, char *argv[]){
    * DEFINE LSPG PROBLEM
    ----------------------*/
   // ROM state
-  lspg_state_t xROM(romSize);
+  lspg_state_t xROM(parser.romSize_);
   xROM.putScalar(zero);
 
   // define LSPG type
   constexpr auto ode_case  = pressio::ode::ImplicitEnum::Euler;
-  using lspg_problem_type = pressio::rom::DefaultLSPGTypeGenerator<
-    fom_t, ode_case, decoder_t, lspg_state_t /* ud_ops */>;
-  using lspg_stepper_t = typename lspg_problem_type::lspg_stepper_t;
-  using lspg_generator = pressio::rom::LSPGUnsteadyProblemGenerator<lspg_problem_type>;
+  using lspg_problem_type  = pressio::rom::DefaultLSPGTypeGenerator<
+    fom_t, ode_case, decoder_t, lspg_state_t>;
+  using lspg_stepper_t	   = typename lspg_problem_type::lspg_stepper_t;
+  using lspg_generator     = pressio::rom::LSPGUnsteadyProblemGenerator<lspg_problem_type>;
   lspg_generator lspgProblem(appObj, yRef, decoderObj, xROM, zero);
 
   // linear solver
-  using eig_dyn_mat  = Eigen::Matrix<scalar_t, -1, -1>;
-  using hessian_t  = pressio::containers::Matrix<eig_dyn_mat>;
-  using solver_tag   = pressio::solvers::linear::iterative::LSCG;
-  using linear_solver_t = pressio::solvers::iterative::EigenIterative<solver_tag, hessian_t>;
+  using eig_dyn_mat	   = Eigen::Matrix<scalar_t, -1, -1>;
+  using hessian_t	   = pressio::containers::Matrix<eig_dyn_mat>;
+  using solver_tag	   = pressio::solvers::linear::iterative::LSCG;
+  using linear_solver_t	   = pressio::solvers::iterative::EigenIterative<solver_tag, hessian_t>;
   linear_solver_t linSolverObj;
 
   // GaussNewton solver
@@ -109,8 +101,8 @@ int main(int argc, char *argv[]){
   /*----------------------
    * INTEGRATE
    ----------------------*/
-  pressio::ode::integrateNSteps(lspgProblem.stepperObj_, xROM, zero, dt, Nsteps, solver);
-
+  pressio::ode::integrateNSteps(lspgProblem.stepperObj_, xROM, zero, parser.dt_,
+				parser.NSteps_, solver);
 
   // Record end time
   auto finishTime = std::chrono::high_resolution_clock::now();

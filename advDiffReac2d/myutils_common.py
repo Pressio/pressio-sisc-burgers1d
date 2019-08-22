@@ -5,6 +5,16 @@ from subprocess import Popen, list2cmdline, PIPE
 import numpy as np
 import os.path
 
+
+def generateMeshFileName(Nx, Ny, samplingType, targetSize=-1):
+  if samplingType == "full" and Nx==Ny:
+    return "mesh_" + str(Nx) + ".dat"
+  else if samplingType == "random":
+    return "mesh_" + str(Nx) + "_" + str(targetSize) + ".dat"
+  else:
+    print("invalid samplingType, choices are: full, random")
+    sys.exit(1)
+
 def computeTimeOfSnapshot(snapId, samplingFreq, dt):
   # compute time of this snapId: since snapshots NEVER include the init cond,
   # snapId=0 corresponds to snapshot taken at step = samplingFreq, so to compute

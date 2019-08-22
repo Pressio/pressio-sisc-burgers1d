@@ -108,17 +108,17 @@ public:
 
     std::cout << problemName_ << std::endl;
     std::cout << meshFileName_ << std::endl;
-    std::cout << "stepper = "		<< odeStepperName_	<< " "
-	      << "dt = "		<< dt_			<< " "
-	      << "finalT = "		<< finalT_		<< " "
-	      << "numSteps = "		<< NSteps_		<< " "
-	      << "D = "			<< D_			<< " "
-	      << "K = "			<< K_			<< " "
-	      << "observerOn "		<< observerOn_		<< " "
-	      << "shapshotsFileName_ = "<< shapshotsFileName_	<< " "
-	      << "snapshotsFreq_ = "	<< snapshotsFreq_	<< " "
-	      << "romOn_ = "		<< romOn_		<< " "
-	      << "romSize_ = "		<< romSize_		<< " "
+    std::cout << "stepper = "		<< odeStepperName_	<< " \n"
+	      << "dt = "		<< dt_			<< " \n"
+	      << "finalT = "		<< finalT_		<< " \n"
+	      << "numSteps = "		<< NSteps_		<< " \n"
+	      << "D = "			<< D_			<< " \n"
+	      << "K = "			<< K_			<< " \n"
+	      << "observerOn "		<< observerOn_		<< " \n"
+	      << "shapshotsFileName_ = "<< shapshotsFileName_	<< " \n"
+	      << "snapshotsFreq_ = "	<< snapshotsFreq_	<< " \n"
+	      << "romOn_ = "		<< romOn_		<< " \n"
+	      << "romSize_ = "		<< romSize_		<< " \n"
 	      << "basisFileName_ = "	<< basisFileName_
 	      << std::endl;
 

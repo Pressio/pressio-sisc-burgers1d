@@ -14,11 +14,12 @@ from mpl_toolkits.mplot3d import Axes3D
 from argparse import ArgumentParser
 
 from constants_ms import msTrueSolution
-from plot_common import loadXY, splitStateBySpecies, computeTimeOfSnapshot
-from plot_common import extractDtFromTargetInputFile, extractSamplingFreqFromTargetInputFile
+from myutils_common import splitStateBySpecies, computeTimeOfSnapshot
+from myutils_common import extractDtFromTargetInputFile, extractSamplingFreqFromTargetInputFile
+from plot_common import loadXY
 
 
-def plotSingleSnapshot(n, xrs, yrs, snapId, snaps):
+def plotSingleSnapshot(n, xrs, yrs, snapId, snaps, sampFreq, dt):
   # get only target state from snapshot matrix
   targetState = snaps[:, snapId]
 
@@ -26,7 +27,7 @@ def plotSingleSnapshot(n, xrs, yrs, snapId, snaps):
   [c0,c1,c2,c0rs,c1rs,c2rs] = splitStateBySpecies(targetState, n)
 
   # calculate the time this snapshot corresponds to
-  snapshotTime = computeTimeOfSnapshot(snapId, cms.samplingFreq, cms.dt)
+  snapshotTime = computeTimeOfSnapshot(snapId, sampFreq, dt)
 
   # compute true manufactured solution at that time
   [u0,u1,u2] = msTrueSolution(x,y, snapshotTime)
@@ -74,7 +75,7 @@ if __name__== "__main__":
   args = parser.parse_args()
 
   # load xy
-  [x, y, xrs, yrs] = getXY(args.dataDir, args.n)
+  [x, y, xrs, yrs] = loadXY(args.dataDir, args.n)
 
   # load snapshots
   snaps = np.loadtxt(args.dataDir+"/snapshots.txt")

@@ -48,6 +48,7 @@ def main(exename, meshDir, stepperName):
       print("time = ", time)
 
   np.savetxt(exename+"_timings.txt", data, fmt='%.12f')
+  np.set_printoptions(edgeitems=10, linewidth=100000)
   print(data)
 
 

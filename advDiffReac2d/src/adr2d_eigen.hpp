@@ -12,16 +12,15 @@
 template<typename source_functor, typename advection_functor>
 class Adr2dEigen
 {
-  using this_t	= Adr2dEigen<source_functor, advection_functor>;
-  using ui_t	= unsigned int;
-  using sc_t	= double;
-  using eigVec	= Eigen::VectorXd;
-  using mv_t	= Eigen::MatrixXd;
-  using Tr	= Eigen::Triplet<sc_t>;
+  using this_t	  = Adr2dEigen<source_functor, advection_functor>;
+  using sc_t	  = double;
+  using eigVec	  = Eigen::VectorXd;
+  using mv_t	  = Eigen::MatrixXd;
+  using Tr	  = Eigen::Triplet<sc_t>;
   using sc_arr3_t = std::array<sc_t, 3>;
 
   // the type to represent global indices
-  using gid_t   = ui_t;
+  using gid_t      = unsigned int;
   // array of 5 gids
   using gid_arr5_t = std::array<gid_t,5>;
 
@@ -37,8 +36,6 @@ public:
   static constexpr auto zero	= ::pressio::utils::constants::zero<scalar_type>();
   static constexpr auto one	= ::pressio::utils::constants::one<scalar_type>();
   static constexpr auto two	= ::pressio::utils::constants::two<scalar_type>();
-  static constexpr auto three	= ::pressio::utils::constants::three<scalar_type>();
-  static constexpr auto four	= ::pressio::utils::constants::four<scalar_type>();
   static constexpr auto oneHalf = one/two;
 
 public:
@@ -60,21 +57,10 @@ public:
   ~Adr2dEigen() = default;
 
 public:
-  size_t getStateSize() const{
-    return numDof_;
-  }
-
-  const state_type & getState() const{
-    return state_;
-  }
-
-  eigVec getX() const {
-    return x_;
-  }
-
-  eigVec getY() const {
-    return y_;
-  }
+  size_t getStateSize() const{ return numDof_; }
+  const state_type & getState() const{ return state_; }
+  eigVec getX() const { return x_; }
+  eigVec getY() const { return y_; }
 
   void velocity(const state_type  & u,
 		const scalar_type & t,
@@ -84,9 +70,9 @@ public:
 
   velocity_type velocity(const state_type  & u,
 			 const scalar_type & t) const{
-    velocity_type f(numDof_r_);
-    this->velocity_impl(u, t, f);
-    return f;
+    // use member f_ here
+    this->velocity_impl(u, t, f_);
+    return f_;
   }
 
   void jacobian(const state_type  & u,
@@ -101,29 +87,24 @@ public:
      * num of rows = number of residuals dofs
      * num of cols = number of state dofs
      */
-    jacobian_type J(numDof_r_, numDof_);
-    this->jacobian_impl(u, J, t);
-    return J;
+    // use member J_ here
+    this->jacobian_impl(u, J_, t);
+    return J_;
   }
 
-  void applyJacobian(const state_type & y,
+  void applyJacobian(const state_type & u,
   		     const mv_t & B,
   		     const scalar_type & t,
   		     mv_t & A) const{
-    /* the jacobian has
-     * num of rows = number of residuals dofs
-     * num of cols = number of state dofs
-     */
-    jacobian_type J(numDof_r_, numDof_);
-    this->jacobian_impl(y, J, t);
-    A = J * B;
+    this->jacobian_impl(u, J_, t);
+    A = J_ * B;
   }
 
-  mv_t applyJacobian(const state_type & y,
+  mv_t applyJacobian(const state_type & u,
   		     const mv_t & B,
   		     const scalar_type & t) const{
     mv_t A( numDof_r_, B.cols() );
-    this->applyJacobian(y, B, t, A);
+    this->applyJacobian(u, B, t, A);
     return A;
   }
 
@@ -170,12 +151,19 @@ private:
 	  numDof_   = numGpt_ * this_t::numSpecies_;
 	  std::cout << "numGpt = " << numGpt_ << " "
 		    << "numDof = " << numDof_ << std::endl;
-
+	}
+	else{
 	  x_.resize(numGpt_);
 	  y_.resize(numGpt_);
 	  state_.resize(numDof_);
-	}
-	else{
+	  f_.resize(numDof_r_);
+	  /* the jacobian has
+	   * num of rows = number of residuals dofs
+	   * num of cols = number of state dofs
+	   */
+	  J_.resize(numDof_r_, numDof_);
+	  tripletList.resize(nonZerosPerRowJ_*numDof_r_);
+
 	  // store first value and its coords
 	  auto thisGid = std::stoi(colVal);
 	  lineGIDs[0] = thisGid;
@@ -238,8 +226,6 @@ private:
 		     velocity_type     & f) const{
     // remember that the size of u not necessarily == f
     // f can be smaller than u when involving sample mesh
-
-    // set to zero
     f.setZero();
 
     // loop over cells where velocity needs to be computed
@@ -315,12 +301,12 @@ private:
   		     jacobian_type	& J,
 		     const scalar_type	& t) const
   {
-    // triplets is used to store a series of (row, col, value)
-    // has to be cleared becuase we append to it while computing
-    tripletList.clear();
+    J.setZero();
 
+    // triplets is used to store a series of (row, col, value)
     // loop over cells where velocity needs to be computed
     // i.e. over all cells where we want residual
+    gid_t tripCount = -1;
     for (gid_t rPt=0; rPt < graph_.size(); ++rPt)
     {
       // gID of this cell
@@ -360,44 +346,44 @@ private:
       const auto & southCellGid = graph_[rPt][4];
 
       // contribution for ij
-      tripletList.push_back( Tr(rowIndex,   uIndex,   FDcoeff1_ + cellSrcJ_[0][0]) );
-      tripletList.push_back( Tr(rowIndex+1, uIndex+1, FDcoeff1_ + cellSrcJ_[1][1]) );
-      tripletList.push_back( Tr(rowIndex+2, uIndex+2, FDcoeff1_ + cellSrcJ_[2][2]) );
+      tripletList[++tripCount] = Tr(rowIndex,   uIndex,   FDcoeff1_ + cellSrcJ_[0][0]);
+      tripletList[++tripCount] = Tr(rowIndex+1, uIndex+1, FDcoeff1_ + cellSrcJ_[1][1]);
+      tripletList[++tripCount] = Tr(rowIndex+2, uIndex+2, FDcoeff1_ + cellSrcJ_[2][2]);
 
       // deal with mixed terms, all involving state in this cell
       // dof 0
-      tripletList.push_back( Tr(rowIndex, uIndex+1, cellSrcJ_[0][1]) );
-      tripletList.push_back( Tr(rowIndex, uIndex+2, cellSrcJ_[0][2]) );
+      tripletList[++tripCount] = Tr(rowIndex, uIndex+1, cellSrcJ_[0][1]);
+      tripletList[++tripCount] = Tr(rowIndex, uIndex+2, cellSrcJ_[0][2]);
       // dof 1
-      tripletList.push_back( Tr(rowIndex+1, uIndex,   cellSrcJ_[1][0]) );
-      tripletList.push_back( Tr(rowIndex+1, uIndex+2, cellSrcJ_[1][2]) );
+      tripletList[++tripCount] = Tr(rowIndex+1, uIndex,   cellSrcJ_[1][0]);
+      tripletList[++tripCount] = Tr(rowIndex+1, uIndex+2, cellSrcJ_[1][2]);
       // dof 2
-      tripletList.push_back( Tr(rowIndex+2, uIndex,   cellSrcJ_[2][0]) );
-      tripletList.push_back( Tr(rowIndex+2, uIndex+1, cellSrcJ_[2][1]) );
+      tripletList[++tripCount] = Tr(rowIndex+2, uIndex,   cellSrcJ_[2][0]);
+      tripletList[++tripCount] = Tr(rowIndex+2, uIndex+1, cellSrcJ_[2][1]);
 
       // given this cell and DOF, find index of state value at WEST cell
       const auto uWestIndex  = westCellGid*numSpecies_;
-      tripletList.push_back( Tr(rowIndex,   uWestIndex,   FDcoeffWest_) );
-      tripletList.push_back( Tr(rowIndex+1, uWestIndex+1, FDcoeffWest_) );
-      tripletList.push_back( Tr(rowIndex+2, uWestIndex+2, FDcoeffWest_) );
+      tripletList[++tripCount] = Tr(rowIndex,   uWestIndex,   FDcoeffWest_);
+      tripletList[++tripCount] = Tr(rowIndex+1, uWestIndex+1, FDcoeffWest_);
+      tripletList[++tripCount] = Tr(rowIndex+2, uWestIndex+2, FDcoeffWest_);
 
       // given this cell and DOF, find index of state value at NORTH cell
       const auto uNorthIndex = northCellGid*numSpecies_;
-      tripletList.push_back( Tr(rowIndex,   uNorthIndex,   FDcoeffNorth_) );
-      tripletList.push_back( Tr(rowIndex+1, uNorthIndex+1, FDcoeffNorth_) );
-      tripletList.push_back( Tr(rowIndex+2, uNorthIndex+2, FDcoeffNorth_) );
+      tripletList[++tripCount] = Tr(rowIndex,   uNorthIndex,   FDcoeffNorth_);
+      tripletList[++tripCount] = Tr(rowIndex+1, uNorthIndex+1, FDcoeffNorth_);
+      tripletList[++tripCount] = Tr(rowIndex+2, uNorthIndex+2, FDcoeffNorth_);
 
       // given this cell and DOF, find index of state value at EAST cell
       const auto uEastIndex  = eastCellGid*numSpecies_;
-      tripletList.push_back( Tr(rowIndex,   uEastIndex,	  FDcoeffEast_) );
-      tripletList.push_back( Tr(rowIndex+1, uEastIndex+1, FDcoeffEast_) );
-      tripletList.push_back( Tr(rowIndex+2, uEastIndex+2, FDcoeffEast_) );
+      tripletList[++tripCount] = Tr(rowIndex,   uEastIndex,	  FDcoeffEast_);
+      tripletList[++tripCount] = Tr(rowIndex+1, uEastIndex+1, FDcoeffEast_);
+      tripletList[++tripCount] = Tr(rowIndex+2, uEastIndex+2, FDcoeffEast_);
 
       // given this cell and DOF, find index of state value at SOUTH cell
       const auto uSouthIndex = southCellGid*numSpecies_;
-      tripletList.push_back( Tr(rowIndex,   uSouthIndex,   FDcoeffSouth_) );
-      tripletList.push_back( Tr(rowIndex+1, uSouthIndex+1, FDcoeffSouth_) );
-      tripletList.push_back( Tr(rowIndex+2, uSouthIndex+2, FDcoeffSouth_) );
+      tripletList[++tripCount] = Tr(rowIndex,   uSouthIndex,   FDcoeffSouth_);
+      tripletList[++tripCount] = Tr(rowIndex+1, uSouthIndex+1, FDcoeffSouth_);
+      tripletList[++tripCount] = Tr(rowIndex+2, uSouthIndex+2, FDcoeffSouth_);
     }// end rPt loop
 
     J.setFromTriplets(tripletList.begin(), tripletList.end());
@@ -407,6 +393,9 @@ private:
 
 private:
   static constexpr int numSpecies_{3};
+
+  // number of non zero entries for each jacobian row
+  static constexpr int nonZerosPerRowJ_ = 7;
 
   // name of mesh file
   const std::string meshFile_ = {};
@@ -418,11 +407,6 @@ private:
 
   // diffusion
   const scalar_type D_ = this_t::zero;
-
-  const scalar_type Lx_{1.};
-  const scalar_type Ly_{1.};
-  const std::array<scalar_type,2> xAxisLim_{{0., Lx_}};
-  const std::array<scalar_type,2> yAxisLim_{{0., Ly_}};
 
   scalar_type dx_{};
   scalar_type dy_{};
@@ -483,14 +467,21 @@ private:
   mutable std::vector<Tr> tripletList = {};
 
   // state_ has size = numGpt_ * numSpecies_
-  // because we have multiple dofs per cell
   mutable state_type state_ = {};
+
+  // f_ has size = numGpt_r_ * numSpecies_
+  // because it might be evaluated at a subset of cells
+  mutable velocity_type f_ {};
+
+  // J_ has numDof_r_ rows and numDof_ cols
+  mutable jacobian_type J_ {};
 
   // advection components at a given cell
   mutable std::array<scalar_type, 2> cellAdv_ = {};
 
   // source computed at a given cell
   mutable sc_arr3_t cellSrc_ = {};
+
   // jacobian of the source at a given cell
   mutable std::array<sc_arr3_t, numSpecies_> cellSrcJ_ = {};
 

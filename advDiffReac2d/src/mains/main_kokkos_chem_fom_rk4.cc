@@ -15,7 +15,6 @@ int main(int argc, char *argv[]){
     int err = parser.parse(argc, argv);
     if (err == 1) return 1;
 
-    const auto meshFile		= parser.meshFileName_;
     const auto diffusion	= parser.D_;
     const auto chemReact	= parser.K_;
     const auto dt		= parser.dt_;
@@ -43,7 +42,7 @@ int main(int argc, char *argv[]){
     src_fnct_t srcFunctor(chemReact);
 
     // create app object
-    app_t appObj(meshFile, srcFunctor,  advFunctor, diffusion);
+    app_t appObj(parser.meshFileName_, srcFunctor,  advFunctor, diffusion);
 
     // initial state
     auto & x0n = appObj.getState();

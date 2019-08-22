@@ -28,7 +28,8 @@ def main(exename, meshDir, stepperName):
     data[iMesh][0] = numCell
 
     # check if meshfile exists
-    pathToMeshFile = meshDir + "/mesh" + str(numCell) + ".dat"
+    meshFileName = utc.generateMeshFileName(numCell, numCell, "full")
+    pathToMeshFile = meshDir + "/" + meshFilName
     assert( os.path.exists(pathToMeshFile) )
     print("Current mesh file = ", pathToMeshFile)
 
@@ -74,6 +75,7 @@ def main(exename, meshDir, stepperName):
     os.system("mv xy.txt " + tmpDir)
 
   np.savetxt(exename+"_errors.txt", data, fmt='%.12f')
+  np.set_printoptions(edgeitems=10, linewidth=100000)
   print(data)
 
 

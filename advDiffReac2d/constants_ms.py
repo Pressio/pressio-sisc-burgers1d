@@ -9,13 +9,12 @@ import os.path
 # constants to use for the manuf solution problem
 #------------------------------------------------------
 
-dt = 0.005
-numSteps = 100
+dt = 0.002
+numSteps = 1000
 finalTime = numSteps*dt
 
 diffusion = 0.01
-
-# the chemical reaction coeff has to be zero for the manuf solution test
+# the chem Reaction must be zero for this test
 chemReaction = 0.0
 
 # freq to sample the state

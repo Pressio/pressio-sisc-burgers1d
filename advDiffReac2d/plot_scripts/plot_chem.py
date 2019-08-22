@@ -12,8 +12,10 @@ from mpl_toolkits.mplot3d import Axes3D
 from argparse import ArgumentParser
 
 import constants_chem as cch
-from plot_common import loadXY, splitStateBySpecies, computeTimeOfSnapshot
-from plot_common import extractDtFromTargetInputFile, extractSamplingFreqFromTargetInputFile
+
+from myutils_common import splitStateBySpecies, computeTimeOfSnapshot
+from myutils_common import extractDtFromTargetInputFile, extractSamplingFreqFromTargetInputFile
+from plot_common import loadXY
 
 
 def plotSingleSnapshot(n, xrs, yrs, snapId, snaps, samplingFreq, dt):
@@ -66,7 +68,7 @@ if __name__== "__main__":
   args = parser.parse_args()
 
   # load xy
-  [x, y, xrs, yrs] = getXY(args.dataDir, args.n)
+  [x, y, xrs, yrs] = loadXY(args.dataDir, args.n)
 
   # load snapshots
   snaps = np.loadtxt(args.dataDir+"/snapshots.txt")
