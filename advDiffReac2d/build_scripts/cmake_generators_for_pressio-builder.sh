@@ -3,7 +3,7 @@
 #---------------------------------
 # trilinos generators
 #---------------------------------
-function tril_mac_sisc_paper_adrcpp(){
+function tril_mac_sisc_paper_adr2dcpp(){
     trilinos_build_type
     trilinos_link_type
     trilinos_verbose_makefile_on
@@ -20,14 +20,14 @@ function tril_mac_sisc_paper_adrcpp(){
 # pressio generators
 #---------------------------------
 function pressio_mac_sisc_paper_adr2dcpp(){
-    pressio_always_needed
+    pressio_build_type
+    pressio_link_type
     pressio_mpi_c_cxx_compilers
     pressio_mpi_fortran_on
-    pressio_tests_off
+    pressio_tests_on
     pressio_examples_off
-    pressio_openblas
     pressio_openblaslapack
     pressio_enable_eigen
     pressio_enable_trilinos
-    pressio_pressio_packages
+    pressio_pressio_target_package
 }

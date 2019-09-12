@@ -10,45 +10,58 @@ cd ${CPPWORKINGDIR}
 
 # clone pressio
 if [ ! -d pressio ]; then
-    git clone --recursive git@gitlab.com:fnrizzi/pressio.git
+    git clone --recursive git@github.com:Pressio/pressio.git
     cd pressio && git checkout siscPaper && cd ..
 else
     cd pressio && git pull && cd ..
 fi
 
-# clone pressio_auto_build
-if [ ! -d pressio_auto_build ]; then
-    git clone git@gitlab.com:fnrizzi/pressio_auto_build.git
-    cd pressio_auto_build && git checkout siscPaper && cd ..
+# clone pressio-builder
+if [ ! -d pressio-builder ]; then
+    git clone git@github.com:Pressio/pressio-builder.git
+    cd pressio-builder && git checkout siscPaper && cd ..
 else
-    cd pressio_auto_build && git pull && cd ..
+    cd pressio-builder && git pull && cd ..
 fi
 
 #-------------
-# get tpls
+# do tpls
 #-------------
 # first do eigen
 if [ ! -d ${CPPWORKINGDIR}/tpls/eigen ]; then
-    cd pressio_auto_build/tpls
-    bash main_tpls.sh -arch=mac \
-	 --with-libraries=eigen \
-	 -with-cmake-line-fncs=default \
-	 --target-dir=${CPPWORKINGDIR}/tpls \
-	 --wipe-existing=1 \
-	 -target-type=dynamic
+    cd pressio-builder
+    ./main_tpls.sh \
+	--dryrun=0 \
+	--tpls=eigen \
+	--target-dir=${CPPWORKINGDIR}/tpls \
+	--wipe-existing=1
     cd ${CPPWORKINGDIR}
 fi
+
+# first do gtest
+if [ ! -d ${CPPWORKINGDIR}/tpls/gtest ]; then
+    cd pressio-builder
+    ./main_tpls.sh \
+	--dryrun=0 \
+	--tpls=gtest \
+	--target-dir=${CPPWORKINGDIR}/tpls \
+	--wipe-existing=1
+    cd ${CPPWORKINGDIR}
+fi
+
 # do trilinos
 if [ ! -d ${CPPWORKINGDIR}/tpls/trilinos ]; then
-    cd pressio_auto_build/tpls
+    cd pressio-builder
 
     if [[ $ONMAC == 1 ]]; then
-	bash main_tpls.sh -arch=mac \
-	     --with-libraries=trilinos \
-	     -with-cmake-line-fncs=sisc_paper_adrcpp_mac \
-	     --target-dir=${CPPWORKINGDIR}/tpls \
-	     --wipe-existing=1 \
-	     -target-type=dynamic
+	./main_tpls.sh \
+	    -dryrun=0 \
+	    -tpls=trilinos \
+	    -target-dir=${CPPWORKINGDIR}/tpls \
+	    -wipe-existing=1 \
+	    -link-type=dynamic \
+	    -cmake-custom-generator-file=${TOPDIR}/build_scripts/cmake_generators_for_pressio-builder.sh \
+	    -cmake-generator-names=tril_mac_sisc_paper_adr2dcpp
     else
 	echo "fill in cmake line for trilinos for non mac"
 	exit 1
@@ -57,23 +70,36 @@ if [ ! -d ${CPPWORKINGDIR}/tpls/trilinos ]; then
     cd ${CPPWORKINGDIR}
 fi
 
+#-------------
+# do pressio
+#-------------
+# (install with cmake which we need because of the cmakedefines)
+# only need rom package (others turned on automatically)
+# target-type: does not matter since Pressio is NOT compiled yet
+if [ ! -d ${CPPWORKINGDIR}/tpls/pressio ];
+then
+    cd pressio-builder
 
-# install pressio
-# (no tests, just install with cmake which we need because of the cmakedefines)
-# Note that:
-# arch: does not matter for now
-# target-type: does not matter since nothing is compiled yet
-if [ ! -d ${CPPWORKINGDIR}/tpls/pressio ]; then
-    cd pressio_auto_build/pressio
-    bash main_pressio.sh -arch=mac \
-	 -target-dir=${CPPWORKINGDIR}/tpls \
-	 -pressio-src=${CPPWORKINGDIR}/pressio \
-	 -all-tpls-path=${CPPWORKINGDIR}/tpls \
-	 -wipe-existing=1 \
-	 -build-mode=Release \
-	 -target-type=dynamic \
-	 -with-cmake-fnc=sisc_paper_adr2dcpp \
-	 -with-packages=rom
+    if [[ $ONMAC == 1 ]];
+    then
+	./main_pressio.sh \
+	    -dryrun=0 \
+	    -pressio-src=${CPPWORKINGDIR}/pressio \
+	    -target-dir=${CPPWORKINGDIR}/tpls \
+	    -package-name=rom \
+	    -wipe-existing=1 \
+	    -build-mode=Release \
+	    -link-type=dynamic \
+	    -cmake-custom-generator-file=${TOPDIR}/build_scripts/cmake_generators_for_pressio-builder.sh \
+	    -cmake-generator-name=pressio_mac_sisc_paper_adr2dcpp \
+	    -eigen-path=${CPPWORKINGDIR}/tpls/eigen/install \
+	    -gtest-path=${CPPWORKINGDIR}/tpls/gtest/install \
+	    -trilinos-path=${CPPWORKINGDIR}/tpls/trilinos/install
+    else
+	echo "fill in cmake line for pressio for linux"
+	exit 1
+    fi
+
     cd ${CPPWORKINGDIR}
 else
     cd ${CPPWORKINGDIR}/tpls/pressio/build
@@ -81,6 +107,9 @@ else
     cd ${CPPWORKINGDIR}
 fi
 
+#----------------------
+# build advDiffReac2d
+#----------------------
 # set paths for eigen, trilinos and pressio
 EIGENPATH="${CPPWORKINGDIR}/tpls/eigen/install/include/eigen3"
 TRILINOSINCPATH="${CPPWORKINGDIR}/tpls/trilinos/install/include"
@@ -110,4 +139,4 @@ make -j6
 cd ..
 
 # go back where we started
-cd ${topDir}
+cd ${TOPDIR}

@@ -1,10 +1,10 @@
 #!/bin/bash
 
 # top dir where this lives or is sourced
-topDir=${PWD}
+TOPDIR=${PWD}
 
 # source
-CPPSRC=${topDir}/src
+CPPSRC=${TOPDIR}/src
 
 # the working dir
 WORKINGDIR=
@@ -75,12 +75,9 @@ check_minimum_vars_set(){
 	      ${WHICHTASK} != eigen_chem_fom_bdf1_timing &&
 	      ${WHICHTASK} != eigen_chem_fom_rk4_basis &&
 	      ${WHICHTASK} != eigen_chem_fom_bdf1_basis &&
-	      ${WHICHTASK} != eigen_chem_lspg_full_mesh_bdf1_timing &&
 	      #
 	      ${WHICHTASK} != kokkos_ms_rk4 &&
-	      ${WHICHTASK} != kokkos_chem_fom_rk4_timing &&
-	      ${WHICHTASK} != kokkos_chem_fom_rk4_basis &&
-	      ${WHICHTASK} != kokkos_chem_lspg_full_mesh_bdf1_timing ]];
+	      ${WHICHTASK} != kokkos_chem_fom_rk4_timing ]];
     then
 	echo "you set --do to a non-admissible value, choose one of:"
 	display_admissible_options_for_do

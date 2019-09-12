@@ -76,8 +76,8 @@ public:
   }
 
   void jacobian(const state_type  & u,
-  		jacobian_type	  & jac,
-  		const scalar_type t) const{
+  		const scalar_type t,
+		jacobian_type	  & jac) const{
     this->jacobian_impl(u, jac, t);
   }
 
