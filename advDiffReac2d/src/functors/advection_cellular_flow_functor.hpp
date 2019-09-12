@@ -14,6 +14,8 @@ class CellularFlow
 
 public:
   static constexpr auto myPI_   = 3.14159265358979323846;
+  // static constexpr auto two	= ::pressio::utils::constants::two<sc_t>();
+  // static constexpr auto PI2_	= myPI_*two;
 
 public:
   CellularFlow() = default;
@@ -25,7 +27,7 @@ public:
 		  cell_adv_arr_t & vxy) const
   {
     vxy[0] = -myPI_*std::sin(myPI_*x)*std::cos(myPI_*y);
-    vxy[1] = myPI_*std::cos(myPI_*x)*std::sin(myPI_*y);
+    vxy[1] =  myPI_*std::cos(myPI_*x)*std::sin(myPI_*y);
   }
 
   KOKKOS_INLINE_FUNCTION
@@ -39,7 +41,7 @@ public:
 		  sc_t & vy) const
   {
     vx = -myPI_*std::sin(myPI_*x)*std::cos(myPI_*y);
-    vy = myPI_*std::cos(myPI_*x)*std::sin(myPI_*y);
+    vy =  myPI_*std::cos(myPI_*x)*std::sin(myPI_*y);
   }
 };
 

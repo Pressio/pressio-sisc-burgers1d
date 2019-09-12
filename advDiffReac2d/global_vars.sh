@@ -26,7 +26,7 @@ if [[ $OSTYPE == *"darwin"* ]]; then
     ONMAC=1
 fi
 
-print_global_vars(){
+function print_global_vars(){
     echo "TOPDIR	 = $TOPDIR"
     echo "CPPSRC	 = $CPPSRC"
     echo "WORKINGDIR     = $WORKINGDIR"
@@ -37,14 +37,14 @@ print_global_vars(){
     echo "ONMAC		 = $ONMAC"
 }
 
-display_admissible_options_for_do(){
+function display_admissible_options_for_do(){
     echo " "
-    echo " To build exes: build"
+    echo " To build all executables: --do=build"
     echo " "
     echo " Eigen FOM choices:"
     echo " - eigen_ms_rk4, eigen_ms_bdf1"
     echo " - eigen_chem_fom_rk4_timing", "eigen_chem_fom_bdf1_timing"
-    echo " - eigen_chem_fom_rk4_basis", "eigen_chem_fom_bdf1_basis"
+    echo " - eigen_chem_fom_rk4_basis",  "eigen_chem_fom_bdf1_basis"
     echo " "
     echo " Kokkos FOM choices:"
     echo " - kokkos_ms_rk4"
@@ -55,7 +55,7 @@ display_admissible_options_for_do(){
     # echo " - kokkos_chem_lspg_full_mesh_bdf1_timing"
 }
 
-check_minimum_vars_set(){
+function check_minimum_vars_set(){
     if [[ -z $WORKINGDIR ]]; then
 	echo "--working-dir is empty, must be set: exiting"
 	exit 1
@@ -79,7 +79,7 @@ check_minimum_vars_set(){
 	      ${WHICHTASK} != kokkos_ms_rk4 &&
 	      ${WHICHTASK} != kokkos_chem_fom_rk4_timing ]];
     then
-	echo "you set --do to a non-admissible value, choose one of:"
+	echo "--do is set to non-admissible value, choose one of:"
 	display_admissible_options_for_do
 	exit 3
     fi

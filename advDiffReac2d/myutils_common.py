@@ -9,11 +9,12 @@ import os.path
 def generateMeshFileName(Nx, Ny, samplingType, targetSize=-1):
   if samplingType == "full" and Nx==Ny:
     return "mesh_" + str(Nx) + ".dat"
-  else if samplingType == "random":
+  elif samplingType == "random":
     return "mesh_" + str(Nx) + "_" + str(targetSize) + ".dat"
   else:
     print("invalid samplingType, choices are: full, random")
     sys.exit(1)
+
 
 def computeTimeOfSnapshot(snapId, samplingFreq, dt):
   # compute time of this snapId: since snapshots NEVER include the init cond,
@@ -26,9 +27,15 @@ def computeTimeOfSnapshot(snapId, samplingFreq, dt):
 
 
 def splitStateBySpecies(targetState, n):
+  # split a target state vector into subvecvectors for each dof
+  # targetState is a vector wich contains all dofs for each mesh cell
+  # in this case, we know we have 3 dofs
+
+  # c0,c1,c2 contains the linearized single states
   c0 = targetState[0:-1:3]
   c1 = targetState[1:-1:3]
   c2 = targetState[2:len(targetState)+1:3]
+  # c0rs,c1rs,c2rs contains the single states reshaped to match grid
   c0rs = c0.reshape(n,n)
   c1rs = c1.reshape(n,n)
   c2rs = c2.reshape(n,n)

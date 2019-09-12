@@ -19,13 +19,13 @@ public:
   sc_t K_ = {};
   // radius where source for second species is active
   static constexpr auto radius_ = 0.15;
-  const std::array<sc_t,2> origin_ = {{0.55, 0.35}};
+  const std::array<sc_t,2> origin_ = {{0.6, 0.35}};
 
 public:
   static constexpr auto zero	= ::pressio::utils::constants::zero<sc_t>();
   static constexpr auto four	= ::pressio::utils::constants::four<sc_t>();
-  static constexpr auto myPI_	  = 3.14159265358979323846;
-  static constexpr auto PI4_	  = this_t::four * myPI_;
+  static constexpr auto myPI_	= 3.14159265358979323846;
+  static constexpr auto PI4_	= this_t::four * myPI_;
 
 public:
   ChemistryABCSource(sc_t K) : K_{K}{};
@@ -56,16 +56,6 @@ public:
     }
   }
 
-  void operator()(const sc_t & x,
-		  const sc_t & y,
-		  const sc_t & t,
-		  const cell_state_arr_t & u,
-		  cell_src_arr_t & src) const
-  {
-    (*this)(x, y, t, u[0], u[1], u[2], src[0], src[1], src[2]);
-  }
-
-
   KOKKOS_INLINE_FUNCTION
   void operator()(const sc_t & x,
 		  const sc_t & y,
@@ -83,6 +73,16 @@ public:
     srcJ10 = -K_*u1; srcJ11 = -K_*u0; srcJ12 = zero;
     // d_src2/dc0 d_src2/dc1 d_src2/dc2
     srcJ20 =  K_*u1; srcJ21 =  K_*u0; srcJ22 = -K_;
+  }
+
+
+  void operator()(const sc_t & x,
+		  const sc_t & y,
+		  const sc_t & t,
+		  const cell_state_arr_t & u,
+		  cell_src_arr_t & src) const
+  {
+    (*this)(x, y, t, u[0], u[1], u[2], src[0], src[1], src[2]);
   }
 
   void operator()(const sc_t & x,

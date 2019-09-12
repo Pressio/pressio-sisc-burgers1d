@@ -29,7 +29,8 @@ set(MAINDIR ${CMAKE_CURRENT_SOURCE_DIR}/mains)
 # eigen includes
 set(EIGENINCDIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/functors)
+  ${CMAKE_CURRENT_SOURCE_DIR}/functors
+  ${CMAKE_CURRENT_SOURCE_DIR}/eigen)
 
 # eigen fom
 add_executable(adr2d_eigen_fom ${MAINDIR}/main_eigen_fom.cc)
@@ -47,11 +48,12 @@ target_link_libraries(adr2d_eigen_chem_lspg_full_mesh_bdf1 ${TRILLIBNAMES})
 # kokkos includes
 set(KOKKOSINCDIRS
   ${CMAKE_CURRENT_SOURCE_DIR}
-  ${CMAKE_CURRENT_SOURCE_DIR}/functors)
+  ${CMAKE_CURRENT_SOURCE_DIR}/functors
+  ${CMAKE_CURRENT_SOURCE_DIR}/kokkos)
 
 # kokkos fom
 add_executable(adr2d_kokkos_fom ${MAINDIR}/main_kokkos_fom.cc)
-target_include_directories(adr2d_kokkos_fom BEFORE PUBLIC ${EIGENINCDIRS})
+target_include_directories(adr2d_kokkos_fom BEFORE PUBLIC ${KOKKOSINCDIRS})
 target_link_libraries(adr2d_kokkos_fom ${TRILLIBNAMES} openblas)
 
 # chemical problem, LSPG with full mesh bdf1

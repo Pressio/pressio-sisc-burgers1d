@@ -8,9 +8,9 @@ ADR2D
 - kokkos do FOM with bdf1
 
 MS problem:
-(a) eigen, fom, rk4	: done
-(b) eigen, fom, bdf1	: done
-(c) kokkos, fom, rk4	: done
+(a) eigen, fom, rk4	: done, ok, convergence is as expected
+(b) eigen, fom, bdf1	: done, ok, convergence is as expected and errors are better than rk4
+(c) kokkos, fom, rk4	: done, ok, matches eigen rk4 exactly (serial mac)
 (d) kokkos, fom, bdf1	: missing
 
 ABCCHEM problem:
@@ -18,3 +18,9 @@ ABCCHEM problem:
 (b) eigen, fom, bdf1	: done
 (c) kokkos, fom, rk4	: done
 (d) kokkos, fom, bdf1	: missing
+
+
+
+Test Cases for adr2d chemistry:
+
+- mesh sizes:

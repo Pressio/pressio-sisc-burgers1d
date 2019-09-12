@@ -9,8 +9,8 @@ import os.path
 # constants to use for the chemical problem
 #------------------------------------------------------
 
-dt = 0.005
-numSteps = 500
+dt = 0.001
+numSteps = 2500
 finalTime = numSteps*dt
 
 diffusion = 0.001
@@ -20,7 +20,7 @@ chemReaction = 10.
 numCell_cases = np.array([128])
 
 # rom sizes: remember that ROM size has to be smaller than mesh
-romSize_cases = np.array([5, 10])#, 50, 100])
+romSize_cases = np.array([100])#, 100])
 
 # number of samples to run to compute timing statistics
 numSamplesForTiming = 5
