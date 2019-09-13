@@ -22,9 +22,11 @@ def main(exeName, meshDir, stepperName):
   numMeshes = len(cch.numCell_cases)
 
   # data is a matrix storing  all results such that:
-  # col0:     mesh size,
-  # col1-end: all timings for all realizations of a given mesh
-  data = np.zeros((numMeshes, cch.numSamplesForTiming+1))
+  # col0:     mesh size
+  # col1:     dof for residual vector
+  # col2:     dof for state vector
+  # col3-end: all timings for all realizations of a given mesh
+  data = np.zeros((numMeshes, cch.numSamplesForTiming+3))
 
   # args for running the executable
   args = ("./"+exeName, "input.txt")
@@ -58,12 +60,25 @@ def main(exeName, meshDir, stepperName):
       output = popen.stdout.read()
       print (output)
 
+      # if we are at first replica run, grep the number of Dofs
+      if i == 0:
+        # dofs for residual vector
+        res = re.search(utc.numDofResidRegExp, str(output))
+        numDofResid = int(res.group().split()[2])
+        data[iMesh][1] = numDofResid
+        # dofs for state vector
+        res = re.search(utc.numDofStateRegExp, str(output))
+        numDofState = int(res.group().split()[2])
+        data[iMesh][2] = numDofState
+        print("dofResid = ", numDofResid)
+        print("dofState = ", numDofState)
+
       # find timing from executable output
-      res = re.search(cch.timerRegExp, str(output))
+      res = re.search(utc.timerRegExp, str(output))
       time = float(res.group().split()[2])
       # store in data
-      data[iMesh][i+1] = time
-      print("time = ", time, "\n")
+      data[iMesh][i+3] = time
+      print("Time = ", time, "\n")
 
   # save the results to file
   np.savetxt(exeName+"_timings.txt", data, fmt='%.12f')

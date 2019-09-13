@@ -7,6 +7,7 @@ import os.path
 import re
 from argparse import ArgumentParser
 
+from myutils_common import timerRegExp, numDofStateRegExp, numDofResidRegExp
 import myutils_chem as myutils
 import constants_chem as constants
 
@@ -16,10 +17,12 @@ def main(exename, meshDir, basisDirName):
   numMeshes = len(constants.numCell_cases)
 
   # data stored as:
-  # - first col  = mesh size
-  # - second col = rom size
-  # - then       = timings
-  data = np.zeros((numMeshes, constants.numSamplesForTiming+2))
+  # col=0  :  mesh size
+  # col=1  :  num of dof for residual vector
+  # col=2  :  num of dof for state vector
+  # col=3  :  rom size
+  # col=4: :  timings
+  data = np.zeros((numMeshes, constants.numSamplesForTiming+4))
 
   # args for the executable
   args = ("./"+exename, "input.txt")
@@ -57,11 +60,25 @@ def main(exename, meshDir, basisDirName):
         popen = subprocess.Popen(args, stdout=subprocess.PIPE)
         popen.wait()
         output = popen.stdout.read()
-        # find timing
-        res = re.search(constants.timerRegExp, str(output))
+
+        # if we are at first replica run, grep the number of Dofs
+        if i == 0:
+          # dofs for residual vector
+          res = re.search(numDofResidRegExp, str(output))
+          numDofResid = int(res.group().split()[2])
+          data[iMesh][2] = numDofResid
+          # dofs for state vector
+          res = re.search(numDofStateRegExp, str(output))
+          numDofState = int(res.group().split()[2])
+          data[iMesh][3] = numDofState
+          print("dofResid = ", numDofResid)
+          print("dofState = ", numDofState)
+
+        # find timing for current run
+        res = re.search(timerRegExp, str(output))
         time = float(res.group().split()[2])
         # store
-        data[iMesh][i+2] = time
+        data[iMesh][i+4] = time
         print("time = ", time)
 
         # save data for one replica run

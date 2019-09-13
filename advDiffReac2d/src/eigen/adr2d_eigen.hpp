@@ -142,15 +142,15 @@ private:
 	  ss >> colVal;
 	  numGpt_r_ = std::stoi(colVal);
 	  numDof_r_ = numGpt_r_ * this_t::numSpecies_;
-	  std::cout << "numGpt_r = " << numGpt_r_ << " "
-		    << "numDof_r = " << numDof_r_ << std::endl;
+	  std::cout << "numGpt_r = " << numGpt_r_ << std::endl;
+	  std::cout << "numDof_r = " << numDof_r_ << std::endl;
 	}
 	else if (colVal == "numStatePts"){
 	  ss >> colVal;
 	  numGpt_ = std::stoi(colVal);
 	  numDof_   = numGpt_ * this_t::numSpecies_;
-	  std::cout << "numGpt = " << numGpt_ << " "
-		    << "numDof = " << numDof_ << std::endl;
+	  std::cout << "numGpt = " << numGpt_ << std::endl;
+	  std::cout << "numDof = " << numDof_ << std::endl;
 	}
 	else{
 	  x_.resize(numGpt_);

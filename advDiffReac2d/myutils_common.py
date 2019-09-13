@@ -6,6 +6,27 @@ import numpy as np
 import os.path
 
 
+# regex for getting timing from code output
+# \d{1,} match one or more (any) digits before the .
+# \d{9,} match nine or more (any) digits
+timerRegExp = re.compile(r'Elapsed time: \d{1,}.\d{9,}')
+
+# regex for getting numDof_r which is the number of dofs
+# for the  residual vector. This is eqaul to the full mesh * numSpecies
+# when we use full mesh, but it is smaller when we do sample mesh
+# \d{1,} match one or more (any) digits
+numDofResidRegExp = re.compile(r'numDof_r = \d{1,}')
+
+# regex for getting numDof which is the number of dofs
+# for the state vector. This is eqaul to the full mesh * numSpecies
+# when we use full mesh, but it is smaller when we do sample mesh
+# and it is larger than the the residual vector because the state
+# is needed at more points than the residual
+# \d{1,} match one or more (any) digits
+numDofStateRegExp = re.compile(r'numDof = \d{1,}')
+
+
+
 def generateMeshFileName(Nx, Ny, samplingType, targetSize=-1):
   if samplingType == "full" and Nx==Ny:
     return "mesh_" + str(Nx) + ".dat"

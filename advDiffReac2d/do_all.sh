@@ -235,6 +235,7 @@ fi
 #     fi
 
 #     # copy python scripts
+#     cp ${TOPDIR}/run_scripts/myutils_common.py ${destDir}/
 #     cp ${TOPDIR}/run_scripts/myutils_chem.py ${destDir}/
 #     cp ${TOPDIR}/constants_chem.py ${destDir}/
 #     cp ${TOPDIR}/plot_scripts/plot_common.py ${destDir}/
