@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 import sys, os, time
 import numpy as np
 from numpy import linspace, meshgrid
-from matplotlib.mlab import griddata
 from matplotlib import cm
 import collections
 from argparse import ArgumentParser
@@ -119,7 +118,7 @@ def main(Nx, Ny, samplingType, targetSize, showPlots=False):
   # the GIDs must be wrt to the full mesh
   if (samplingType=="full"):
     rGIDs = createListTargetResidualGIDsFullMesh(Nx, Ny, numCells, x, y)
-  else if (samplingType=="random"):
+  elif (samplingType=="random"):
     assert( targetSize != -1 )
     rGIDs = createListTargetResidualGIDsRandom(Nx, Ny, numCells, x, y, targetSize)
 
@@ -199,7 +198,7 @@ def main(Nx, Ny, samplingType, targetSize, showPlots=False):
   # number of pts where we compute residual
   numResidualPts = len(residGraphSM)
   print ("numResidualPts = ", numResidualPts,
-         " which is = ", numResidualpts/numCells*100, " % of full mesh")
+         " which is = ", numResidualPts/numCells*100, " % of full mesh")
   # total number of state cells, which is basically the sample mesh size
   numStatePts = len(fm_to_sm_map)
   print ("numStatePts    = ", numStatePts)
@@ -222,6 +221,9 @@ def main(Nx, Ny, samplingType, targetSize, showPlots=False):
       f.write("%f " % y[sm_to_fm_map[i]])
     f.write("\n")
   f.close()
+
+  if (samplingType=="full"):
+    os.system("mv mesh.dat ./full_meshes/mesh_"+str(Nx)+".dat")
 
   # # print gids mapping
   # f1 = open("sm_to_full_gid_map.dat","w+")
@@ -254,21 +256,20 @@ if __name__== "__main__":
                       default=False)
 
   parser.add_argument("-sampling-type", "--sampling-type",
-                      type=string,
                       dest="samplingType",
                       default="full",
-                      help="What type of mesh you need:\n
-                           use <full> for creating connectivity for full mesh,\n
-                           use <random> for creating connectivity for sample mesh")
+                      help="What type of mesh you need:\n"+
+                           "use <full> for creating connectivity for full mesh,\n"+
+                           "use <random> for creating connectivity for sample mesh")
 
   parser.add_argument("-target-size", "--target-size",
                       type=int,
                       dest="targetSize",
                       default=-1,
-                      help="The target number of elements you want.\n
-                            You do not need this if you select -sampling-type=full,
-                            since in that case we sample the full mesh.\n
-                            But you need to set it for -sampling-type=random")
+                      help="The target number of elements you want.\n"+
+                      "You do not need this if you select -sampling-type=full,\n"+
+                      "since in that case we sample the full mesh.\n"+
+                      "But you need to set it for -sampling-type=random")
   args = parser.parse_args()
 
   # for now, we need to have square grid

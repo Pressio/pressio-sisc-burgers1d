@@ -8,28 +8,20 @@
 # go to working dir
 cd ${CPPWORKINGDIR}
 
-# clone pressio
-if [ ! -d pressio ]; then
-    git clone --recursive git@github.com:Pressio/pressio.git
-    cd pressio && git checkout siscPaper && cd ..
-else
-    cd pressio && git pull && cd ..
-fi
-
 # clone pressio-builder
-if [ ! -d pressio-builder ]; then
+if [ ! -d ${CPPWORKINGDIR}/pressio-builder ];
+then
     git clone git@github.com:Pressio/pressio-builder.git
     cd pressio-builder && git checkout siscPaper && cd ..
 else
-    cd pressio-builder && git pull && cd ..
+    cd pressio-builder && git pull && cd -
 fi
 
 #-------------
-# do tpls
+# do eigen
 #-------------
-# first do eigen
 if [ ! -d ${CPPWORKINGDIR}/tpls/eigen ]; then
-    cd pressio-builder
+    cd ${CPPWORKINGDIR}/pressio-builder
     ./main_tpls.sh \
 	--dryrun=0 \
 	--tpls=eigen \
@@ -38,9 +30,11 @@ if [ ! -d ${CPPWORKINGDIR}/tpls/eigen ]; then
     cd ${CPPWORKINGDIR}
 fi
 
-# first do gtest
+#-------------
+# do gtest
+#-------------
 if [ ! -d ${CPPWORKINGDIR}/tpls/gtest ]; then
-    cd pressio-builder
+    cd ${CPPWORKINGDIR}/pressio-builder
     ./main_tpls.sh \
 	--dryrun=0 \
 	--tpls=gtest \
@@ -51,7 +45,7 @@ fi
 
 # do trilinos
 if [ ! -d ${CPPWORKINGDIR}/tpls/trilinos ]; then
-    cd pressio-builder
+    cd ${CPPWORKINGDIR}/pressio-builder
 
     if [[ $ONMAC == 1 ]]; then
 	./main_tpls.sh \
@@ -76,15 +70,21 @@ fi
 # (install with cmake which we need because of the cmakedefines)
 # only need rom package (others turned on automatically)
 # target-type: does not matter since Pressio is NOT compiled yet
-if [ ! -d ${CPPWORKINGDIR}/tpls/pressio ];
-then
-    cd pressio-builder
+if [ ! -d ${CPPWORKINGDIR}/tpls/pressio ]; then
+    mkdir -p ${CPPWORKINGDIR}/tpls/pressio
+    cd ${CPPWORKINGDIR}/tpls/pressio
 
+    # clone the repo
+    git clone --recursive git@github.com:Pressio/pressio.git
+    cd pressio && git checkout siscPaper && cd ..
+
+    # install pressio
+    cd ${CPPWORKINGDIR}/pressio-builder
     if [[ $ONMAC == 1 ]];
     then
 	./main_pressio.sh \
 	    -dryrun=0 \
-	    -pressio-src=${CPPWORKINGDIR}/pressio \
+	    -pressio-src=${CPPWORKINGDIR}/tpls/pressio/pressio \
 	    -target-dir=${CPPWORKINGDIR}/tpls \
 	    -package-name=rom \
 	    -wipe-existing=1 \
@@ -102,8 +102,9 @@ then
 
     cd ${CPPWORKINGDIR}
 else
+    cd ${CPPWORKINGDIR}/tpls/pressio/pressio && git pull && cd -
     cd ${CPPWORKINGDIR}/tpls/pressio/build
-    make install
+    make -j2 install
     cd ${CPPWORKINGDIR}
 fi
 

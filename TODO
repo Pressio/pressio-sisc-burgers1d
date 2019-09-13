@@ -3,9 +3,11 @@
 ADR2D
 ------
 
+- do LSPG with sample mesh Eigen
+- do LSPG with sample mesh Kokkos
 - add checks, e.g. num of basis cannot be larger than dofs, etc.
+- kokkos do FOM with bdf1 ?
 
-- kokkos do FOM with bdf1
 
 MS problem:
 (a) eigen, fom, rk4	: done, ok, convergence is as expected
@@ -21,6 +23,33 @@ ABCCHEM problem:
 
 
 
-Test Cases for adr2d chemistry:
+Notes:
+- to solve the FOM with bdf1 the jacobian is a square sparse matrix.
+In Eigen, it seems to be a good choice to use bicgstab.
 
-- mesh sizes:
+- to do LSPG, we opt for using the normal equations.
+This is because we don;t have QR for Kokkos yet.
+We need to find something that works for both Eigen and Kokkos.
+Just for consistency.
+
+
+Recall that:
+2^6  = 64
+2^7  = 128
+2^8  = 256
+2^9  = 512
+2^10 = 1024
+2^11 = 2048
+2^12 = 4096
+
+but for chemistry problem, we a squared mesh with 3 dofs per cell such that:
+tag: a  Nx = 2^6  => 4,096	cells => 12,288     dofs
+tag: b  Nx = 2^7  => 16,384     cells => 49,152     dofs
+tag: c  Nx = 2^8  => 65,536     cells => 196,608    dofs
+tag: d  Nx = 2^9  => 262,144    cells => 786,432    dofs
+tag: e  Nx = 2^10 => 1,048,576  cells => 3,145,728  dofs
+tag: f  Nx = 2^11 => 4,194,304  cells => 12,582,912 dofs
+tag: g  Nx = 2^12 => 16,777,216 cells => 50,331,648 dofs
+
+Sets of cases for chemistry:
+(a) meshes = {a,b,c,d}

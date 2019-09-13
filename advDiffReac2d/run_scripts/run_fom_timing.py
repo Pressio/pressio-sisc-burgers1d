@@ -56,6 +56,7 @@ def main(exeName, meshDir, stepperName):
       popen = subprocess.Popen(args, stdout=subprocess.PIPE)
       popen.wait()
       output = popen.stdout.read()
+      print (output)
 
       # find timing from executable output
       res = re.search(cch.timerRegExp, str(output))

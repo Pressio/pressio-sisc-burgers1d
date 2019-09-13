@@ -171,11 +171,16 @@ void runBDF1(const InputParser & parser,
     typename pt::ode_j_t, typename pt::app_t>;
   stepper_t stepperObj(x, appObj);
 
-  // define solver
+  // define linear solver
+  // using lin_solver_t = pressio::solvers::direct::EigenDirect<
+  //   pressio::solvers::linear::direct::ColPivHouseholderQR, typename pt::ode_j_t>;
   using lin_solver_t = pressio::solvers::iterative::EigenIterative<
-    pressio::solvers::linear::iterative::LSCG, typename pt::ode_j_t>;
+    pressio::solvers::linear::iterative::Bicgstab, typename pt::ode_j_t>;
+  lin_solver_t linearSolverObj;
+
+  // define non-linear solver
   using non_lin_solver_t = pressio::solvers::NewtonRaphson<scalar_t, lin_solver_t>;
-  non_lin_solver_t solverObj;
+  non_lin_solver_t solverObj(linearSolverObj);
   // by default, newton raphson exits when norm of correction is below tolerance
   solverObj.setMaxIterations(10);
   solverObj.setTolerance(1e-13);
@@ -243,7 +248,7 @@ int main(int argc, char *argv[]){
       runBDF1<pt>(parser, srcFunctor, advFunctor);
     }
   }
-  if ( problemName.compare("chemABC") == 0 ){
+  else if ( problemName.compare("chemABC") == 0 ){
     // types
     using pt = ChemTypes;
 
