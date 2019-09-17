@@ -114,17 +114,15 @@ extractSampleMeshRows(const phi_t & phi0,
     // first species in the full mesh cell
     const auto c0StateIndex_fm  = app_t::numSpecies_ * cellGIDfm;
 
-    std::cout << std::endl;
-    std::cout << iPt << " " << c0StateIndex_sm << " " << c0StateIndex_fm << " \n";
+    // std::cout << std::endl;
+    // std::cout << iPt << " " << c0StateIndex_sm << " " << c0StateIndex_fm << " \n";
     for (auto iDof=0; iDof<app_t::numSpecies_; iDof++){
-      std::cout << c0StateIndex_sm+iDof << " ";
-      for (auto j=0; j<numBasis; j++)
-      {
+      //std::cout << c0StateIndex_sm+iDof << " ";
+      for (auto j=0; j<numBasis; j++){
 	phi1n(c0StateIndex_sm + iDof, j) = phi0(c0StateIndex_fm + iDof,j);
-
-	std::cout << std::setprecision(15) << phi1n(c0StateIndex_sm+iDof, j) << " ";
+	//std::cout << std::setprecision(15) << phi1n(c0StateIndex_sm+iDof, j) << " ";
       }
-      std::cout << "\n";
+      //std::cout << "\n";
     }
   }
   pressio::containers::MultiVector<Eigen::MatrixXd> result(phi1n);
