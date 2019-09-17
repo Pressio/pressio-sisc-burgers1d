@@ -2,8 +2,6 @@
 ------
 ADR2D
 ------
-
-- do LSPG with sample mesh Eigen
 - do LSPG with sample mesh Kokkos
 - add checks, e.g. num of basis cannot be larger than dofs, etc.
 - kokkos do FOM with bdf1 ?
@@ -22,7 +20,6 @@ ABCCHEM problem:
 (d) kokkos, fom, bdf1	: missing
 
 
-
 Notes:
 - to solve the FOM with bdf1 the jacobian is a square sparse matrix.
 In Eigen, it seems to be a good choice to use bicgstab.
@@ -34,6 +31,7 @@ Just for consistency.
 
 
 Recall that:
+2^5  = 32
 2^6  = 64
 2^7  = 128
 2^8  = 256

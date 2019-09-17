@@ -18,7 +18,7 @@ def main(exeName, meshDir, stepperName, basisDirName):
   numFullMeshes = len(cchem.numCell_cases)
 
   # number of sample meshes
-  numSampleMeshes = len(cchem.sampleMesh_sizes)
+  numSampleMeshes = len(cchem.sampleMesh_pcts)
 
   # various number of basis
   numRomSizes = len(cchem.romSize_cases)
@@ -27,7 +27,7 @@ def main(exeName, meshDir, stepperName, basisDirName):
   numCombinations = numFullMeshes * numSampleMeshes * numRomSizes
   # data stored as:
   # col=0  :  full mesh size
-  # col=1  :  number of cells in sample mesh where we compute residual
+  # col=1  :  sample mesh percentage of the full mesh
   # col=2  :  num of dof for residual vector
   # col=3  :  num of dof for state vector
   # col=4  :  rom size
@@ -55,14 +55,14 @@ def main(exeName, meshDir, stepperName, basisDirName):
     # loop over SAMPLE mesh sizes
     #-------------------------
     # for each full mesh, I loop over the various sample mesh sizes
-    for iSampleMesh in range(0, len(cchem.sampleMesh_sizes)):
+    for iSampleMesh in range(0, len(cchem.sampleMesh_pcts)):
 
-      thisSMSize = cchem.sampleMesh_sizes[iSampleMesh]
-      print("Current sample mesh size = ", thisSMSize)
+      thisSMPct = cchem.sampleMesh_pcts[iSampleMesh]
+      print("Current sample mesh size = ", thisSMPct)
 
       # get the name of the mesh file for the current case
       pathToMeshFile = utc.generateMeshFilePath(meshDir,numCellFull,numCellFull,
-                                                "random", thisSMSize)
+                                                "random", thisSMPct)
       print (pathToMeshFile)
       # check if meshfile for current size exists in that directory
       assert( os.path.exists(pathToMeshFile) )
@@ -71,7 +71,7 @@ def main(exeName, meshDir, stepperName, basisDirName):
       # get the name of the file with mapping of GIDs from SM to FM
       pathToGIDsMappingFile = utc.generateSmToFmGIDsMapFilePath(meshDir,numCellFull,
                                                                 numCellFull,
-                                                                "random", thisSMSize)
+                                                                "random", thisSMPct)
       print (pathToGIDsMappingFile)
       # check if meshfile for current size exists in that directory
       assert( os.path.exists(pathToGIDsMappingFile) )
@@ -90,7 +90,7 @@ def main(exeName, meshDir, stepperName, basisDirName):
         # store the current FULL mesh size into data
         data[rowCount][0] = numCellFull
         # store the current SAMPLE mesh size into data
-        data[rowCount][1] = thisSMSize
+        data[rowCount][1] = thisSMPct
 
         # create input file
         utchem.createInputFileFomChemForLSPGSampleMesh(stepperName,
@@ -141,7 +141,7 @@ def main(exeName, meshDir, stepperName, basisDirName):
           # save data for one replica run only
           if i==0:
             destDirp1 = "numCellFull" + str(numCellFull)
-            destDirp2 = "_smSize" + str(thisSMSize)
+            destDirp2 = "_smSize" + str(thisSMPct)
             destDirp3 = "_basis" + str(romSize)
             destDir= destDirp1 + destDirp2 + destDirp3;
             os.system("mkdir -p " + destDir)
@@ -149,6 +149,8 @@ def main(exeName, meshDir, stepperName, basisDirName):
               os.system("mv xy.txt " + destDir)
             if os.path.isfile('xFomReconstructed.txt'):
               os.system("mv xFomReconstructed.txt " + destDir)
+            if os.path.isfile('xFomReconstructedFM.txt'):
+              os.system("mv xFomReconstructedFM.txt " + destDir)
             os.system("mv input.txt " + destDir)
 
   np.savetxt(exeName+"_timings.txt", data, fmt='%.12f')

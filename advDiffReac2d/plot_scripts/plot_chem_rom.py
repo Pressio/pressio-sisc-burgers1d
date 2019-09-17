@@ -26,11 +26,27 @@ def computeBounds(c0,c1,c2):
           'c2': [np.min(c2), np.max(c2)]}
 
 def printBounds(dic):
-  print("-------")
   print ("max/min c0 "     , dic['c0'][0], dic['c0'][1])
   print ("max/min c1 "     , dic['c1'][0], dic['c1'][1])
   print ("max/min c2 "     , dic['c2'][0], dic['c2'][1])
   print("\n")
+
+def plotImage(state, ax, title, cmName):
+  ax.set_title(title, fontsize=12)
+  ax.imshow(state, cmap=cmName, origin='lower')#,interpolation='bicubic')
+  ax.get_xaxis().set_visible(False)
+  ax.get_yaxis().set_visible(False)
+  ax.set_aspect(aspect=1)
+
+def plotScatter(x, y, state, ax, title, cmName, vminIn, vmaxIn):
+  ax.set_title(title, fontsize=12)
+  ax.scatter(x, y, c=state, cmap=cmName, marker='s',
+             edgecolors='face', vmin=vminIn, vmax=vmaxIn)
+  ax.get_xaxis().set_visible(False)
+  ax.get_yaxis().set_visible(False)
+  ax.set_xlim([0,1])
+  ax.set_ylim([0,1])
+  ax.set_aspect(aspect=1)
 
 
 def plotSingleSnapshot(n, romDataDir, fomDataDir, dt):
@@ -43,17 +59,29 @@ def plotSingleSnapshot(n, romDataDir, fomDataDir, dt):
   # load xy for ROM
   [x_rom, y_rom] = loadXY(romDataDir)
   # load the reconstructed FOM solution
-  sol_rom = np.loadtxt(romDataDir+"/xFomReconstructed.txt")
-  # split state by species
-  [c0_rom, c1_rom, c2_rom] = myutc.splitStateBySpeciesNoReshape(sol_rom)
+  sol_rom_sm = np.loadtxt(romDataDir+"/xFomReconstructed.txt")
+  [c0_rom, c1_rom, c2_rom] = myutc.splitStateBySpeciesNoReshape(sol_rom_sm)
   # compute bounds rom
+  print("Bounds for ROM solution reconstructed over sample mesh")
   boundsDicRom = computeBounds(c0_rom, c1_rom, c2_rom)
   printBounds(boundsDicRom)
+
+  # ROM reconstructed over the full mesh
+  needToPlotROMoverFull = False
+  if os.path.isfile(romDataDir+"/xFomReconstructedFM.txt"):
+    needToPlotROMoverFull = True
+    # load the reconstructed FOM solution over full mesh
+    sol_rom_fm = np.loadtxt(romDataDir+"/xFomReconstructedFM.txt")
+    [c0_rom_fm, c1_rom_fm, c2_rom_fm] = myutc.splitStateBySpeciesNoReshape(sol_rom_fm)
+  # compute bounds rom
+  print("Bounds for ROM solution reconstructed over full mesh")
+  boundsDicRom2 = computeBounds(c0_rom_fm, c1_rom_fm, c2_rom_fm)
+  printBounds(boundsDicRom2)
+
 
   # -------------------------------------------------------------
   # deal with FOM
   # -------------------------------------------------------------
-  print ("")
   print ("Loading FOM results")
   print ("")
   # load xy for ROM
@@ -67,57 +95,39 @@ def plotSingleSnapshot(n, romDataDir, fomDataDir, dt):
   bdDicFom = computeBounds(c0_fom, c1_fom, c2_fom)
   printBounds(bdDicFom)
 
+  # -------------------------------------------------------------
   # plotting
+  # -------------------------------------------------------------
   fig = plt.figure(1)
-  ax00,ax01,ax02 = fig.add_subplot(231), fig.add_subplot(232), fig.add_subplot(233)
-  ax10,ax11,ax12 = fig.add_subplot(234), fig.add_subplot(235), fig.add_subplot(236)
+  if needToPlotROMoverFull:
+    ax00,ax01,ax02 = fig.add_subplot(331), fig.add_subplot(332), fig.add_subplot(333)
+    ax10,ax11,ax12 = fig.add_subplot(334), fig.add_subplot(335), fig.add_subplot(336)
+    ax20,ax21,ax22 = fig.add_subplot(337), fig.add_subplot(338), fig.add_subplot(339)
+  else:
+    ax00,ax01,ax02 = fig.add_subplot(231), fig.add_subplot(232), fig.add_subplot(233)
+    ax10,ax11,ax12 = fig.add_subplot(234), fig.add_subplot(235), fig.add_subplot(236)
 
-  # plot the FOM states
-  ax00.set_title("$c_0$ FOM", fontsize=12)
-  ax00.imshow(c0rs_fom, cmap=cm.jet, origin='lower')#,interpolation='bicubic')
-  ax00.get_xaxis().set_visible(False)
-  ax00.get_yaxis().set_visible(False)
-  ax00.set_aspect(aspect=1)
+  # plot the FOM states top
+  plotImage(c0rs_fom, ax00, "$c_0$ FOM", cm.jet)
+  plotImage(c1rs_fom, ax01, "$c_1$ FOM", cm.brg)
+  plotImage(c2rs_fom, ax02, "$c_2$ FOM", cm.terrain)
 
-  ax01.set_title("$c_1$ FOM", fontsize=12)
-  ax01.imshow(c1rs_fom, cmap=cm.brg, origin='lower')#,interpolation='bicubic')
-  ax01.get_xaxis().set_visible(False)
-  ax01.get_yaxis().set_visible(False)
-  ax01.set_aspect(aspect=1)
+  # plot ROM over sample mesh at middle
+  plotScatter(x_rom, y_rom, c0_rom, ax10, "$c_0$ ROM - sample mesh",
+              cm.jet, bdDicFom['c0'][0], bdDicFom['c0'][1])
+  plotScatter(x_rom, y_rom, c1_rom, ax11, "$c_1$ ROM - sample mesh",
+              cm.brg, bdDicFom['c1'][0], bdDicFom['c1'][1])
+  plotScatter(x_rom, y_rom, c2_rom, ax12, "$c_2$ ROM - sample mesh",
+              cm.terrain, bdDicFom['c2'][0], bdDicFom['c2'][1])
 
-  ax02.set_title("$c_2$ FOM", fontsize=12)
-  ax02.imshow(c2rs_fom, cmap=cm.terrain, origin='lower')#,interpolation='bicubic')
-  ax02.get_xaxis().set_visible(False)
-  ax02.get_yaxis().set_visible(False)
-  ax02.set_aspect(aspect=1)
-
-  # plot ROM at top
-  ax10.set_title("$c_0$ from ROM", fontsize=12)
-  ax10.scatter(x_rom, y_rom, c=c0_rom, cmap=cm.jet, marker='s', edgecolors='face',
-               vmin=bdDicFom['c0'][0], vmax=bdDicFom['c0'][1])
-  ax10.get_xaxis().set_visible(False)
-  ax10.get_yaxis().set_visible(False)
-  ax10.set_xlim([0,1])
-  ax10.set_ylim([0,1])
-  ax10.set_aspect(aspect=1)
-
-  ax11.set_title("$c_1$ from ROM", fontsize=12)
-  ax11.scatter(x_rom, y_rom, c=c1_rom, cmap=cm.brg, marker='s', edgecolors='face',
-               vmin=bdDicFom['c1'][0], vmax=bdDicFom['c1'][1])
-  ax11.get_xaxis().set_visible(False)
-  ax11.get_yaxis().set_visible(False)
-  ax11.set_xlim([0,1])
-  ax11.set_ylim([0,1])
-  ax11.set_aspect(aspect=1)
-
-  ax12.set_title("$c_2$ from ROM", fontsize=12)
-  ax12.scatter(x_rom, y_rom, c=c2_rom, cmap=cm.terrain, marker='s', edgecolors='face',
-               vmin=bdDicFom['c2'][0], vmax=bdDicFom['c2'][1])
-  ax12.get_xaxis().set_visible(False)
-  ax12.get_yaxis().set_visible(False)
-  ax12.set_xlim([0,1])
-  ax12.set_ylim([0,1])
-  ax12.set_aspect(aspect=1)
+  # plot ROM over full mesh at bottom
+  if needToPlotROMoverFull:
+    plotScatter(x_fom, y_fom, c0_rom_fm, ax20, "$c_0$ ROM - over full",
+                cm.jet, bdDicFom['c0'][0], bdDicFom['c0'][1])
+    plotScatter(x_fom, y_fom, c1_rom_fm, ax21, "$c_1$ ROM - over full",
+                cm.brg, bdDicFom['c1'][0], bdDicFom['c1'][1])
+    plotScatter(x_fom, y_fom, c2_rom_fm, ax22, "$c_2$ ROM - over full",
+                cm.terrain, bdDicFom['c2'][0], bdDicFom['c2'][1])
 
   plt.show()
 

@@ -27,20 +27,20 @@ numDofStateRegExp = re.compile(r'numDof = \d{1,}')
 
 
 
-def generateMeshFilePath(meshParentDir, Nx, Ny, samplingType, targetSize=-1):
+def generateMeshFilePath(meshParentDir, Nx, Ny, samplingType, smTargetPct=-1):
   subDir = str(Nx) + "x" + str(Ny)
   if samplingType == "full" and Nx==Ny:
     return meshParentDir + "/" + subDir + "/full/mesh.dat"
   elif samplingType == "random":
-    return meshParentDir + "/" + subDir + "/sample_n" + str(targetSize) + "/mesh.dat"
+    return meshParentDir + "/" + subDir + "/sample_pct" + str(smTargetPct) + "/mesh.dat"
   else:
     print("invalid samplingType, choices are: full, random")
     sys.exit(1)
 
-def generateSmToFmGIDsMapFilePath(meshParentDir, Nx, Ny, samplingType, targetSize):
+def generateSmToFmGIDsMapFilePath(meshParentDir, Nx, Ny, samplingType, smTargetPct):
   subDir = str(Nx) + "x" + str(Ny)
   if samplingType == "random":
-    return meshParentDir + "/" + subDir + "/sample_n" + str(targetSize) + "/sm_to_fm_gid_mapping.dat"
+    return meshParentDir + "/" + subDir + "/sample_pct" + str(smTargetPct) + "/sm_to_fm_gid_mapping.dat"
   else:
     print("the sm->fm gid mapping only exists for samplingType= random")
     sys.exit(1)

@@ -160,12 +160,23 @@ int main(int argc, char *argv[]){
     file.close();
   }
 
-  // print reconstructed fom state
+  // print reconstructed fom state over sample mesh
   {
     std::ofstream file;
     file.open("xFomReconstructed.txt");
     for(auto i=0; i < xFomFinal.size(); i++){
       file << std::setprecision(15) << xFomFinal[i] << std::endl;
+    }
+    file.close();
+  }
+
+  // print reconstructed fom state over full mesh
+  {
+    const auto xFomFullMesh = ::pressio::containers::ops::product(phi0, xROM);
+    std::ofstream file;
+    file.open("xFomReconstructedFM.txt");
+    for(auto i=0; i < xFomFullMesh.size(); i++){
+      file << std::setprecision(15) << xFomFullMesh[i] << std::endl;
     }
     file.close();
   }

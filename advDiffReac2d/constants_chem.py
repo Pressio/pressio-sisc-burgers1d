@@ -10,7 +10,7 @@ import os.path
 #------------------------------------------------------
 
 dt = 0.002
-numSteps = 50
+numSteps = 200
 finalTime = numSteps*dt
 
 diffusion = 0.001
@@ -20,13 +20,13 @@ chemReaction = 10.
 numSamplesForTiming = 1
 
 # FULL mesh sizes: the number of cells along each axis.
-numCell_cases = np.array([32])
+numCell_cases = np.array([64])
 
-# residual sample mesh sizes: size of sample mesh where
-# we compute the residual
-sampleMesh_sizes = np.array([200])
+# sample mesh percentages: where we compute the residual
+# choices are [1,5,10,25,50,75], see the meshes
+sampleMesh_pcts = np.array([5])
 
 # rom sizes: in general, you want the rom size to be
 # smaller than the meshSize*dofPerCells so that the
 # matrix of the basis vectors is a tall-skinny one
-romSize_cases = np.array([10])
+romSize_cases = np.array([20])
