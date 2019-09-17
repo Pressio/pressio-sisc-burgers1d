@@ -172,6 +172,7 @@ int main(int argc, char *argv[]){
 
   // print reconstructed fom state over full mesh
   {
+    //I dont need to add the yRef because that is zero anyway
     const auto xFomFullMesh = ::pressio::containers::ops::product(phi0, xROM);
     std::ofstream file;
     file.open("xFomReconstructedFM.txt");
