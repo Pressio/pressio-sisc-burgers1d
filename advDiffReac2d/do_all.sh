@@ -240,7 +240,6 @@ then
     cp ${TOPDIR}/myutils_chem.py ${destDir}/
     cp ${TOPDIR}/constants_chem.py ${destDir}/
     cp ${TOPDIR}/plot_scripts/plot_common.py ${destDir}/
-    cp ${TOPDIR}/plot_scripts/plot_chem.py ${destDir}/
     cp ${TOPDIR}/plot_scripts/plot_chem_rom.py ${destDir}/
     cp ${TOPDIR}/run_scripts/run_rom_full_mesh_timing.py ${destDir}
 
@@ -304,7 +303,6 @@ then
     cp ${TOPDIR}/myutils_chem.py ${destDir}/
     cp ${TOPDIR}/constants_chem.py ${destDir}/
     cp ${TOPDIR}/plot_scripts/plot_common.py ${destDir}/
-    cp ${TOPDIR}/plot_scripts/plot_chem.py ${destDir}/
     cp ${TOPDIR}/plot_scripts/plot_chem_rom.py ${destDir}/
     cp ${TOPDIR}/run_scripts/run_rom_sample_mesh_timing.py ${destDir}
 

@@ -73,11 +73,10 @@ def plotSingleSnapshot(n, romDataDir, fomDataDir, dt):
     # load the reconstructed FOM solution over full mesh
     sol_rom_fm = np.loadtxt(romDataDir+"/xFomReconstructedFM.txt")
     [c0_rom_fm, c1_rom_fm, c2_rom_fm] = myutc.splitStateBySpeciesNoReshape(sol_rom_fm)
-  # compute bounds rom
-  print("Bounds for ROM solution reconstructed over full mesh")
-  boundsDicRom2 = computeBounds(c0_rom_fm, c1_rom_fm, c2_rom_fm)
-  printBounds(boundsDicRom2)
-
+    # compute bounds rom
+    print("Bounds for ROM solution reconstructed over full mesh")
+    boundsDicRom2 = computeBounds(c0_rom_fm, c1_rom_fm, c2_rom_fm)
+    printBounds(boundsDicRom2)
 
   # -------------------------------------------------------------
   # deal with FOM
@@ -113,11 +112,11 @@ def plotSingleSnapshot(n, romDataDir, fomDataDir, dt):
   plotImage(c2rs_fom, ax02, "$c_2$ FOM", cm.terrain)
 
   # plot ROM over sample mesh at middle
-  plotScatter(x_rom, y_rom, c0_rom, ax10, "$c_0$ ROM - sample mesh",
+  plotScatter(x_rom, y_rom, c0_rom, ax10, "$c_0$ ROM",
               cm.jet, bdDicFom['c0'][0], bdDicFom['c0'][1])
-  plotScatter(x_rom, y_rom, c1_rom, ax11, "$c_1$ ROM - sample mesh",
+  plotScatter(x_rom, y_rom, c1_rom, ax11, "$c_1$ ROM",
               cm.brg, bdDicFom['c1'][0], bdDicFom['c1'][1])
-  plotScatter(x_rom, y_rom, c2_rom, ax12, "$c_2$ ROM - sample mesh",
+  plotScatter(x_rom, y_rom, c2_rom, ax12, "$c_2$ ROM",
               cm.terrain, bdDicFom['c2'][0], bdDicFom['c2'][1])
 
   # plot ROM over full mesh at bottom

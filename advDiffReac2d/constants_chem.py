@@ -10,7 +10,7 @@ import os.path
 #------------------------------------------------------
 
 dt = 0.002
-numSteps = 200
+numSteps = 500
 finalTime = numSteps*dt
 
 diffusion = 0.001
@@ -20,11 +20,16 @@ chemReaction = 10.
 numSamplesForTiming = 1
 
 # FULL mesh sizes: the number of cells along each axis.
-numCell_cases = np.array([64])
+numCell_cases = np.array([128])
 
 # sample mesh percentages: where we compute the residual
 # choices are [1,5,10,25,50,75], see the meshes
-sampleMesh_pcts = np.array([5])
+# Note that the percentage refers to the number of cells
+# where we compute the residual wrt the full mesh.
+# the pct does not account for the state cells.
+# so if we say 10%, it means that the number of cells
+# where we sample the residual is 10% the full original mesh.
+sampleMesh_pcts = np.array([10])
 
 # rom sizes: in general, you want the rom size to be
 # smaller than the meshSize*dofPerCells so that the
