@@ -1,4 +1,5 @@
 
+
 import matplotlib.pyplot as plt
 from subprocess import Popen, list2cmdline, PIPE
 import numpy as np
@@ -19,12 +20,16 @@ def loadXY(dest):
   x,y = dd[:,0], dd[:,1]
   return [x,y]
 
+def computeBounds(c0,c1,c2):
+  return {'c0': [np.min(c0), np.max(c0)],
+          'c1': [np.min(c1), np.max(c1)],
+          'c2': [np.min(c2), np.max(c2)]}
 
-def printBounds(c0,c1,c2):
+def printBounds(dic):
   print("-------")
-  print ("max/min c0 "     , np.min(c0), np.max(c0))
-  print ("max/min c1 "     , np.min(c1), np.max(c1))
-  print ("max/min c2 "     , np.min(c2), np.max(c2))
+  print ("max/min c0 "     , dic['c0'][0], dic['c0'][1])
+  print ("max/min c1 "     , dic['c1'][0], dic['c1'][1])
+  print ("max/min c2 "     , dic['c2'][0], dic['c2'][1])
   print("\n")
 
 
@@ -41,10 +46,9 @@ def plotSingleSnapshot(n, romDataDir, fomDataDir, dt):
   sol_rom = np.loadtxt(romDataDir+"/xFomReconstructed.txt")
   # split state by species
   [c0_rom, c1_rom, c2_rom] = myutc.splitStateBySpeciesNoReshape(sol_rom)
-  printBounds(c0_rom, c1_rom, c2_rom)
-
-  # in theory, this should be passed, for now cheat
-  cellWidth=1./n
+  # compute bounds rom
+  boundsDicRom = computeBounds(c0_rom, c1_rom, c2_rom)
+  printBounds(boundsDicRom)
 
   # -------------------------------------------------------------
   # deal with FOM
@@ -60,7 +64,8 @@ def plotSingleSnapshot(n, romDataDir, fomDataDir, dt):
   targetState = snaps[:, -1]
   # split state by species
   [c0_fom,c1_fom,c2_fom,c0rs_fom,c1rs_fom,c2rs_fom] = myutc.splitStateBySpecies(targetState, n)
-  printBounds(c0_fom,c1_fom,c2_fom)
+  bdDicFom = computeBounds(c0_fom, c1_fom, c2_fom)
+  printBounds(bdDicFom)
 
   # plotting
   fig = plt.figure(1)
@@ -88,7 +93,8 @@ def plotSingleSnapshot(n, romDataDir, fomDataDir, dt):
 
   # plot ROM at top
   ax10.set_title("$c_0$ from ROM", fontsize=12)
-  ax10.scatter(x_rom, y_rom, c=c0_rom, cmap=cm.jet, marker='s', edgecolors='face')#, s=cellWidth*1100)
+  ax10.scatter(x_rom, y_rom, c=c0_rom, cmap=cm.jet, marker='s', edgecolors='face',
+               vmin=bdDicFom['c0'][0], vmax=bdDicFom['c0'][1])
   ax10.get_xaxis().set_visible(False)
   ax10.get_yaxis().set_visible(False)
   ax10.set_xlim([0,1])
@@ -96,7 +102,8 @@ def plotSingleSnapshot(n, romDataDir, fomDataDir, dt):
   ax10.set_aspect(aspect=1)
 
   ax11.set_title("$c_1$ from ROM", fontsize=12)
-  ax11.scatter(x_rom, y_rom, c=c1_rom, cmap=cm.brg, marker='s', edgecolors='face')#, s=cellWidth*1000)
+  ax11.scatter(x_rom, y_rom, c=c1_rom, cmap=cm.brg, marker='s', edgecolors='face',
+               vmin=bdDicFom['c1'][0], vmax=bdDicFom['c1'][1])
   ax11.get_xaxis().set_visible(False)
   ax11.get_yaxis().set_visible(False)
   ax11.set_xlim([0,1])
@@ -104,7 +111,8 @@ def plotSingleSnapshot(n, romDataDir, fomDataDir, dt):
   ax11.set_aspect(aspect=1)
 
   ax12.set_title("$c_2$ from ROM", fontsize=12)
-  ax12.scatter(x_rom, y_rom, c=c2_rom, cmap=cm.terrain, marker='s', edgecolors='face')
+  ax12.scatter(x_rom, y_rom, c=c2_rom, cmap=cm.terrain, marker='s', edgecolors='face',
+               vmin=bdDicFom['c2'][0], vmax=bdDicFom['c2'][1])
   ax12.get_xaxis().set_visible(False)
   ax12.get_yaxis().set_visible(False)
   ax12.set_xlim([0,1])
@@ -112,8 +120,6 @@ def plotSingleSnapshot(n, romDataDir, fomDataDir, dt):
   ax12.set_aspect(aspect=1)
 
   plt.show()
-
-
 
 
 ################################################

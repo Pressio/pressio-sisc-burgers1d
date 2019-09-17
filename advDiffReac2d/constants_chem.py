@@ -9,8 +9,8 @@ import os.path
 # constants to use for the chemical problem
 #------------------------------------------------------
 
-dt = 0.005
-numSteps = 100
+dt = 0.002
+numSteps = 50
 finalTime = numSteps*dt
 
 diffusion = 0.001
@@ -20,11 +20,11 @@ chemReaction = 10.
 numSamplesForTiming = 1
 
 # FULL mesh sizes: the number of cells along each axis.
-numCell_cases = np.array([8])
+numCell_cases = np.array([32])
 
 # residual sample mesh sizes: size of sample mesh where
 # we compute the residual
-sampleMesh_sizes = np.array([5])
+sampleMesh_sizes = np.array([200])
 
 # rom sizes: in general, you want the rom size to be
 # smaller than the meshSize*dofPerCells so that the

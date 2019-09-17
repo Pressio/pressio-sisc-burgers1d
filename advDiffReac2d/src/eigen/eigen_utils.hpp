@@ -25,10 +25,12 @@ void readAsciiMatrixStdVecVec(std::string filename,
   source.close();
 }
 
-template <typename T = int>
+template <typename T = double>
 pressio::containers::MultiVector<Eigen::MatrixXd>
-convertFromVVecToMultiVec(const std::vector<std::vector<double>> & A0, T nrows, T ncols)
+convertFromVVecToMultiVec(const std::vector<std::vector<T>> & A0)
 {
+  const size_t nrows = A0.size();
+  const size_t ncols = A0[0].size();
   pressio::containers::MultiVector<Eigen::MatrixXd> ADW(nrows, ncols);
   for (int i=0; i<nrows; i++){
     for (int j=0; j<ncols; j++)
@@ -39,12 +41,12 @@ convertFromVVecToMultiVec(const std::vector<std::vector<double>> & A0, T nrows, 
 
 template <typename T>
 pressio::containers::MultiVector<Eigen::MatrixXd>
-readBasis(std::string filename, T romSize, T numCell)
+readBasis(std::string filename, T romSize)
 {
   std::vector<std::vector<double>> A0;
   readAsciiMatrixStdVecVec(filename, A0, romSize);
   // read basis into a MultiVector
-  auto phi = convertFromVVecToMultiVec(A0, numCell, romSize);
+  auto phi = convertFromVVecToMultiVec(A0);
   //  phi.data()->Print(std::cout);
   return phi;
 }
@@ -88,19 +90,19 @@ extractSampleMeshRows(const phi_t & phi0,
   // get a reference to the mesh graph from the app
   const auto & graph = appObj.viewGraph();
 
-  // number of rows for the sample mesh basis matrix
-  const int_t numRowsSMBasis = smToFmGidMap.size();
-
   const auto numBasis = phi0.numVectors();
 
+  // number of rows for the sample mesh basis matrix
+  const int_t numRowsSMBasis = smToFmGidMap.size()*app_t::numSpecies_;
+
   // create the native eigen matrix to store the sample-mesh bases
-  Eigen::MatrixXd phi1n(numRowsSMBasis*app_t::numSpecies_, numBasis);
+  Eigen::MatrixXd phi1n(numRowsSMBasis, numBasis);
 
   // loop over sample mesh cells holding the state
   for (size_t iPt=0; iPt < smToFmGidMap.size(); ++iPt)
   {
     // get sample mesh GID of the current cell
-    const auto & cellGIDsm  = smToFmGidMap[iPt][0];
+    const auto & cellGIDsm = smToFmGidMap[iPt][0];
     // get the GID in the full mesh of this cell
     const auto & cellGIDfm = smToFmGidMap[iPt][1];
 
@@ -116,8 +118,10 @@ extractSampleMeshRows(const phi_t & phi0,
     std::cout << iPt << " " << c0StateIndex_sm << " " << c0StateIndex_fm << " \n";
     for (auto iDof=0; iDof<app_t::numSpecies_; iDof++){
       std::cout << c0StateIndex_sm+iDof << " ";
-      for (auto j=0; j<numBasis; j++){
-	phi1n(c0StateIndex_sm+iDof, j) = phi0(c0StateIndex_fm+iDof,j);
+      for (auto j=0; j<numBasis; j++)
+      {
+	phi1n(c0StateIndex_sm + iDof, j) = phi0(c0StateIndex_fm + iDof,j);
+
 	std::cout << std::setprecision(15) << phi1n(c0StateIndex_sm+iDof, j) << " ";
       }
       std::cout << "\n";

@@ -92,8 +92,8 @@ struct time_discrete_ops
       const auto stateIndex = cellGID*numSpecies_;
 
       R[rIndex]	  = xn[stateIndex]   - xnm1[stateIndex]   - dt*R[rIndex];
-      R[rIndex+1] = xn[stateIndex+1] - xnm1[stateIndex+2] - dt*R[rIndex+1];
-      R[rIndex+2] = xn[stateIndex+2] - xnm1[stateIndex+2] - dt*R[rIndex+1];
+      R[rIndex+1] = xn[stateIndex+1] - xnm1[stateIndex+1] - dt*R[rIndex+1];
+      R[rIndex+2] = xn[stateIndex+2] - xnm1[stateIndex+2] - dt*R[rIndex+2];
     }
   }
 

@@ -70,7 +70,7 @@ int main(int argc, char *argv[]){
    ----------------------*/
   // this loads the full basis, i.e. wrt the full mesh was used
 
-  const decoder_jac_t phi0 = readBasis<unsigned int>(parser.basisFileName_, parser.romSize_, stateSize);
+  const decoder_jac_t phi0 = readBasis<unsigned int>(parser.basisFileName_, parser.romSize_);
   const int numBasis = phi0.numVectors();
   if( numBasis != parser.romSize_ ) return 1;
 
@@ -137,10 +137,10 @@ int main(int argc, char *argv[]){
   	    << std::fixed << std::setprecision(10)
   	    << elapsed.count() << std::endl;
 
-  // print summary from timers
-  #ifdef HAVE_TEUCHOS_TIMERS
-  pressio::utils::TeuchosPerformanceMonitor::stackedTimersReportSerial();
-  #endif
+  // // print summary from timers
+  // #ifdef HAVE_TEUCHOS_TIMERS
+  // pressio::utils::TeuchosPerformanceMonitor::stackedTimersReportSerial();
+  // #endif
 
   /*----------------------
    * FINISH UP
