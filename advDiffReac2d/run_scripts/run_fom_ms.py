@@ -33,9 +33,8 @@ def main(exeName, meshDir, stepperName):
     print("Current numCell = ", numCell)
 
     # get the name of the mesh file for the current case
-    meshFileName = utc.generateMeshFileName(numCell, numCell, "full")
-    # the path where mesh file is located
-    pathToMeshFile = meshDir + "/" + meshFileName
+    pathToMeshFile = utc.generateMeshFilePath(meshDir, numCell, numCell, "full")
+    print (pathToMeshFile)
     # check if meshfile for current size exists in that directory
     assert( os.path.exists(pathToMeshFile) )
     print("Current mesh file = ", pathToMeshFile)

@@ -6,13 +6,11 @@ from numpy import linspace, meshgrid
 from matplotlib import cm
 import collections
 from argparse import ArgumentParser
+import random
 
-#--------------------------------------
+#-------------------------------------------------------
 # Cell-centered grid, periodic BC natural row ordering
-#--------------------------------------
-
-from myutils_common import generateMeshFileName
-
+#-------------------------------------------------------
 
 def plotFullGrid(x,y,gids,figId):
   fig = plt.figure(figId)
@@ -21,7 +19,6 @@ def plotFullGrid(x,y,gids,figId):
   for i in range(0, len(x)):
     plt.text(x[i], y[i], str(int(gids[i])),verticalalignment='center')
   ax.set_aspect(aspect=1)
-
 
 def printDicPretty(d):
   for key, value in d.items():
@@ -87,12 +84,11 @@ def createListTargetResidualGIDsFullMesh(nx, ny, numCells, x, y):
 
 
 def createListTargetResidualGIDsRandom(nx, ny, numCells, x, y, targetSize):
-    L = []
-    #rGIDs = [3, 14, 19, 20, 28, 38, 54]
+    rGIDs = random.sample(range(numCells), targetSize)
     #rGIDs = [3, 10, 20, 24, 29, 30, 40, 49, 50, 54, 60, 69, 70, 80, 93]
     #rGIDs = [6, 15, 20, 35]
     #np.savetxt('r_gids.dat', rGIDs, fmt='%10i')
-    return L
+    return rGIDs
 
 
 def main(Nx, Ny, samplingType, targetSize, showPlots=False):
@@ -119,8 +115,13 @@ def main(Nx, Ny, samplingType, targetSize, showPlots=False):
   if (samplingType=="full"):
     rGIDs = createListTargetResidualGIDsFullMesh(Nx, Ny, numCells, x, y)
   elif (samplingType=="random"):
-    assert( targetSize != -1 )
+    if (targetSize < 0 ):
+      print("For random sample mesh you need to set --target-size=n")
+      print("where n>0 and defines the size of the sample mesh")
+    # create the random list of cells
     rGIDs = createListTargetResidualGIDsRandom(Nx, Ny, numCells, x, y, targetSize)
+    # assert that in the sample mesh we have as many cells as we want
+    assert( len(rGIDs) == targetSize)
 
   # store the connectivity for the target residual points
   # using global indices wrt the full mesh
@@ -222,14 +223,18 @@ def main(Nx, Ny, samplingType, targetSize, showPlots=False):
     f.write("\n")
   f.close()
 
-  if (samplingType=="full"):
-    os.system("mv mesh.dat ./full_meshes/mesh_"+str(Nx)+".dat")
+  # if (samplingType=="full"):
+  #   os.system("mv mesh.dat ./full_meshes/mesh_"+str(Nx)+".dat")
+  # elif (samplingType=="random"):
+  #   os.system("mv mesh.dat ./sample_meshes/case"+str(Nx)+"/" + ".dat")
 
-  # # print gids mapping
-  # f1 = open("sm_to_full_gid_map.dat","w+")
-  # for k,v in fm_to_sm_map.items():
-  #     f1.write("%d %d\n" % (v, k))
-  # f1.close()
+  # print gids mapping: mapping between GIDs in sample mesh to full mesh
+  # I only need this when I use the sample mesh
+  if (samplingType=="random"):
+    f1 = open("sm_to_fm_gid_mapping.dat","w+")
+    for k,v in fm_to_sm_map.items():
+      f1.write("%d %d\n" % (v, k))
+    f1.close()
 
   if showPlots:
     # keep only subset of x,y that belongs to sample mesh
@@ -238,7 +243,7 @@ def main(Nx, Ny, samplingType, targetSize, showPlots=False):
     fig = plt.figure(figId)
     ax = plt.gca()
     plt.scatter(x,y,marker='s', s=50)
-    plt.scatter(x_sm,y_sm, marker='o', c='r', s=60, facecolor='None')
+    plt.scatter(x_sm,y_sm, marker='s', c='r', s=45, facecolor='None')
     ax.set_aspect(aspect=1)
     plt.show()
 
@@ -246,6 +251,10 @@ def main(Nx, Ny, samplingType, targetSize, showPlots=False):
 ###############################
 if __name__== "__main__":
 ###############################
+
+  # fix seed so that we have reproducibility
+  random.seed( 1474543 )
+
   parser = ArgumentParser()
   parser.add_argument("-nx", "--nx", type=int, dest="nx")
   parser.add_argument("-ny", "--ny", type=int, dest="ny")

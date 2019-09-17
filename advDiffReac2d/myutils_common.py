@@ -27,13 +27,22 @@ numDofStateRegExp = re.compile(r'numDof = \d{1,}')
 
 
 
-def generateMeshFileName(Nx, Ny, samplingType, targetSize=-1):
+def generateMeshFilePath(meshParentDir, Nx, Ny, samplingType, targetSize=-1):
+  subDir = str(Nx) + "x" + str(Ny)
   if samplingType == "full" and Nx==Ny:
-    return "mesh_" + str(Nx) + ".dat"
+    return meshParentDir + "/" + subDir + "/full/mesh.dat"
   elif samplingType == "random":
-    return "mesh_" + str(Nx) + "_" + str(targetSize) + ".dat"
+    return meshParentDir + "/" + subDir + "/sample_n" + str(targetSize) + "/mesh.dat"
   else:
     print("invalid samplingType, choices are: full, random")
+    sys.exit(1)
+
+def generateSmToFmGIDsMapFilePath(meshParentDir, Nx, Ny, samplingType, targetSize):
+  subDir = str(Nx) + "x" + str(Ny)
+  if samplingType == "random":
+    return meshParentDir + "/" + subDir + "/sample_n" + str(targetSize) + "/sm_to_fm_gid_mapping.dat"
+  else:
+    print("the sm->fm gid mapping only exists for samplingType= random")
     sys.exit(1)
 
 
@@ -47,7 +56,7 @@ def computeTimeOfSnapshot(snapId, samplingFreq, dt):
   return snapshotTime
 
 
-def splitStateBySpecies(targetState, n):
+def splitStateBySpeciesNoReshape(targetState):
   # split a target state vector into subvecvectors for each dof
   # targetState is a vector wich contains all dofs for each mesh cell
   # in this case, we know we have 3 dofs
@@ -56,6 +65,16 @@ def splitStateBySpecies(targetState, n):
   c0 = targetState[0:-1:3]
   c1 = targetState[1:-1:3]
   c2 = targetState[2:len(targetState)+1:3]
+  return [c0,c1,c2]
+
+
+def splitStateBySpecies(targetState, n):
+  # split a target state vector into subvecvectors for each dof
+  # targetState is a vector wich contains all dofs for each mesh cell
+  # in this case, we know we have 3 dofs
+
+  # c0,c1,c2 contains the linearized single states
+  [c0,c1,c2] = splitStateBySpeciesNoReshape(targetState)
   # c0rs,c1rs,c2rs contains the single states reshaped to match grid
   c0rs = c0.reshape(n,n)
   c1rs = c1.reshape(n,n)
@@ -90,3 +109,19 @@ def extractDtFromTargetInputFile(dataDir):
   dt = float(output.split()[1])
   print ("Inside " + dataDir + ", detected dt = ", dt)
   return dt
+
+def extractDiffusionFromTargetInputFile(dataDir):
+  popen = Popen(["grep", "diffusion", str(dataDir)+"/input.txt"], stdout=PIPE)
+  popen.wait()
+  output = popen.stdout.read()
+  result = float(output.split()[1])
+  print ("Inside " + dataDir + ", detected diffusion = ", result)
+  return result
+
+def extractChemReactionFromTargetInputFile(dataDir):
+  popen = Popen(["grep", "chemReaction", str(dataDir)+"/input.txt"], stdout=PIPE)
+  popen.wait()
+  output = popen.stdout.read()
+  result = float(output.split()[1])
+  print ("Inside " + dataDir + ", detected chemReaction = ", result)
+  return result

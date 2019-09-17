@@ -25,6 +25,7 @@ if [ ! -d ${CPPWORKINGDIR}/tpls/eigen ]; then
     ./main_tpls.sh \
 	--dryrun=0 \
 	--tpls=eigen \
+	--build-mode=Release\
 	--target-dir=${CPPWORKINGDIR}/tpls \
 	--wipe-existing=1
     cd ${CPPWORKINGDIR}
@@ -52,6 +53,7 @@ if [ ! -d ${CPPWORKINGDIR}/tpls/trilinos ]; then
 	    -dryrun=0 \
 	    -tpls=trilinos \
 	    -target-dir=${CPPWORKINGDIR}/tpls \
+	    -build-mode=Release\
 	    -wipe-existing=1 \
 	    -link-type=dynamic \
 	    -cmake-custom-generator-file=${TOPDIR}/build_scripts/cmake_generators_for_pressio-builder.sh \
@@ -70,12 +72,16 @@ fi
 # (install with cmake which we need because of the cmakedefines)
 # only need rom package (others turned on automatically)
 # target-type: does not matter since Pressio is NOT compiled yet
-if [ ! -d ${CPPWORKINGDIR}/tpls/pressio ]; then
-    mkdir -p ${CPPWORKINGDIR}/tpls/pressio
+if [[ ! -d ${CPPWORKINGDIR}/tpls/pressio ||\
+	 ! -d ${CPPWORKINGDIR}/tpls/pressio/build ]];
+then
+    [ ! -d ${CPPWORKINGDIR}/tpls/pressio ] && mkdir -p ${CPPWORKINGDIR}/tpls/pressio
     cd ${CPPWORKINGDIR}/tpls/pressio
 
     # clone the repo
-    git clone --recursive git@github.com:Pressio/pressio.git
+    if [ ! -d ${CPPWORKINGDIR}/tpls/pressio/pressio ]; then
+	git clone --recursive git@github.com:Pressio/pressio.git
+    fi
     cd pressio && git checkout siscPaper && cd ..
 
     # install pressio

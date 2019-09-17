@@ -25,10 +25,13 @@ class Adr2dEigen
   using gid_arr5_t = std::array<gid_t,5>;
 
 public:
+  static constexpr int numSpecies_{3};
+
   using scalar_type	= sc_t;
   using state_type	= eigVec;
   using velocity_type	= eigVec;
-  using jacobian_type	= Eigen::SparseMatrix<sc_t, Eigen::RowMajor, int32_t>;
+  using jacobian_type	= Eigen::SparseMatrix<sc_t, Eigen::ColMajor, int32_t>;
+  using dmatrix_type	= mv_t;
 
   // type to represent connectivity
   using connectivity_t	= std::vector<gid_arr5_t>;
@@ -61,6 +64,10 @@ public:
   const state_type & getState() const{ return state_; }
   eigVec getX() const { return x_; }
   eigVec getY() const { return y_; }
+
+  const connectivity_t & viewGraph() const{
+    return graph_;
+  }
 
   void velocity(const state_type  & u,
 		const scalar_type & t,
@@ -187,11 +194,11 @@ private:
     // for (gid_t rPt=0; rPt < graph_.size(); ++rPt)
     // {
     //   // gID of this cell
-    //   const auto & cellGID_ = graph_[rPt][0];
+    //   const auto & cellGID = graph_[rPt][0];
 
     //   // local coordinates
-    //   const auto & thisCellX = x_[cellGID_];
-    //   const auto & thisCellY = y_[cellGID_];
+    //   const auto & thisCellX = x_[cellGID];
+    //   const auto & thisCellY = y_[cellGID];
 
     //   // store the state at this cell
     //   cellState_[0] = 0.;
@@ -199,8 +206,8 @@ private:
     //   cellState_[2] = 0.;
 
     //   advFnct_(thisCellX, thisCellY, 0., cellState_, cellAdv_);
-    //   vx_[cellGID_] = cellAdv_[0];
-    //   vy_[cellGID_] = cellAdv_[1];
+    //   vx_[cellGID] = cellAdv_[0];
+    //   vy_[cellGID] = cellAdv_[1];
     // }
 
     // for (auto & it : graph_){
@@ -224,26 +231,30 @@ private:
   void velocity_impl(const state_type  & u,
 		     const scalar_type & t,
 		     velocity_type     & f) const{
-    // remember that the size of u not necessarily == f
+    // remember that the size of the state vector u is not necessarily == f
     // f can be smaller than u when involving sample mesh
+
+    // set f to zero
     f.setZero();
 
-    // loop over cells where velocity needs to be computed
-    // i.e. over all cells where we want residual
-    for (gid_t rPt=0; rPt < numGpt_r_; ++rPt)
+    /* the graph contains the connectivity for all the cells where I need
+     * to copute the velocity. I can loop over it.
+     */
+    for (gid_t vPt=0; vPt < numGpt_r_; ++vPt)
     {
       // gID of this cell
-      const auto & cellGID_ = graph_[rPt][0];
+      const auto & cellGID = graph_[vPt][0];
 
       // local coordinates
-      const auto & thisCellX = x_[cellGID_];
-      const auto & thisCellY = y_[cellGID_];
+      const auto & thisCellX = x_[cellGID];
+      const auto & thisCellY = y_[cellGID];
 
-      // given a cell, compute index in f of the first dof, i.e. c0
-      const auto fIndex = rPt*numSpecies_;
+      // given a cell, compute its index in f of the first dof, i.e. c0,
+      // belonging to this cell
+      const auto fIndex = vPt*numSpecies_;
 
       // given a cell, compute index in u of the first dof, i.e. c0
-      const auto uIndex = cellGID_*numSpecies_;
+      const auto uIndex = cellGID*numSpecies_;
 
       // store the state at this cell
       cellState_[0] = u[uIndex];
@@ -262,10 +273,10 @@ private:
       FDcoeffSouth_ =  cellAdv_[1]*dy2Inv_ + DovDySq_;
 
       // the gids of the neighboring cells (we assume 2nd ordered)
-      const auto & westCellGid  = graph_[rPt][1];
-      const auto & northCellGid = graph_[rPt][2];
-      const auto & eastCellGid  = graph_[rPt][3];
-      const auto & southCellGid = graph_[rPt][4];
+      const auto & westCellGid  = graph_[vPt][1];
+      const auto & northCellGid = graph_[vPt][2];
+      const auto & eastCellGid  = graph_[vPt][3];
+      const auto & southCellGid = graph_[vPt][4];
 
       // loop manually unrolled for species = 3
       // store the velocity
@@ -293,7 +304,7 @@ private:
       		  + FDcoeffEast_*u[uEastIndex_+2] + FDcoeffSouth_*u[uSouthIndex_+2]
       		  + cellSrc_[2];
 
-    }// end rPt loop
+    }// end vPt loop
   }//end velocity_impl
 
 
@@ -307,20 +318,20 @@ private:
     // loop over cells where velocity needs to be computed
     // i.e. over all cells where we want residual
     gid_t tripCount = -1;
-    for (gid_t rPt=0; rPt < graph_.size(); ++rPt)
+    for (gid_t vPt=0; vPt < graph_.size(); ++vPt)
     {
       // gID of this cell
-      const auto & cellGID_ = graph_[rPt][0];
+      const auto & cellGID = graph_[vPt][0];
 
       // local coordinates
-      const auto & thisCellX = x_[cellGID_];
-      const auto & thisCellY = y_[cellGID_];
+      const auto & thisCellX = x_[cellGID];
+      const auto & thisCellY = y_[cellGID];
 
       // given a cell, compute row index of the first dof, i.e. c0
-      const auto rowIndex = rPt*numSpecies_;
+      const auto rowIndex = vPt*numSpecies_;
 
       // given a cell, compute index in u of the first dof, i.e. c0
-      const auto uIndex = cellGID_*numSpecies_;
+      const auto uIndex = cellGID*numSpecies_;
 
       // store the state at this cell
       // store the state at this cell
@@ -340,10 +351,10 @@ private:
       FDcoeffSouth_ =  cellAdv_[1]*dy2Inv_ + DovDySq_;
 
       // the gids of the neighboring cells
-      const auto & westCellGid  = graph_[rPt][1];
-      const auto & northCellGid = graph_[rPt][2];
-      const auto & eastCellGid  = graph_[rPt][3];
-      const auto & southCellGid = graph_[rPt][4];
+      const auto & westCellGid  = graph_[vPt][1];
+      const auto & northCellGid = graph_[vPt][2];
+      const auto & eastCellGid  = graph_[vPt][3];
+      const auto & southCellGid = graph_[vPt][4];
 
       // contribution for ij
       tripletList[++tripCount] = Tr(rowIndex,   uIndex,   FDcoeff1_ + cellSrcJ_[0][0]);
@@ -384,7 +395,7 @@ private:
       tripletList[++tripCount] = Tr(rowIndex,   uSouthIndex,   FDcoeffSouth_);
       tripletList[++tripCount] = Tr(rowIndex+1, uSouthIndex+1, FDcoeffSouth_);
       tripletList[++tripCount] = Tr(rowIndex+2, uSouthIndex+2, FDcoeffSouth_);
-    }// end rPt loop
+    }// end vPt loop
 
     J.setFromTriplets(tripletList.begin(), tripletList.end());
 
@@ -392,7 +403,6 @@ private:
 
 
 private:
-  static constexpr int numSpecies_{3};
 
   // number of non zero entries for each jacobian row
   static constexpr int nonZerosPerRowJ_ = 7;
@@ -439,9 +449,9 @@ private:
     graph: contains a list such that
     1 0 3 2 -1
 
-    first col: contains GIDs of cells where we want velocity
-    1,2,3,4 col: contains GIDs of neighboring cells needed for stencil
-		 the order of the neighbors is: east, north, west, south
+    first col   : contains GIDs of cells where we want velocity
+    col 1,2,3,4 : contains GIDs of neighboring cells needed for stencil
+		  the order of the neighbors is: east, north, west, south
    */
   connectivity_t graph_ = {};
 

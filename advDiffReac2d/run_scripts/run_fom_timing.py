@@ -41,11 +41,11 @@ def main(exeName, meshDir, stepperName):
     data[iMesh][0] = numCell
 
     # get the name of the mesh file for the current case
-    meshFileName = utc.generateMeshFileName(numCell, numCell, "full")
-    # the path where mesh file is located
-    pathToMeshFile = meshDir + "/" + meshFileName
-    print("Current mesh file = ", pathToMeshFile)
+    pathToMeshFile = utc.generateMeshFilePath(meshDir, numCell, numCell, "full")
+    print (pathToMeshFile)
+    # check if meshfile for current size exists in that directory
     assert( os.path.exists(pathToMeshFile) )
+    print("Current mesh file = ", pathToMeshFile)
 
     # create input file (we only need to create it once,
     # since the same input is used to run multiple replica runs)

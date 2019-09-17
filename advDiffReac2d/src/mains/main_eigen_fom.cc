@@ -172,8 +172,6 @@ void runBDF1(const InputParser & parser,
   stepper_t stepperObj(x, appObj);
 
   // define linear solver
-  // using lin_solver_t = pressio::solvers::direct::EigenDirect<
-  //   pressio::solvers::linear::direct::ColPivHouseholderQR, typename pt::ode_j_t>;
   using lin_solver_t = pressio::solvers::iterative::EigenIterative<
     pressio::solvers::linear::iterative::Bicgstab, typename pt::ode_j_t>;
   lin_solver_t linearSolverObj;
@@ -182,8 +180,8 @@ void runBDF1(const InputParser & parser,
   using non_lin_solver_t = pressio::solvers::NewtonRaphson<scalar_t, lin_solver_t>;
   non_lin_solver_t solverObj(linearSolverObj);
   // by default, newton raphson exits when norm of correction is below tolerance
-  solverObj.setMaxIterations(10);
   solverObj.setTolerance(1e-13);
+  solverObj.setMaxIterations(10);
 
   // integrate in time
   if (parser.observerOn_ == 1)

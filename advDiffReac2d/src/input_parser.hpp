@@ -11,6 +11,7 @@ struct InputParser
 
   std::string problemName_	= "empty";
   std::string meshFileName_	= "empty";
+  std::string gidMapFileName_	= "empty";
 
   std::string odeStepperName_	= {};
   scalar_t dt_			= {};
@@ -60,6 +61,9 @@ public:
       if (col1 == "meshFileName")
 	meshFileName_ = col2;
 
+      if (col1 == "smToFmGIDMappingFileName")
+	gidMapFileName_ = col2;
+
       if (col1 == "odeStepperName")
 	odeStepperName_ = col2;
 
@@ -108,6 +112,7 @@ public:
 
     std::cout << problemName_ << std::endl;
     std::cout << meshFileName_ << std::endl;
+    std::cout << gidMapFileName_ << std::endl;
     std::cout << "stepper = "		<< odeStepperName_	<< " \n"
 	      << "dt = "		<< dt_			<< " \n"
 	      << "finalT = "		<< finalT_		<< " \n"

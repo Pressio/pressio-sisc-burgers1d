@@ -33,9 +33,8 @@ def main(exeName, meshDir, stepperName):
     print("Current numCell = ", numCell)
 
     # get the name of the mesh file for the current case
-    meshFileName = utc.generateMeshFileName(numCell, numCell, "full")
-    # the path where mesh file is located
-    pathToMeshFile = meshDir + "/" + meshFileName
+    pathToMeshFile = utc.generateMeshFilePath(meshDir, numCell, numCell, "full")
+    print (pathToMeshFile)
     # check if meshfile for current size exists in that directory
     assert( os.path.exists(pathToMeshFile) )
     print("Current mesh file = ", pathToMeshFile)
@@ -64,8 +63,9 @@ def main(exeName, meshDir, stepperName):
         # create input file
         utchem.createInputFileFomChemForBasis(stepperName, pathToMeshFile, samplingFreq)
 
-        popen = subprocess.Popen(args, stdout=subprocess.PIPE)
-        popen.wait()
+        os.system("./" + exeName + " input.txt")
+        #popen = subprocess.Popen(args, stdout=subprocess.PIPE)
+        #popen.wait()
         #output = popen.stdout.read()
 
         # create a directory to save the output for current romSize

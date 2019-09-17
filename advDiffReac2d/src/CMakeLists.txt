@@ -42,6 +42,11 @@ add_executable(adr2d_eigen_chem_lspg_full_mesh_bdf1 ${MAINDIR}/main_eigen_chem_l
 target_include_directories(adr2d_eigen_chem_lspg_full_mesh_bdf1 BEFORE PUBLIC ${EIGENINCDIRS})
 target_link_libraries(adr2d_eigen_chem_lspg_full_mesh_bdf1 ${TRILLIBNAMES})
 
+# chemical problem, LSPG with SAMPLE mesh bdf1
+add_executable(adr2d_eigen_chem_lspg_sample_mesh_bdf1 ${MAINDIR}/main_eigen_chem_lspg_sample_mesh_bdf1.cc)
+target_include_directories(adr2d_eigen_chem_lspg_sample_mesh_bdf1 BEFORE PUBLIC ${EIGENINCDIRS})
+target_link_libraries(adr2d_eigen_chem_lspg_sample_mesh_bdf1 ${TRILLIBNAMES})
+
 #-------------------
 # KOKKOS exes
 #-------------------

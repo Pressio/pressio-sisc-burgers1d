@@ -1,6 +1,7 @@
 
 problemName problemNameValue
 meshFileName meshFileNameValue
+smToFmGIDMappingFileName smToFmGIDMappingFileNameValue
 
 odeStepperName odeStepperNameValue
 dt dtValue

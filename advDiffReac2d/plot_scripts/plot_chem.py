@@ -19,22 +19,7 @@ from myutils_common import extractFinalTimeFromTargetInputFile
 from plot_common import loadXY
 
 
-def plotSingleSnapshot(n, xrs, yrs, snapId, snaps, samplingFreq, dt):
-  # get only target state from snapshot matrix
-  targetState = snaps[:, snapId]
-
-  # split state by species
-  [c0,c1,c2,c0rs,c1rs,c2rs] = splitStateBySpecies(targetState, n)
-
-  # calculate the time this snapshot corresponds to
-  snapshotTime = computeTimeOfSnapshot(snapId, samplingFreq, dt)
-
-  print("-------")
-  print ("max/min c0 "     , np.min(c0), np.max(c0))
-  print ("max/min c1 "     , np.min(c1), np.max(c1))
-  print ("max/min c2 "     , np.min(c2), np.max(c2))
-  print("\n")
-
+def doFigure(figId, c0rs, c1rs, c2rs):
   fig = plt.figure(1)
   ax1 = fig.add_subplot(131)
   ax2 = fig.add_subplot(132)
@@ -54,11 +39,32 @@ def plotSingleSnapshot(n, xrs, yrs, snapId, snaps, samplingFreq, dt):
   ax3.get_xaxis().set_visible(False)
   ax3.get_yaxis().set_visible(False)
   ax3.set_aspect(aspect=1)
+
+
+def printBounds(c0,c1,c2):
+  print("-------")
+  print ("max/min c0 "     , np.min(c0), np.max(c0))
+  print ("max/min c1 "     , np.min(c1), np.max(c1))
+  print ("max/min c2 "     , np.min(c2), np.max(c2))
+  print("\n")
+
+
+def plotSingleSnapshot(n, xrs, yrs, snapId, snaps, samplingFreq, dt):
+  # get only target state from snapshot matrix
+  targetState = snaps[:, snapId]
+
+  # split state by species
+  [c0,c1,c2,c0rs,c1rs,c2rs] = splitStateBySpecies(targetState, n)
+
+  # calculate the time this snapshot corresponds to
+  snapshotTime = computeTimeOfSnapshot(snapId, samplingFreq, dt)
+
+  printBounds(c0,c1,c2)
+  doFigure(1, c0rs, c1rs, c2rs)
   plt.show()
 
 
 def plotSequence(n, xrs, yrs, fromSnapId, toSnapId, snaps, samplingFreq, dt):
-
   for i in range(fromSnapId, toSnapId+1):
     # get target state from snapshot matrix
     targetState = snaps[:, i]
@@ -69,33 +75,9 @@ def plotSequence(n, xrs, yrs, fromSnapId, toSnapId, snaps, samplingFreq, dt):
     # calculate the time this snapshot corresponds to
     snapshotTime = computeTimeOfSnapshot(i, samplingFreq, dt)
 
-    print("-------")
-    print ("max/min c0 "     , np.min(c0), np.max(c0))
-    print ("max/min c1 "     , np.min(c1), np.max(c1))
-    print ("max/min c2 "     , np.min(c2), np.max(c2))
-    print("\n")
-
-    fig = plt.figure(1)
-    ax1 = fig.add_subplot(131)
-    ax2 = fig.add_subplot(132)
-    ax3 = fig.add_subplot(133)
-
-    ax1.imshow(c0rs, cmap=cm.jet, origin='lower',interpolation='bicubic')
-    ax1.get_xaxis().set_visible(False)
-    ax1.get_yaxis().set_visible(False)
-    ax1.set_aspect(aspect=1)
-
-    ax2.imshow(c1rs, cmap=cm.brg, origin='lower',interpolation='bicubic')
-    ax2.get_xaxis().set_visible(False)
-    ax2.get_yaxis().set_visible(False)
-    ax2.set_aspect(aspect=1)
-
-    ax3.imshow(c2rs, cmap=cm.terrain, origin='lower',interpolation='bicubic')
-    ax3.get_xaxis().set_visible(False)
-    ax3.get_yaxis().set_visible(False)
-    ax3.set_aspect(aspect=1)
+    printBounds(c0,c1,c2)
+    doFigure(1, c0rs, c1rs, c2rs)
     plt.show()
-
 
 
 if __name__== "__main__":

@@ -7,6 +7,9 @@ import os.path
 
 import constants_chem as cch
 
+# TODO: just reuse code here, no need to repeat all commands all the time
+
+
 def createInputFileFomChemTiming(stepperName, meshFileName):
   # copy template
   os.system('cp input.template input.txt')
@@ -64,3 +67,8 @@ def createInputFileFomChemForLSPGFullMesh(stepperName, meshFileName, romSize):
   os.system("sed -i '' s@basisFileNameValue@basis.txt@g input.txt")
   os.system("sed -i '' s@romOnValue@"           + str(1)                + "@g input.txt")
   os.system("sed -i '' s@romSizeValue@"         + str(romSize)          + "@g input.txt")
+
+
+def createInputFileFomChemForLSPGSampleMesh(stepperName, meshFileName, romSize, gidMapFile):
+  createInputFileFomChemForLSPGFullMesh(stepperName, meshFileName, romSize)
+  os.system("sed -i '' s@smToFmGIDMappingFileNameValue@"    + gidMapFile      + "@g input.txt")

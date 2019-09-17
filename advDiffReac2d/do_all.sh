@@ -43,7 +43,6 @@ CPPWORKINGDIR=${WORKINGDIR}/cpp
 [[ $WIPEEXISTING -eq 1 ]] && rm -rf ${CPPWORKINGDIR}/*
 
 
-
 #---------------------------
 # build all executables
 #---------------------------
@@ -85,9 +84,9 @@ if [[ $WHICHTASK = *"_ms_rk4"* ]] || \
     cp ${TOPDIR}/src/input.template ${destDir}
 
     # create links to full meshes
-    meshDir=${destDir}/full_meshes
-    if [ ! -d ${destDir}/full_meshes ]; then
-	ln -s ${TOPDIR}/full_meshes ${destDir}/full_meshes
+    meshDir=${destDir}/meshes
+    if [ ! -d ${destDir}/meshes ]; then
+	ln -s ${TOPDIR}/meshes ${destDir}/meshes
     fi
 
     # copy needed python scripts
@@ -145,9 +144,9 @@ if [[ $WHICHTASK == *"_chem_fom_"* ]]; then
     cp ${TOPDIR}/src/input.template ${destDir}
 
     # link full meshes
-    meshDir=${destDir}/full_meshes
-    if [ ! -d ${destDir}/full_meshes ]; then
-	ln -s ${TOPDIR}/full_meshes ${destDir}/full_meshes
+    meshDir=${destDir}/meshes
+    if [ ! -d ${destDir}/meshes ]; then
+	ln -s ${TOPDIR}/meshes ${destDir}/meshes
     fi
 
     # copy python scripts
@@ -190,62 +189,132 @@ if [[ $WHICHTASK == *"_chem_fom_"* ]]; then
 fi
 
 
+#--------------------------------------
+#
+#     Chemisty adr2d LSPG FULL mesh
+#
+#-------------------------------------
+if [[ $WHICHTASK == *"_chem_lspg_full_mesh_bdf1_"* ]];
+then
+    # check if the build was already done
+    if [ ! -d ${CPPWORKINGDIR}/build ]; then
+	echo "there is no build in the target folder, do that first"
+	exit 0
+    fi
 
-# #--------------------------------------
-# # chem problem, LSPG ROM with FULL MESH
-# #-------------------------------------
-# if [[ $WHICHTASK == *"_chem_lspg_full_mesh_"* ]];
-# then
-#     # check if the build was already done
-#     if [ ! -d ${CPPWORKINGDIR}/build ]; then
-# 	echo "there is no build in the target folder, do that first"
-# 	exit 0
-#     fi
+    # check if the basis are present (basis are computed with eigen only
+    # regardless of whether we use kokkos or eigen to run LSPG)
+    BASISDIRNAME=
+    [[ $WHICHTASK = *"_bdf1_"* ]] && BASISDIRNAME=data_eigen_chem_fom_bdf1_basis
+    if [ ! -d ${CPPWORKINGDIR}/${BASISDIRNAME} ]; then
+	echo "there is not basis dir in the target folder, do that first"
+	exit 0
+    fi
 
-#     # check if the basis are present (basis are computed with eigen only)
-#     BASISDIRNAME=
-#     [[ $WHICHTASK = *"_bdf1_"* ]] && BASISDIRNAME=data_eigen_chem_fom_bdf1_basis
-#     if [ ! -d ${CPPWORKINGDIR}/${BASISDIRNAME} ]; then
-# 	echo "there is not basis dir in the target folder, do that first"
-# 	exit 0
-#     fi
+    # create folder for current task inside workindir
+    destDir=${CPPWORKINGDIR}/"data_"${WHICHTASK}
+    [[ ! -d ${destDir} ]] && mkdir ${destDir}
 
-#     # create folder for current task inside workindir
-#     destDir=${CPPWORKINGDIR}/"data_"${WHICHTASK}
-#     mkdir ${destDir}
+    # link the executable from build directory
+    EXENAME=
+    if [[ $WHICHTASK == *"eigen_chem_lspg_full_mesh_bdf1_"* ]]; then
+	EXENAME=adr2d_eigen_chem_lspg_full_mesh_bdf1
+    fi
+    if [[ $WHICHTASK == *"kokkos_chem_lspg_full_mesh_bdf1_"* ]]; then
+	EXENAME=adr2d_kokkos_chem_lspg_full_mesh_bdf1
+    fi
+    [[ -f ${destDir}/${EXENAME} ]] && rm ${destDir}/${EXENAME}
+    ln -s ${CPPWORKINGDIR}/build/${EXENAME} ${destDir}
 
-#     # link the executable from build directory
-#     EXENAME=
-#     if [[ $WHICHTASK == *"eigen_chem_lspg_full_mesh_bdf1_"* ]]; then
-# 	EXENAME=adr2d_eigen_chem_lspg_full_mesh_bdf1
-#     fi
-#     if [[ $WHICHTASK == *"kokkos_chem_lspg_full_mesh_bdf1_"* ]]; then
-# 	EXENAME=adr2d_kokkos_chem_lspg_full_mesh_bdf1
-#     fi
-#     [[ -f ${destDir}/${EXENAME} ]] && rm ${destDir}/${EXENAME}
-#     ln -s ${CPPWORKINGDIR}/build/${EXENAME} ${destDir}
+    # copy the template input
+    cp ${TOPDIR}/src/input.template ${destDir}
 
-#     # copy the template input
-#     cp ${TOPDIR}/src/input.template ${destDir}
+    # link full meshes directory
+    meshDir=${destDir}/meshes
+    if [ ! -d ${destDir}/meshes ]; then
+    	ln -s ${TOPDIR}/meshes ${destDir}/meshes
+    fi
 
-#     # link meshes directory
-#     meshDir=${destDir}/full_meshes
-#     if [ ! -d ${destDir}/full_meshes ]; then
-#     	ln -s ${TOPDIR}/full_meshes ${destDir}/full_meshes
-#     fi
+    # copy python scripts
+    cp ${TOPDIR}/myutils_common.py ${destDir}/
+    cp ${TOPDIR}/myutils_chem.py ${destDir}/
+    cp ${TOPDIR}/constants_chem.py ${destDir}/
+    cp ${TOPDIR}/plot_scripts/plot_common.py ${destDir}/
+    cp ${TOPDIR}/plot_scripts/plot_chem.py ${destDir}/
+    cp ${TOPDIR}/plot_scripts/plot_chem_rom.py ${destDir}/
+    cp ${TOPDIR}/run_scripts/run_rom_full_mesh_timing.py ${destDir}
 
-#     # copy python scripts
-#     cp ${TOPDIR}/run_scripts/myutils_common.py ${destDir}/
-#     cp ${TOPDIR}/run_scripts/myutils_chem.py ${destDir}/
-#     cp ${TOPDIR}/constants_chem.py ${destDir}/
-#     cp ${TOPDIR}/plot_scripts/plot_common.py ${destDir}/
-#     cp ${TOPDIR}/run_scripts/run_rom_full_mesh_timing.py ${destDir}
+    # enter and run
+    cd ${destDir}
+    python run_rom_full_mesh_timing.py \
+	   --exe ${EXENAME} \
+	   --mesh-dir ${meshDir}\
+	   --stepper-name bdf1\
+	   --basis-dir ${BASISDIRNAME}
+    cd ${TOPDIR}
+fi
 
-#     # enter and run
-#     cd ${destDir}
-#     python run_rom_full_mesh_timing.py \
-# 	   --exe ${EXENAME} \
-# 	   --mesh-dir ${meshDir}\
-# 	   --basis-dir ${BASISDIRNAME}
-#     cd ${TOPDIR}
-# fi
+
+
+#--------------------------------------
+#
+#     Chemisty adr2d LSPG SAMPLE mesh
+#
+#-------------------------------------
+if [[ $WHICHTASK == *"_chem_lspg_sample_mesh_bdf1_"* ]];
+then
+    # check if the build was already done
+    if [ ! -d ${CPPWORKINGDIR}/build ]; then
+	echo "there is no build in the target folder, do that first"
+	exit 0
+    fi
+
+    # check if the basis are present (basis are computed with eigen only
+    # regardless of whether we use kokkos or eigen to run LSPG)
+    BASISDIRNAME=
+    [[ $WHICHTASK = *"_bdf1_"* ]] && BASISDIRNAME=data_eigen_chem_fom_bdf1_basis
+    if [ ! -d ${CPPWORKINGDIR}/${BASISDIRNAME} ]; then
+	echo "there is not basis dir in the target folder, do that first"
+	exit 0
+    fi
+
+    # create folder for current task inside workindir
+    destDir=${CPPWORKINGDIR}/"data_"${WHICHTASK}
+    [[ ! -d ${destDir} ]] && mkdir ${destDir}
+
+    # link the executable from build directory
+    EXENAME=
+    if [[ $WHICHTASK == *"eigen_chem_lspg_sample_mesh_bdf1_"* ]]; then
+	EXENAME=adr2d_eigen_chem_lspg_sample_mesh_bdf1
+    fi
+    [[ -f ${destDir}/${EXENAME} ]] && rm ${destDir}/${EXENAME}
+    ln -s ${CPPWORKINGDIR}/build/${EXENAME} ${destDir}
+
+    # copy the template input
+    cp ${TOPDIR}/src/input.template ${destDir}
+
+    # link full meshes directory
+    meshDir=${destDir}/meshes
+    if [ ! -d ${destDir}/meshes ]; then
+    	ln -s ${TOPDIR}/meshes ${destDir}/meshes
+    fi
+
+    # copy python scripts
+    cp ${TOPDIR}/myutils_common.py ${destDir}/
+    cp ${TOPDIR}/myutils_chem.py ${destDir}/
+    cp ${TOPDIR}/constants_chem.py ${destDir}/
+    cp ${TOPDIR}/plot_scripts/plot_common.py ${destDir}/
+    cp ${TOPDIR}/plot_scripts/plot_chem.py ${destDir}/
+    cp ${TOPDIR}/plot_scripts/plot_chem_rom.py ${destDir}/
+    cp ${TOPDIR}/run_scripts/run_rom_sample_mesh_timing.py ${destDir}
+
+    # enter and run
+    cd ${destDir}
+    python run_rom_sample_mesh_timing.py \
+    	   --exe ${EXENAME} \
+    	   --mesh-dir ${meshDir}\
+    	   --stepper-name bdf1\
+    	   --basis-dir ${BASISDIRNAME}
+
+    cd ${TOPDIR}
+fi

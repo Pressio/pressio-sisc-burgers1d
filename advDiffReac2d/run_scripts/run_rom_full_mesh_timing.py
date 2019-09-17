@@ -7,14 +7,16 @@ import os.path
 import re
 from argparse import ArgumentParser
 
-from myutils_common import timerRegExp, numDofStateRegExp, numDofResidRegExp
-import myutils_chem as myutils
-import constants_chem as constants
+import myutils_common as utc
+import myutils_chem as utchem
+import constants_chem as cchem
 
-# this Python script computes timings for chem adr2d
 
-def main(exename, meshDir, basisDirName):
-  numMeshes = len(constants.numCell_cases)
+def main(exeName, meshDir, stepperName, basisDirName):
+  # number of cases for mesh,romSize, of which I ran several replicas
+  numCases = len(cchem.numCell_cases) * len(cchem.romSize_cases)
+
+  numMeshes = len(cchem.numCell_cases)
 
   # data stored as:
   # col=0  :  mesh size
@@ -22,66 +24,84 @@ def main(exename, meshDir, basisDirName):
   # col=2  :  num of dof for state vector
   # col=3  :  rom size
   # col=4: :  timings
-  data = np.zeros((numMeshes, constants.numSamplesForTiming+4))
+  data = np.zeros((numCases, cchem.numSamplesForTiming+4))
 
   # args for the executable
-  args = ("./"+exename, "input.txt")
+  args = ("./"+exeName, "input.txt")
 
   # store parent directory where all basis are stored
   basisParentDir = os.getcwd() + "/../" + basisDirName
 
+  rowCount = -1
+
   # loop over mesh sizes
   for iMesh in range(0, numMeshes):
-    numCell = constants.numCell_cases[iMesh]
+    numCell = cchem.numCell_cases[iMesh]
     print("Current numCell = ", numCell)
 
-    pathToMeshFile = meshDir + "/mesh" + str(numCell) + ".dat"
+    # get the name of the mesh file for the current case
+    pathToMeshFile = utc.generateMeshFilePath(meshDir, numCell, numCell, "full")
+    print (pathToMeshFile)
+    # check if meshfile for current size exists in that directory
+    assert( os.path.exists(pathToMeshFile) )
     print("Current mesh file = ", pathToMeshFile)
 
+    #-------------------------
     # loop over ROM sizes
-    for iRom in range(0, len(constants.romSize_cases)):
-      romSize = constants.romSize_cases[iRom]
+    #-------------------------
+    for iRom in range(0, len(cchem.romSize_cases)):
+      rowCount+=1
+
+      romSize = cchem.romSize_cases[iRom]
       print("Current romSize = ", romSize)
 
-      data[iMesh][0] = numCell
-      data[iMesh][1] = romSize
+      # store the current mesh size into data
+      data[rowCount][0] = numCell
 
       # create input file
-      myutils.createInputFileFomChemForLSPGFullMesh(pathToMeshFile, romSize)
+      utchem.createInputFileFomChemForLSPGFullMesh(stepperName, pathToMeshFile, romSize)
 
       # copy basis here
       subs1 = "numCell" + str(numCell)
       subs2 = "basis" + str(romSize)
       basisDir = basisParentDir + "/" + subs1 + "/" + subs2
-      os.system("cp "+basisDir+"/basis.txt .")
+      # always remove the link to basis to make sure we link the right one
+      os.system("rm -rf ./basis.txt")
+      os.system("ln -s "+basisDir+"/basis.txt ./basis.txt")
 
-      for i in range(0, constants.numSamplesForTiming):
+      #-------------------------
+      # do all the replicas
+      #-------------------------
+      for i in range(0, cchem.numSamplesForTiming):
         print("replica # = ", i)
-        popen = subprocess.Popen(args, stdout=subprocess.PIPE)
-        popen.wait()
-        output = popen.stdout.read()
+        os.system("./" + exeName + " input.txt")
+        # popen = subprocess.Popen(args, stdout=subprocess.PIPE)
+        # popen.wait()
+        # output = popen.stdout.read()
 
         # if we are at first replica run, grep the number of Dofs
         if i == 0:
           # dofs for residual vector
-          res = re.search(numDofResidRegExp, str(output))
+          res = re.search(utc.numDofResidRegExp, str(output))
           numDofResid = int(res.group().split()[2])
-          data[iMesh][2] = numDofResid
+          data[rowCount][1] = numDofResid
           # dofs for state vector
-          res = re.search(numDofStateRegExp, str(output))
+          res = re.search(utc.numDofStateRegExp, str(output))
           numDofState = int(res.group().split()[2])
-          data[iMesh][3] = numDofState
+          data[rowCount][2] = numDofState
           print("dofResid = ", numDofResid)
           print("dofState = ", numDofState)
+          # store the rom size
+          data[rowCount][3] = romSize
 
         # find timing for current run
-        res = re.search(timerRegExp, str(output))
+        res = re.search(utc.timerRegExp, str(output))
         time = float(res.group().split()[2])
         # store
-        data[iMesh][i+4] = time
+        data[rowCount][i+4] = time
         print("time = ", time)
 
-        # save data for one replica run
+        # save data for one replica run only
         if i==0:
           destDir = "numCell" + str(numCell) + "/basis" + str(romSize)
           os.system("mkdir -p " + destDir)
@@ -91,14 +111,15 @@ def main(exename, meshDir, basisDirName):
             os.system("mv xFomReconstructed.txt " + destDir)
           os.system("mv input.txt " + destDir)
 
-  np.savetxt(exename+"_timings.txt", data, fmt='%.12f')
+  np.savetxt(exeName+"_timings.txt", data, fmt='%.12f')
   print(data)
 
 
 if __name__== "__main__":
   parser = ArgumentParser()
-  parser.add_argument("-exe", "--exe", dest="exename")
-  parser.add_argument("-mesh-dir", "--mesh-dir", dest="meshdir")
-  parser.add_argument("-basis-dir", "--basis-dir", dest="basisDirName")
+  parser.add_argument("-exe",           "--exe",        dest="exeName")
+  parser.add_argument("-mesh-dir",      "--mesh-dir",   dest="meshdir")
+  parser.add_argument("-stepper-name", "--stepper-name",dest="stepperName")
+  parser.add_argument("-basis-dir",     "--basis-dir",  dest="basisDirName")
   args = parser.parse_args()
-  main(args.exename, args.meshdir, args.basisDirName)
+  main(args.exeName, args.meshdir, args.stepperName, args.basisDirName)
