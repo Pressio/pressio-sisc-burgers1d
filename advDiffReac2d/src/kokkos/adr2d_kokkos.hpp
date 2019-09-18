@@ -20,8 +20,9 @@ class Adr2dKokkos
   static constexpr int nonZerosPerRowJ_ = 7;
 
   using this_t	= Adr2dKokkos<source_functor, advection_functor>;
-  using ui_t	= unsigned int;
   using sc_t	= double;
+
+  using ui_t	= unsigned int;
   // the type to represent global indices, for enumerating dofs and cells
   using gid_t   = ui_t;
 
@@ -34,41 +35,43 @@ class Adr2dKokkos
   static constexpr auto oneHalf = one/two;
 
   // aliases for layouts and exe space
-  using klr = Kokkos::LayoutRight;
-  using kll = Kokkos::LayoutLeft;
-  using exe_space = Kokkos::DefaultExecutionSpace;
+  using klr			= Kokkos::LayoutRight;
+  using kll			= Kokkos::LayoutLeft;
+  using exe_space		= Kokkos::DefaultExecutionSpace;
 
   // --------------------------------------------------------------
   // aliases for 1d Kokkos view with left layout on device and host
-  using k1d_ll_d_t = Kokkos::View<sc_t*, kll, exe_space>;
-  using k1d_ll_h_t = k1d_ll_d_t::host_mirror_type;
+  using k1d_ll_d_t		= Kokkos::View<sc_t*, kll, exe_space>;
+  using k1d_ll_h_t		= k1d_ll_d_t::host_mirror_type;
+
   // host and device should have same layout
-  using k1ll_h_layout = typename k1d_ll_h_t::traits::array_layout;
-  using k1ll_d_layout = typename k1d_ll_d_t::traits::array_layout;
+  using k1ll_h_layout		= typename k1d_ll_h_t::traits::array_layout;
+  using k1ll_d_layout		= typename k1d_ll_d_t::traits::array_layout;
   static_assert( std::is_same<k1ll_h_layout, k1ll_d_layout>::value,
-		 "Layout for d and h (mirrorw) 1d view is not the same");
+		 "Layout for d and h (mirror) 1d view is not the same");
 
   // --------------------------------------------------------------
   // aliases for 2d Kokkos view with left layout on device and host
-  using k2d_ll_d_t = Kokkos::View<sc_t**, kll, exe_space>;
-  using k2d_ll_h_t = k2d_ll_d_t::host_mirror_type;
+  using k2d_ll_d_t		= Kokkos::View<sc_t**, kll, exe_space>;
+  using k2d_ll_h_t		= k2d_ll_d_t::host_mirror_type;
+
   // host and device have same layout
-  using k2ll_h_layout = typename k2d_ll_h_t::traits::array_layout;
-  using k2ll_d_layout = typename k2d_ll_d_t::traits::array_layout;
+  using k2ll_h_layout		= typename k2d_ll_h_t::traits::array_layout;
+  using k2ll_d_layout		= typename k2d_ll_d_t::traits::array_layout;
   static_assert( std::is_same<k2ll_h_layout, k2ll_d_layout>::value,
-		 "Layout for d and h (mirrorw) 2d view is not the same");
+		 "Layout for d and h (mirror) 2d view is not the same");
 
   // --------------------------------------------------------------
   // the cell connectivity types, for both host and device:
   // we know at compile time that the connectivity matrix has 5 columns
-  using connectivity_d_t  = Kokkos::View<gid_t*[5], kll, exe_space>;
-  using connectivity_h_t  = connectivity_d_t::host_mirror_type;
+  using connectivity_d_t	= Kokkos::View<gid_t*[5], kll, exe_space>;
+  using connectivity_h_t	= connectivity_d_t::host_mirror_type;
 
   // --------------------------------------------------------------
   // the coordinates type:
   // we know at compile time that coords matrix has 2 columns
-  using coords_d_t  = Kokkos::View<sc_t*[2], kll, exe_space>;
-  using coords_h_t  = coords_d_t::host_mirror_type;
+  using coords_d_t		= Kokkos::View<sc_t*[2], kll, exe_space>;
+  using coords_h_t		= coords_d_t::host_mirror_type;
 
 public:
   using kcrs_mat_t		= KokkosSparse::CrsMatrix<sc_t, gid_t, exe_space>;
@@ -105,8 +108,16 @@ public:
       coords_d_{"coords_d", 1},
       state_{"state", 1}
   {
+    // load mesh first
     this->readMesh();
+
+    // compute and store all coefficients for stencils
     this->computeCoefficients();
+
+    // after I read the mesh, I can init the graph
+    // which is done by initializing J_ with right structure
+    // but all zeros
+    this->initJacobianGraph();
   }
 
   ~Adr2dKokkos() = default;
@@ -144,9 +155,7 @@ public:
 
   jacobian_type jacobian(const state_type & u,
 			 const scalar_type t) const{
-    this->createNewJacobian(u, t);
-    //jacobian_type J("J", numRows, numCols, numEnt, val, ptr, ind);
-    this->jacobian(u, t, J_);
+    this->jacobian_impl(u, t, J_);
     return J_;
   }
 
@@ -154,12 +163,7 @@ public:
   		     const mv_d_t & B,
   		     scalar_type t,
   		     mv_d_t & A) const{
-    //auto JJ = this->jacobian(u, t);
-    this->jacobian(u, t, J_);
-    constexpr auto zero = ::pressio::utils::constants::zero<sc_t>();
-    constexpr auto one = ::pressio::utils::constants::one<sc_t>();
-    const char ct = 'N';
-    KokkosSparse::spmv(&ct, one, J_, B, zero, A);
+    this->applyJacobianImpl(u, B, t, A);
   }
 
   mv_d_t applyJacobian(const state_type & u,
@@ -167,7 +171,7 @@ public:
   		     scalar_type t) const
   {
     mv_d_t A("AA", numDof_r_, B.extent(1) );
-    this->applyJacobian(u, B, t, A);
+    this->applyJacobianImpl(u, B, t, A);
     return A;
   }
 
@@ -267,8 +271,7 @@ private:
     FDcoeff1_ = -this_t::two*(DovDxSq_ + DovDySq_);
   }
 
-  void createNewJacobian(const state_type & u,
-			 const scalar_type & t) const
+  void initJacobianGraph()
   {
     // this code basically creates the graph of the Jacobian only
     // and stores it into member J_
@@ -276,8 +279,6 @@ private:
     const gid_t numRows = numDof_r_;
     const gid_t numCols = numDof_;
     const gid_t numEnt  = numRows * nonZerosPerRowJ_;
-
-    state_type_h_t u_h = Kokkos::create_mirror_view(u);
 
     // create data on device that we need to fill to create Jacobian
     typename jacobian_type::row_map_type::non_const_type ptr ("ptr", numRows+1);
@@ -351,6 +352,10 @@ private:
 	ind_h[++k] = uEastIndex+2;
 	ind_h[++k] = uSouthIndex+2;
       }
+      Kokkos::deep_copy(ind, ind_h);
+
+      // val is by default set to zero, so we don't need to do anything
+      // because here we just want to create the structure of the Jacobian
     }
 
     jacobian_type J("J", numRows, numCols, numEnt, val, ptr, ind);
@@ -392,10 +397,22 @@ private:
 	     DovDxSq_, DovDySq_, FDcoeff1_);
 
     // launch pfor as large as number of cells where we need velocity
-    Kokkos::parallel_for( policy_type(0, numGpt_r_), F);
+    //Kokkos::parallel_for( policy_type(0, numGpt_r_), F);
+    Kokkos::parallel_for(numGpt_r_, F);
     exe_space().fence();
   }//end jacobian_impl
 
+
+  void applyJacobianImpl(const state_type & u,
+			 const mv_d_t & B,
+			 scalar_type t,
+			 mv_d_t & A) const{
+    constexpr auto zero	= ::pressio::utils::constants::zero<sc_t>();
+    constexpr auto one	= ::pressio::utils::constants::one<sc_t>();
+    this->jacobian_impl(u, t, J_);
+    const char ct = 'N';
+    KokkosSparse::spmv(&ct, one, J_, B, zero, A);
+  }
 
 private:
   // name of mesh file
@@ -454,8 +471,8 @@ private:
 
   // state_ has size = numGpt_ * numSpecies_
   mutable state_type state_ = {};
-  mutable velocity_type f_ = {};
-  mutable jacobian_type J_ = {};
+  mutable velocity_type f_  = {};
+  mutable jacobian_type J_  = {};
 
 };//end class
 

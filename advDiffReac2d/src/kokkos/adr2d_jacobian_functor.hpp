@@ -89,9 +89,9 @@ struct JacobianFunctor{
     sc_t cellSrc10_  = {}; sc_t cellSrc11_  = {};  sc_t cellSrc12_  = {};
     sc_t cellSrc20_  = {}; sc_t cellSrc21_  = {};  sc_t cellSrc22_  = {};
     srcFunctor_(thisCellX, thisCellY, t_, u0, u1, u2,
-		cellSrc00_, cellSrc01_, cellSrc02_,
-		cellSrc10_, cellSrc11_, cellSrc12_,
-		cellSrc20_, cellSrc21_, cellSrc22_);
+    		cellSrc00_, cellSrc01_, cellSrc02_,
+    		cellSrc10_, cellSrc11_, cellSrc12_,
+    		cellSrc20_, cellSrc21_, cellSrc22_);
 
     // compute the FD coefficients for this cell
     const auto FDcoeffWest_  =  cellVx_*dx2Inv_ + DovDxSq_;
@@ -119,13 +119,13 @@ struct JacobianFunctor{
     sc_t  vals[ncol];
 
     // deal with dof 0
-    cols[0] = uIndex;	vals[0] = FDcoeff1_ + cellSrc00_;
-    cols[1] = uIndex+1; vals[1] = cellSrc01_;
-    cols[2] = uIndex+2; vals[2] = cellSrc02_;
-    cols[3] = uWestIndex;  vals[3] = FDcoeffWest_;
-    cols[4] = uNorthIndex; vals[4] = FDcoeffNorth_;
-    cols[5] = uEastIndex;  vals[5] = FDcoeffEast_;
-    cols[6] = uSouthIndex; vals[6] = FDcoeffSouth_;
+    cols[0] = uIndex;		vals[0] = FDcoeff1_ + cellSrc00_;
+    cols[1] = uIndex+1;		vals[1] = cellSrc01_;
+    cols[2] = uIndex+2;		vals[2] = cellSrc02_;
+    cols[3] = uWestIndex;	vals[3] = FDcoeffWest_;
+    cols[4] = uNorthIndex;	vals[4] = FDcoeffNorth_;
+    cols[5] = uEastIndex;	vals[5] = FDcoeffEast_;
+    cols[6] = uSouthIndex;	vals[6] = FDcoeffSouth_;
     J_.replaceValues(rowIndex, cols, ncol, vals, false, true);
 
     // deal with dof 1

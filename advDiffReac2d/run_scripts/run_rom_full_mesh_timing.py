@@ -109,6 +109,8 @@ def main(exeName, meshDir, stepperName, basisDirName):
             os.system("mv xy.txt " + destDir)
           if os.path.isfile('xFomReconstructed.txt'):
             os.system("mv xFomReconstructed.txt " + destDir)
+          if os.path.isfile('final_generalized_coords.txt'):
+            os.system("mv final_generalized_coords.txt " + destDir)
           os.system("mv input.txt " + destDir)
 
   np.savetxt(exeName+"_timings.txt", data, fmt='%.12f')

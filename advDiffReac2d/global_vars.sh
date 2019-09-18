@@ -54,6 +54,9 @@ function display_admissible_options_for_do(){
     echo " - kokkos_ms_rk4"
     echo " - kokkos_chem_fom_rk4_timing"
     echo " "
+    echo " Kokkos ROM choices:"
+    echo " - kokkos_chem_lspg_full_mesh_bdf1_timing"
+    echo " "
 }
 
 function check_minimum_vars_set(){
@@ -81,7 +84,8 @@ function check_minimum_vars_set(){
 	      ${WHICHTASK} != eigen_chem_lspg_sample_mesh_bdf1_timing &&
 	      #
 	      ${WHICHTASK} != kokkos_ms_rk4 &&
-	      ${WHICHTASK} != kokkos_chem_fom_rk4_timing ]];
+	      ${WHICHTASK} != kokkos_chem_fom_rk4_timing &&
+	      ${WHICHTASK} != kokkos_chem_lspg_full_mesh_bdf1_timing ]];
     then
 	echo "--do is set to non-admissible value, choose one of:"
 	display_admissible_options_for_do

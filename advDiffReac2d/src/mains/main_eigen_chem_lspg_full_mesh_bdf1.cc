@@ -1,16 +1,17 @@
 
+// pressio headers
 #include "CONTAINERS_ALL"
 #include "ODE_IMPLICIT"
 #include "ODE_INTEGRATORS"
-#include "QR_BASIC"
 #include "SOLVERS_NONLINEAR"
 #include "ROM_LSPG"
+// local headers
 #include "adr2d_eigen.hpp"
 #include "input_parser.hpp"
-#include "eigen_observer.hpp"
 #include "advection_cellular_flow_functor.hpp"
 #include "source_term_chemABC_functor.hpp"
 #include "eigen_utils.hpp"
+#include "eigen_observer.hpp"
 
 int main(int argc, char *argv[]){
 
@@ -65,7 +66,7 @@ int main(int argc, char *argv[]){
    ----------------------*/
   // store basis vectors
   const decoder_jac_t phi = readBasis<unsigned int>(parser.basisFileName_, parser.romSize_);
-  const int numBasis = phi.numVectors();
+  const auto numBasis = phi.numVectors();
   if( numBasis != parser.romSize_ ) return 1;
 
   // create decoder obj
@@ -90,12 +91,9 @@ int main(int argc, char *argv[]){
   lspg_generator lspgProblem(appObj, yRef, decoderObj, xROM, zero);
 
   // --- linear solver ---
-  // using solver_tag	   = pressio::solvers::linear::iterative::LSCG;
-  // using linear_solver_t	   = pressio::solvers::iterative::EigenIterative<solver_tag, lspg_hessian_t>;
   using solver_tag	   = pressio::solvers::linear::direct::HouseholderQR;
   using linear_solver_t	   = pressio::solvers::direct::EigenDirect<solver_tag, lspg_hessian_t>;
   linear_solver_t linSolverObj;
-  //linSolverObj.setMaxIterations(1);
 
   // --- normal-equations-based GaussNewton solver ---
   using gnsolver_t   = pressio::solvers::iterative::GaussNewton<lspg_stepper_t, linear_solver_t>;
@@ -132,11 +130,17 @@ int main(int argc, char *argv[]){
   /*----------------------
    * FINISH UP
    ----------------------*/
-  // compute the fom corresponding to our rom final state
-  const auto xFomFinal = lspgProblem.yFomReconstructor_(xROM);
-
-  // print mesh coords
   {
+    // print generalized coordinates
+    std::ofstream file;
+    file.open("final_generalized_coords.txt");
+    for(auto i=0; i < xROM.size(); i++){
+      file << std::setprecision(14) << xROM[i] << std::endl;
+    }
+    file.close();
+  }
+  {
+    // print mesh coords
     const auto X = appObj.getX();
     const auto Y = appObj.getY();
     std::ofstream file; file.open("xy.txt");
@@ -146,9 +150,10 @@ int main(int argc, char *argv[]){
     }
     file.close();
   }
-
-  // print reconstructed fom state
   {
+    // compute the fom corresponding to our rom final state
+    const auto xFomFinal = lspgProblem.yFomReconstructor_(xROM);
+    // print reconstructed fom state
     std::ofstream file;
     file.open("xFomReconstructed.txt");
     for(auto i=0; i < xFomFinal.size(); i++){
@@ -156,9 +161,6 @@ int main(int argc, char *argv[]){
     }
     file.close();
   }
-
-  // // // print solution
-  // // std::cout << std::setprecision(14) << *x.data() << std::endl;
 
   return 0;
 }

@@ -12,7 +12,7 @@ cd ${CPPWORKINGDIR}
 if [ ! -d ${CPPWORKINGDIR}/pressio-builder ];
 then
     git clone git@github.com:Pressio/pressio-builder.git
-    cd pressio-builder && git checkout siscPaper && cd ..
+    #cd pressio-builder && git checkout siscPaper && cd ..
 else
     cd pressio-builder && git pull && cd -
 fi
@@ -82,7 +82,7 @@ then
     if [ ! -d ${CPPWORKINGDIR}/tpls/pressio/pressio ]; then
 	git clone --recursive git@github.com:Pressio/pressio.git
     fi
-    cd pressio && git checkout siscPaper && cd ..
+    cd pressio && git checkout develop && cd ..
 
     # install pressio
     cd ${CPPWORKINGDIR}/pressio-builder

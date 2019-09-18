@@ -8,14 +8,12 @@
 template <typename sc_t, typename state_t = void>
 class CellularFlow
 {
-  using this_t  = CellularFlow<sc_t, state_t>;
-  using cell_adv_arr_t  = std::array<sc_t, 2>;
+  using this_t		  = CellularFlow<sc_t, state_t>;
+  using cell_adv_arr_t	  = std::array<sc_t, 2>;
   using cell_state_arr_t  = std::array<sc_t, 3>;
 
 public:
   static constexpr auto myPI_   = 3.14159265358979323846;
-  // static constexpr auto two	= ::pressio::utils::constants::two<sc_t>();
-  // static constexpr auto PI2_	= myPI_*two;
 
 public:
   CellularFlow() = default;

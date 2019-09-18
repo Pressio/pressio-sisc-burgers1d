@@ -145,11 +145,17 @@ int main(int argc, char *argv[]){
   /*----------------------
    * FINISH UP
    ----------------------*/
-  // compute the fom corresponding to our rom final state
-  const auto xFomFinal = lspgProblem.yFomReconstructor_(xROM);
-
-  // print mesh coords
   {
+    // print generalized coordinates
+    std::ofstream file;
+    file.open("final_generalized_coords.txt");
+    for(auto i=0; i < xROM.size(); i++){
+      file << std::setprecision(14) << xROM[i] << std::endl;
+    }
+    file.close();
+  }
+  {
+    // print sample mesh coords
     const auto X = appObj.getX();
     const auto Y = appObj.getY();
     std::ofstream file; file.open("xy.txt");
@@ -159,9 +165,11 @@ int main(int argc, char *argv[]){
     }
     file.close();
   }
-
-  // print reconstructed fom state over sample mesh
   {
+    // compute the fom corresponding to our rom final state
+    const auto xFomFinal = lspgProblem.yFomReconstructor_(xROM);
+
+    // print reconstructed fom state over sample mesh
     std::ofstream file;
     file.open("xFomReconstructed.txt");
     for(auto i=0; i < xFomFinal.size(); i++){
