@@ -13,6 +13,10 @@
 #include "source_term_chemABC_functor.hpp"
 #include "kokkos_utils.hpp"
 
+//this contains the custom ops to enable sample mesh
+#include "kokkos_sample_mesh_time_discrete_ops.hpp"
+
+
 int main(int argc, char *argv[]){
 Kokkos::initialize (argc, argv);
 {
@@ -22,8 +26,6 @@ Kokkos::initialize (argc, argv);
   InputParser parser;
   int err = parser.parse(argc, argv);
   if (err == 1) return 1;
-
-  const auto romSize	= parser.romSize_;
 
   /*----------------------
    * TYPES
@@ -73,14 +75,29 @@ Kokkos::initialize (argc, argv);
   native_state_d_t yRef("yRef", stateSize);
 
   /*----------------------
-   * CREATE LINEAR DECODER
+   * READ BASIS VECTORS
    ----------------------*/
-  const auto phi = readBasis<decoder_jac_d_t>(parser.basisFileName_, parser.romSize_);
-  const auto numBasis = phi.numVectors();
-  if( numBasis != romSize ) return 0;
+  // this loads the full basis, i.e. wrt the full mesh was used
+
+  const auto phi0 = readBasis<decoder_jac_d_t>(parser.basisFileName_, parser.romSize_);
+  const auto numBasis = phi0.numVectors();
+  if( numBasis != parser.romSize_ ) return 0;
+
+  /*----------------------
+   * CREATE DECODER
+   ----------------------*/
+  /* when using the sample mesh, it means that I don't have all the cells of the domain.
+   * Therefore, I need to extract from the basis vectors only the entries
+   * relative to the sample mes. Specifically, we want all the ROWs corresponding
+   * to the sample mesh cells where we have state.
+   * The decoder will then be constructed using this subset of the basis vectors.
+   * To find out the rows I need to extract, I use the mesh. */
+
+  // extract subset of basis
+  const decoder_jac_d_t phi1 = extractSampleMeshRows<unsigned int>(phi0, parser, appObj);
 
   // create decoder obj
-  decoder_d_t decoderObj(phi);
+  decoder_d_t decoderObj(phi1);
 
   /*----------------------
    * DEFINE LSPG PROBLEM
@@ -88,16 +105,21 @@ Kokkos::initialize (argc, argv);
   // start timer: we do it here because we do not count reading the basis
   auto startTime = std::chrono::high_resolution_clock::now();
 
+  // define user-defined ops object: this is needed because
+  // behind the scenes pressio does not know if you are using sample mesh or not
+  using time_discrete_ops_t = time_discrete_ops<fom_t>;
+  time_discrete_ops_t tdOps(appObj.viewGraphDevice());
+
   // device ROM state: this is zero initialized, like we want.
-  lspg_state_d_t xROM("xROM", romSize);
+  lspg_state_d_t xROM("xROM", parser.romSize_);
 
   // define LSPG type
   constexpr auto ode_case  = pressio::ode::ImplicitEnum::Euler;
   using lspg_problem_type  = pressio::rom::DefaultLSPGTypeGenerator<
-  				fom_t, ode_case, decoder_d_t, lspg_state_d_t>;
+    fom_t, ode_case, decoder_d_t, lspg_state_d_t, time_discrete_ops_t>;
   using lspg_stepper_t	   = typename lspg_problem_type::lspg_stepper_t;
   using lspg_generator	   = pressio::rom::LSPGUnsteadyProblemGenerator<lspg_problem_type>;
-  lspg_generator lspgProblem(appObj, yRef, decoderObj, xROM, zero);
+  lspg_generator lspgProblem(appObj, yRef, decoderObj, xROM, zero, tdOps);
 
   // --- linear solver ---
   using solver_tag	   = pressio::solvers::linear::direct::getrs;
@@ -128,13 +150,13 @@ Kokkos::initialize (argc, argv);
    ----------------------*/
   {
     // create a host mirror for the device ROM coords
-    native_state_h_t xROMh("xROMh", romSize);
+    native_state_h_t xROMh("xROMh", parser.romSize_);
     Kokkos::deep_copy(xROMh, *xROM.data());
 
     // print generalized coordinates
     std::ofstream file;
     file.open("final_generalized_coords.txt");
-    for(auto i=0; i < romSize; i++){
+    for(auto i=0; i < parser.romSize_; i++){
       file << std::setprecision(14) << xROMh(i) << std::endl;
     }
     file.close();

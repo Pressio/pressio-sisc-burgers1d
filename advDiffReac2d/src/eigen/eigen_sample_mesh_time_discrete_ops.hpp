@@ -28,9 +28,8 @@ struct time_discrete_ops
   void time_discrete_euler(residual_t & R,
   			   const state_t & xn,
   			   const state_t & xnm1,
-  			   scalar_t dt) const{
-
-    std::cout << "size(R) " << R.rows() << " " << R.cols() << std::endl;
+  			   scalar_t dt) const
+  {
     /*
      * On input:
      * - R	= contains the application velocity, i.e. f(...)
@@ -102,8 +101,6 @@ struct time_discrete_ops
 			      scalar_t prefactor,
 			      scalar_t dt) const
   {
-
-
     // loop over cells where residual needs to be computed
     for (size_t iPt=0; iPt < graph_.size(); ++iPt)
     {

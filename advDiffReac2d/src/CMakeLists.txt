@@ -65,3 +65,8 @@ target_link_libraries(adr2d_kokkos_fom ${TRILLIBNAMES} openblas)
 add_executable(adr2d_kokkos_chem_lspg_full_mesh_bdf1 ${MAINDIR}/main_kokkos_chem_lspg_full_mesh_bdf1.cc)
 target_include_directories(adr2d_kokkos_chem_lspg_full_mesh_bdf1 BEFORE PUBLIC ${KOKKOSINCDIRS})
 target_link_libraries(adr2d_kokkos_chem_lspg_full_mesh_bdf1 ${TRILLIBNAMES} openblas)
+
+# chemical problem, LSPG with sample mesh bdf1
+add_executable(adr2d_kokkos_chem_lspg_sample_mesh_bdf1 ${MAINDIR}/main_kokkos_chem_lspg_sample_mesh_bdf1.cc)
+target_include_directories(adr2d_kokkos_chem_lspg_sample_mesh_bdf1 BEFORE PUBLIC ${KOKKOSINCDIRS})
+target_link_libraries(adr2d_kokkos_chem_lspg_sample_mesh_bdf1 ${TRILLIBNAMES} openblas)

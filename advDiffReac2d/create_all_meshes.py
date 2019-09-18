@@ -8,11 +8,11 @@ import collections
 from argparse import ArgumentParser
 import random
 
-powersOfTwo = np.array([5,6,7,8,9])
+powersOfTwo = np.array([3])#5,6,7,8,9])
 fullMeshCases = 2**powersOfTwo
 
 # list of what percentages of the full mesh we want
-smPercentCases = np.array([1, 5, 10, 25, 50, 75])
+smPercentCases = np.array([25])#1, 5, 10, 25, 50, 75])
 
 
 #-------- nothing to change below here ----------#

@@ -5,27 +5,6 @@
 #include "UTILS_ALL"
 #include "CONTAINERS_ALL"
 
-// template <typename T = int>
-// void readAsciiMatrixStdVecVec(std::string filename,
-// 			      std::vector<std::vector<double>> & A0,
-// 			      T ncols)
-// {
-//   assert( A0.empty() );
-//   std::ifstream source;
-//   source.open( filename, std::ios_base::in);
-//   std::string line, colv;
-//   std::vector<double> tmpv(ncols);
-//   while (std::getline(source, line) ){
-//     std::istringstream in(line);
-//     for (int i=0; i<ncols; i++){
-//       in >> colv;
-//       tmpv[i] = atof(colv.c_str());
-//     }
-//     A0.emplace_back(tmpv);
-//   }
-//   source.close();
-// }
-
 template <typename T = double>
 pressio::containers::MultiVector<Eigen::MatrixXd>
 convertFromVVecToMultiVec(const std::vector<std::vector<T>> & A0)
@@ -43,6 +22,7 @@ convertFromVVecToMultiVec(const std::vector<std::vector<T>> & A0)
   return ADW;
 }
 
+
 template <typename T>
 pressio::containers::MultiVector<Eigen::MatrixXd>
 readBasis(std::string filename, T romSize)
@@ -54,6 +34,7 @@ readBasis(std::string filename, T romSize)
   //  phi.data()->Print(std::cout);
   return phi;
 }
+
 
 template <typename int_t>
 void readSmToFmGIDsMappingFile(std::string filename,
@@ -72,12 +53,12 @@ void readSmToFmGIDsMappingFile(std::string filename,
     A.emplace_back(lineGIDs);
   }
 
-  for (auto & it : A){
-    for (auto & it2 : it){
-      std::cout << " " << it2;
-    }
-    std::cout << std::endl;
-  }
+  // for (auto & it : A){
+  //   for (auto & it2 : it){
+  //     std::cout << " " << it2;
+  //   }
+  //   std::cout << std::endl;
+  // }
 }
 
 
@@ -121,6 +102,7 @@ extractSampleMeshRows(const phi_t & phi0,
     // std::cout << iPt << " " << c0StateIndex_sm << " " << c0StateIndex_fm << " \n";
     for (auto iDof=0; iDof<app_t::numSpecies_; iDof++){
       //std::cout << c0StateIndex_sm+iDof << " ";
+
       for (auto j=0; j<numBasis; j++){
 	phi1n(c0StateIndex_sm + iDof, j) = phi0(c0StateIndex_fm + iDof,j);
 	//std::cout << std::setprecision(15) << phi1n(c0StateIndex_sm+iDof, j) << " ";

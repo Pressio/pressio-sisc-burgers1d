@@ -286,6 +286,9 @@ then
     if [[ $WHICHTASK == *"eigen_chem_lspg_sample_mesh_bdf1_"* ]]; then
 	EXENAME=adr2d_eigen_chem_lspg_sample_mesh_bdf1
     fi
+    if [[ $WHICHTASK == *"kokkos_chem_lspg_sample_mesh_bdf1_"* ]]; then
+	EXENAME=adr2d_kokkos_chem_lspg_sample_mesh_bdf1
+    fi
     [[ -f ${destDir}/${EXENAME} ]] && rm ${destDir}/${EXENAME}
     ln -s ${CPPWORKINGDIR}/build/${EXENAME} ${destDir}
 

@@ -15,7 +15,6 @@ template<
   >
 class Adr2dKokkos
 {
-  static constexpr int numSpecies_{3};
   // each row of the jacobian has 7 non zeros
   static constexpr int nonZerosPerRowJ_ = 7;
 
@@ -61,6 +60,7 @@ class Adr2dKokkos
   static_assert( std::is_same<k2ll_h_layout, k2ll_d_layout>::value,
 		 "Layout for d and h (mirror) 2d view is not the same");
 
+public:
   // --------------------------------------------------------------
   // the cell connectivity types, for both host and device:
   // we know at compile time that the connectivity matrix has 5 columns
@@ -73,7 +73,8 @@ class Adr2dKokkos
   using coords_d_t		= Kokkos::View<sc_t*[2], kll, exe_space>;
   using coords_h_t		= coords_d_t::host_mirror_type;
 
-public:
+  static constexpr int numSpecies_{3};
+
   using kcrs_mat_t		= KokkosSparse::CrsMatrix<sc_t, gid_t, exe_space>;
   using state_type_d_t		= k1d_ll_d_t;
   using state_type_h_t		= k1d_ll_h_t;
@@ -133,6 +134,14 @@ public:
 
   const state_type & getState() const{
     return state_;
+  }
+
+  const connectivity_h_t & viewGraphHost() const{
+    return graph_h_;
+  }
+
+  const connectivity_d_t & viewGraphDevice() const{
+    return graph_d_;
   }
 
   void velocity(const state_type  & u,
