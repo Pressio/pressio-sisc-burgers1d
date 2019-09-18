@@ -101,7 +101,7 @@ struct time_discrete_ops
      * Note that:
      * (a) R and y (might) have diffferent sizes! this is the whole point of doing this.
      * (b) xn and xnm1 have for sure the same size
-     * this method is supposed to compute Euler backward, i.e.:
+     * this method is supposed to compute the residual for Euler backward, i.e.:
      *		R = xn - xnm1 - dr*R
      *
      * On exit, R contains the residual for BDF1
