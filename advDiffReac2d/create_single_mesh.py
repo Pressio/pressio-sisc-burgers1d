@@ -7,144 +7,126 @@ from matplotlib import cm
 import collections
 from argparse import ArgumentParser
 import random
+import scipy.sparse as sp
+from scipy.sparse import csr_matrix
+from scipy.sparse.csgraph import reverse_cuthill_mckee
+
+from natural_order_mesh import NatOrdMesh
+from mesh_utils import *
 
 #-------------------------------------------------------
-# Cell-centered grid, periodic BC natural row ordering
+# Cell-centered grid, periodic BC
 #-------------------------------------------------------
 
-def plotFullGrid(x,y,gids,figId):
-  fig = plt.figure(figId)
-  ax = plt.gca()
-  plt.plot(x,y,'o',markersize=3)
-  for i in range(0, len(x)):
-    plt.text(x[i], y[i], str(int(gids[i])),verticalalignment='center')
-  ax.set_aspect(aspect=1)
-
-def printDicPretty(d):
-  for key, value in d.items():
-    print(str(key), value)
-
-# lower-left corner is where i,j=(0,0)
-def globalIDToGiGj(ID, nx):
-    return [ID % nx, int(ID/nx)]
-
-# lower-left corner is where origin is
-def fullGrid(nx, ny, numCells, dx, dy):
-    x,y,gids = np.zeros(numCells), np.zeros(numCells), np.zeros(numCells)
-    ox, oy = 0.5*dx, 0.5*dy
-    for i in range(numCells):
-        [gi, gj] = globalIDToGiGj(i, nx)
-        print (i, gi, gj)
-        x[i] = ox + gi * dx
-        y[i] = oy + gj * dy
-        gids[i] = i
-    return [x,y,gids]
-
-def buildFullMeshGraph(nx, ny, numCells):
-    G = {}
-    # neighbors are listed as east, north, west, south
-    # since we have PBC, ensure these are met
-    for iPt in range(numCells):
-      # convert from globa enumeration to (i,j)
-      [gi, gj] = globalIDToGiGj(iPt, nx)
-      # temporary list holding neighbors
-      tmpList = np.zeros(4)
-
-      # west neighbor
-      # if gi==0, we are on left BD
-      if gi==0: tmpList[0]=iPt+nx-1
-      if gi>0 : tmpList[0]=iPt-1
-
-      # north naighbor
-      # if gj==ny-1, we are on TOP BD
-      if gj==ny-1: tmpList[1]=iPt-nx*(ny-1)
-      if gj<ny-1 : tmpList[1]=iPt+nx
-
-      # east neighbor
-      # if gi==nx-1, we are on Right BD
-      if gi==nx-1: tmpList[2]=iPt-nx+1
-      if gi<nx-1 : tmpList[2]=iPt+1
-
-      # south naighbor
-      # if gj==0, we are on bottom BD
-      if gj==0: tmpList[3]=iPt+nx*(ny-1)
-      if gj>0 : tmpList[3]=iPt-nx
-
-      # store currrent neighboring list
-      G[iPt] = tmpList
-    return G
-
-
-def createListTargetResidualGIDsFullMesh(nx, ny, numCells, x, y):
-    L = []
-    for i in range(numCells):
-      L.append(i)
-      #if (x[i] < 1.1 or x[i] > 1.6): L.append(i)
-    return L
-
-
-def createListTargetResidualGIDsRandom(nx, ny, numCells, x, y, targetSize):
-    rGIDs = random.sample(range(numCells), targetSize)
-    #rGIDs = [3, 10, 20, 24, 29, 30, 40, 49, 50, 54, 60, 69, 70, 80, 93]
-    #rGIDs = [6, 15, 20, 35]
-    #np.savetxt('r_gids.dat', rGIDs, fmt='%10i')
-    return rGIDs
-
-
-def main(Nx, Ny, samplingType, targetSize, showPlots=False):
+def main(Nx, Ny, samplingType, targetPct, plotting, orderingType):
   L = [1., 1.]
   numCells = Nx*Ny
   dx,dy = L[0]/Nx, L[1]/Ny
 
-  # enumerate figures
-  figId = 0
+  if (plotting != "none"):
+    # figFM is to store the full mesh results
+    figFM = plt.figure(0)
+    ax00,ax01 = figFM.add_subplot(221), figFM.add_subplot(222)
+    ax10,ax11 = figFM.add_subplot(223), figFM.add_subplot(224)
+    if samplingType=="random":
+      figSM = plt.figure(1)
+      bx00,bx01 = figSM.add_subplot(121), figSM.add_subplot(122)
 
-  # full grid
-  [x,y,gids] = fullGrid(Nx, Ny, numCells, dx, dy)
-  if showPlots:
-    plotFullGrid(x,y,gids,figId)
+  # ---------------------------------------------
+  # generate natural order FULL mesh
+  # ---------------------------------------------
+  meshObj = NatOrdMesh(Nx, Ny, dx, dy)
+  [x,y] = [x, y] = meshObj.getXY()
+  gids = meshObj.getGIDs()
+  G = meshObj.getGraph()
+  spMat = meshObj.getSparseMatrixRepr()
 
-  # for each grid point, build list of neighbors
-  # this is easy because it is structured mesh with natural row ordering
-  # i.e. left-right, bottom-top
-  fullMeshGraph = buildFullMeshGraph(Nx, Ny, numCells)
-  printDicPretty(fullMeshGraph)
+  if plotting != "none":
+    plotLabels(x, y, gids, ax00)
+  print("natural order full mesh connectivity")
+  printDicPretty(G)
+  print("\n")
+  if plotting != "none":
+    ax01.spy(spMat)
 
-  # create list of GIDs where we want to compute residual
-  # the GIDs must be wrt to the full mesh
+  # -----------------------------------------------------
+  # reorder if needed, using reverse cuthill mckee (RCM)
+  # -----------------------------------------------------
+  if (orderingType == "rcm"):
+    # the starting matrix will always be symmetric because it is full mesh
+    # with a symmetric stencil
+    [rcmPermInd, spMatRCM] = reverseCuthillMckee(spMat, symmetric=True)
+
+    # hash table to map permutation indices to old indices
+    # key = the old cell index
+    # value = the new index of the cell after RCM
+    ht = {}
+    for i in range(len(rcmPermInd)):
+      ht[rcmPermInd[i]] = i
+
+    # use the permuation indices to find the new indexing of the cells
+    newFullMeshGraph = {}
+    for key, value in G.items():
+      newFullMeshGraph[ht[key]] = [ht[i] for i in value]
+    # sort by key
+    newFullMeshGraph = collections.OrderedDict(sorted(newFullMeshGraph.items()))
+    print("full mesh connectivity after RCM")
+    printDicPretty(newFullMeshGraph)
+    print("\n")
+
+    # this is ugly but works, replace globals
+    G = newFullMeshGraph
+    spMat = spMatRCM
+    #with the permuation indices, update the gids labeling
+    x, y = x[rcmPermInd], y[rcmPermInd]
+    if plotting != "none":
+     plotLabels(x,y,gids,ax10)
+     ax11.spy(spMatRCM)
+
+
+  # -----------------------------------------------------
+  # create a list of GIDs where we want to compute residual
+  # this can either be all the GIDs if the target mesh is full,
+  # or it can be a subset of the cells, if we want a sample mesh.
+  # the range of the GIDs is (0, numCells) and must be a unique list
+  # because we do not want to sample the same element twice
+  # -----------------------------------------------------
   if (samplingType=="full"):
-    rGIDs = createListTargetResidualGIDsFullMesh(Nx, Ny, numCells, x, y)
+    rGIDs = [i for i in range(numCells)]
   elif (samplingType=="random"):
-    if (targetSize < 0 ):
-      print("For random sample mesh you need to set --target-size=n")
-      print("where n>0 and defines the size of the sample mesh")
+    if (targetPct < 0 ):
+      print("For random sample mesh you need to set --pct=n")
+      print("where n>0 and defines the % of full mesh to take")
     # create the random list of cells
-    rGIDs = createListTargetResidualGIDsRandom(Nx, Ny, numCells, x, y, targetSize)
-    # assert that in the sample mesh we have as many cells as we want
-    assert( len(rGIDs) == targetSize)
+    rGIDs = createRandomListTargetResidualGIDs(Nx, Ny, numCells, targetPct)
+  else:
+    print("unknown value for sample-type")
+    sys.exit(1)
 
-  # store the connectivity for the target residual points
-  # using global indices wrt the full mesh
-  residGraph = collections.OrderedDict()
+  # -----------------------------------------------------
+  # store the connectivity for the selected points
+  # by extracting it from the mesh constrcuted above
+  # -----------------------------------------------------
+  subGraph = collections.OrderedDict()
   for rPt in rGIDs:
-      residGraph[rPt] = fullMeshGraph[rPt]
-  print("residGraph")
-  for k,v in residGraph.items(): print(k, v)
+      subGraph[rPt] = G[rPt]
+  print("subGraph")
+  for k,v in subGraph.items(): print(k, v)
   print("\n")
 
-  # residGraph baiscally containes the points needed for the sample mesh
-  # it contains both those where we need to compute the residual as well as
-  # the points where the state is needed
+  # the subGraph contains the sample mesh cells.
+  # BUT it contains those where we need to compute the residual as well as
+  # the cells where only the state is needed.
   # The sample mesh graph is defined in terms of the GIDs of the full mesh.
-  # So now we need to create a list of UNIQUE GIDs, the GIDs of all
-  # cells where we need state and residuals
-  # Basically we need to enumerate all the sample mesh points
+  # now we need to create a list of UNIQUE GIDs of the subGraph,
+  # the GIDs of all cells where we need state and residuals.
+  # Basically we need to uniquely enumerate all the sample mesh cells.
 
   # first, we extract from the graph all unique GIDs since
   # there might be duplicates because of the connectivity
   allGIDs = []
   # loop over target cells wherw we want residual
-  for k,v in residGraph.items():
+  for k,v in subGraph.items():
       # append the GID of this cell
       allGIDs.append(k)
       # append GID of stencils/neighborin cells
@@ -154,13 +136,19 @@ def main(Nx, Ny, samplingType, targetSize, showPlots=False):
   # remove duplicates and sort
   allGIDs = list(dict.fromkeys(allGIDs))
   allGIDs.sort()
-  print("allGIDs")
+  print("sample mesh allGIDs")
   print(allGIDs)
   print("\n")
 
-  # enumerate the sample mesh points with new indexing
+  # -----------------------------------------------------
+  # if we get here, the sample mesh graph contains the GIDs
+  # of the sample mesh wrt the FULL mesh ordering becaus we
+  # simply extracted a subset from the full mesh.
+  # However, what we need is not a new sequential enumeration of the
+  # sample mesh cells.
+  # We numerate the sample mesh points with new indexing
   # and create a map of full-mesh gids to new gids
-  # maybe we need to explore different ordering of sample mesh
+  # -----------------------------------------------------
   # fm_to_sm_map is such that:
   # - key   = GID wrt full mesh
   # - value = GID wrt sample mesh
@@ -179,12 +167,12 @@ def main(Nx, Ny, samplingType, targetSize, showPlots=False):
   for k,v in sm_to_fm_map.items(): print(k, v)
   print("Done with sm_to_fm_map")
 
-
-  # we have a list of unique GIDs for the sample mesh,
-  # convert the gids of the original connectivity
-  # from full to sample mesh indexing
+  # -----------------------------------------------------
+  # we have a list of unique GIDs for the sample mesh.
+  # Map the GIDs from the full to sample mesh indexing
+  # -----------------------------------------------------
   residGraphSM = collections.OrderedDict()
-  for rGidFM, v in residGraph.items():
+  for rGidFM, v in subGraph.items():
       smGID = fm_to_sm_map[rGidFM]
       smStencilGIDs = v
       for i in range(len(smStencilGIDs)):
@@ -194,16 +182,70 @@ def main(Nx, Ny, samplingType, targetSize, showPlots=False):
 
   print("\n")
   print("Done with residGraphSM")
-  for k,v in residGraphSM.items(): print(k, v)
+  print("sample mesh connectivity")
+  printDicPretty(residGraphSM)
+  print("\n")
 
+  gids_sm = list(sm_to_fm_map.keys())
+
+  if plotting != "none" and samplingType == "random":
+    # keep only subset of x,y that belongs to sample mesh
+    x_sm, y_sm = x[ list(fm_to_sm_map.keys()) ], y[ list(fm_to_sm_map.keys()) ]
+    bx00.scatter(x,y,marker='s', s=50)
+    plotLabels(x_sm, y_sm, gids_sm, bx00, 's', 'r', 5)
+    bx00.set_aspect(aspect=1)
+
+    # convert sample mesh graph to sparse matrix
+    sampleMeshSpMat = convertGraphDicToSparseMatrix(residGraphSM)
+    bx01.spy(sampleMeshSpMat)
+
+  # # -----------------------------------------------------
+  # # the reverse cuthill mckee (RCM) can be applied to sample mesh too?
+  # # not sure but it does not work if I pass false for symmetry
+  # leave it out for now
+  # # -----------------------------------------------------
+  # if (orderingType == "rcm"):
+  #   # the sample mesh graph is NOT symmetric, so pass false
+  #   #[rcmPermInd, spMatRCM] = reverseCuthillMckee(sampleMeshSpMat, False)
+  #   # not sure but it does not work even if I pass false for symmetry
+
+  #   # # hash table to map permutation indices to old indices
+  #   # # key = the old cell index
+  #   # # value = the new index of the cell after RCM
+  #   #ht = {}
+  #   # for i in range(len(rcmPermInd)):
+  #   #   ht[rcmPermInd[i]] = i
+
+  #   # # use the permuation indices to find the new indexing of the cells
+  #   # newFullMeshGraph = {}
+  #   # for key, value in residGraphSM.items():
+  #   #   newFullMeshGraph[ht[key]] = [ht[i] for i in value]
+  #   # # sort by key
+  #   # newFullMeshGraph = collections.OrderedDict(sorted(newFullMeshGraph.items()))
+  #   # print("sample mesh connectivity after RCM")
+  #   # printDicPretty(newFullMeshGraph)
+  #   # print("\n")
+
+  #   # # replace globals
+  #   # residGraphSM = newFullMeshGraph
+  #   # sampleMeshSpMat = spMatRCM
+  #   # #with the permuation indices, update the gids labeling
+  #   # x, y = x_sm[rcmPermInd], y_sm[rcmPermInd]
+  #   # if showPlots:
+  #   #  plotLabels(x,y,gids_sm,bx10)
+  #   #  bx11.spy(spMatRCM)
+
+  # -----------------------------------------------------
   # number of pts where we compute residual
   numResidualPts = len(residGraphSM)
   print ("numResidualPts = ", numResidualPts,
          " which is = ", numResidualPts/numCells*100, " % of full mesh")
   # total number of state cells, which is basically the sample mesh size
   numStatePts = len(fm_to_sm_map)
-  print ("numStatePts    = ", numStatePts)
+  print ("numStatePts = ", numStatePts,
+         " which is = ", numStatePts/numCells*100, " % of full mesh")
 
+  # -----------------------------------------------------
   # print mesh file
   f = open("mesh.dat","w+")
   f.write("dx %f\n" % dx)
@@ -223,29 +265,22 @@ def main(Nx, Ny, samplingType, targetSize, showPlots=False):
     f.write("\n")
   f.close()
 
-  # if (samplingType=="full"):
-  #   os.system("mv mesh.dat ./full_meshes/mesh_"+str(Nx)+".dat")
-  # elif (samplingType=="random"):
-  #   os.system("mv mesh.dat ./sample_meshes/case"+str(Nx)+"/" + ".dat")
-
+  # -----------------------------------------------------
   # print gids mapping: mapping between GIDs in sample mesh to full mesh
   # I only need this when I use the sample mesh
+  # -----------------------------------------------------
   if (samplingType=="random"):
     f1 = open("sm_to_fm_gid_mapping.dat","w+")
     for k,v in fm_to_sm_map.items():
       f1.write("%d %d\n" % (v, k))
     f1.close()
 
-  if showPlots:
-    # keep only subset of x,y that belongs to sample mesh
-    x_sm, y_sm = x[ list(fm_to_sm_map.keys()) ], y[ list(fm_to_sm_map.keys()) ]
-    figId+=1
-    fig = plt.figure(figId)
-    ax = plt.gca()
-    plt.scatter(x,y,marker='s', s=50)
-    plt.scatter(x_sm,y_sm, marker='s', c='r', s=45, facecolor='None')
-    ax.set_aspect(aspect=1)
+  if plotting == "show":
     plt.show()
+  elif plotting =="print":
+    figFM.savefig('fullFM.png')
+    if samplingType == "random":
+      figSM.savefig('fullSM.png')
 
 
 ###############################
@@ -257,12 +292,7 @@ if __name__== "__main__":
 
   parser = ArgumentParser()
   parser.add_argument("-nx", "--nx", type=int, dest="nx")
-  parser.add_argument("-ny", "--ny", type=int, dest="ny")
-
-  parser.add_argument("-show-plots", "--show-plots",
-                      type=bool,
-                      dest="showPlots",
-                      default=False)
+  parser.add_argument("-ny", "--ny", type=int, dest="ny", default="-1")
 
   parser.add_argument("-sampling-type", "--sampling-type",
                       dest="samplingType",
@@ -271,19 +301,41 @@ if __name__== "__main__":
                            "use <full> for creating connectivity for full mesh,\n"+
                            "use <random> for creating connectivity for sample mesh")
 
-  parser.add_argument("-target-size", "--target-size",
-                      type=int,
-                      dest="targetSize",
+  parser.add_argument("-ordering", "--ordering",
+                      dest="orderingType",
+                      default="natural",
+                      help="What type of ordering you want:\n"+
+                           "use <natural> for natural ordering of the mesh cells,\n"+
+                           "use <rcm> for reverse cuthill-mckee")
+
+  parser.add_argument("-plotting", "--plotting",
+                      dest="plotting",
+                      default="none",
+                      help="What type of plotting you want:\n"+
+                           "use <show> for showing plots,\n"+
+                           "use <print> for printing only, \n"+
+                           "use <none> for no plots")
+
+  parser.add_argument("-pct", "--pct",
+                      dest="targetPct",
                       default=-1,
-                      help="The target number of elements you want.\n"+
+                      help="The target % of elements you want.\n"+
                       "You do not need this if you select -sampling-type=full,\n"+
                       "since in that case we sample the full mesh.\n"+
                       "But you need to set it for -sampling-type=random")
   args = parser.parse_args()
+
+  assert( args.samplingType == "full" or args.samplingType == "random" )
+  assert( args.orderingType == "natural" or args.orderingType == "rcm" )
+
+  print("Ordering type = " + args.orderingType)
+
+  if (args.ny==-1): args.ny = args.nx
 
   # for now, we need to have square grid
   if (args.nx != args.ny):
     print(" currently only supports nx = ny" )
     assert(args.nx == args.ny)
 
-  main(args.nx, args.ny, args.samplingType, args.targetSize, args.showPlots)
+  main(args.nx, args.ny, args.samplingType,
+       float(args.targetPct), args.plotting, args.orderingType)

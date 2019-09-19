@@ -20,7 +20,7 @@ chemReaction = 10.
 numSamplesForTiming = 1
 
 # FULL mesh sizes: the number of cells along each axis.
-numCell_cases = np.array([128])
+numCell_cases = np.array([32])
 
 # sample mesh percentages: where we compute the residual
 # choices are [1,5,10,25,50,75], see the meshes
@@ -29,7 +29,7 @@ numCell_cases = np.array([128])
 # the pct does not account for the state cells.
 # so if we say 10%, it means that the number of cells
 # where we sample the residual is 10% the full original mesh.
-sampleMesh_pcts = np.array([10])
+sampleMesh_pcts = np.array([5])
 
 # rom sizes: in general, you want the rom size to be
 # smaller than the meshSize*dofPerCells so that the

@@ -2,10 +2,9 @@
 ------
 ADR2D
 ------
-- do LSPG with sample mesh Kokkos
 - add checks, e.g. num of basis cannot be larger than dofs, etc.
 - kokkos do FOM with bdf1 ?
-
+- set options to do runs with RCM meshes or natural meshes
 
 MS problem:
 (a) eigen, fom, rk4	: done, ok, convergence is as expected

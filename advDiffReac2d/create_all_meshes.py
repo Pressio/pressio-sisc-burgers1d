@@ -8,12 +8,16 @@ import collections
 from argparse import ArgumentParser
 import random
 
-powersOfTwo = np.array([3])#5,6,7,8,9])
+powersOfTwo = np.array([5,6])#5,6,7,8,9])
 fullMeshCases = 2**powersOfTwo
 
 # list of what percentages of the full mesh we want
-smPercentCases = np.array([25])#1, 5, 10, 25, 50, 75])
+smPercentCases = np.array([5,25])#1, 5, 10, 25, 50, 75])
 
+# the ordering for the mesh, options:
+# - natural :
+# - rcm     : if you want to enable reverse Cuthill-McKee reordering
+ordering = "rcm"
 
 #-------- nothing to change below here ----------#
 
@@ -30,13 +34,19 @@ for iMesh in range(numFM):
 
   # running command for creating the FULL mesh first
   cmdLine1 = "python create_single_mesh.py"
-  cmdLine2 = " --nx "+str(nFM) + " --ny "+str(nFM)
+  #no need to pass ny for square grid
+  cmdLine2 = " --nx "+str(nFM)
   cmdLine3 = " --sampling-type full "
+  cmdLine4 = " --ordering " + ordering + " "
+
   logFileName = "mesh_log_nFM" + str(nFM) + "_full.log"
-  os.system(cmdLine1 + cmdLine2 + cmdLine3 + " > " + logFileName)
+  os.system(cmdLine1 + cmdLine2 + cmdLine3 + cmdLine4 + " > " + logFileName)
 
   # check if the mesh directory exists
-  meshesParentDir = os.getcwd() + "/meshes"
+  meshesParentDir = os.getcwd() + "/meshes_" + ordering
+  if not os.path.exists(meshesParentDir):
+    os.system("mkdir " + meshesParentDir)
+
   meshDirName = str(nFM) + "x" + str(nFM)
   if not os.path.exists(meshesParentDir+"/"+meshDirName):
     os.system("mkdir " + meshesParentDir+"/"+meshDirName)
@@ -56,27 +66,20 @@ for iMesh in range(numFM):
   for iSM in range(numSM):
     # get what percent this SM wants
     thisSMPercent = smPercentCases[iSM]
-
-    # how many elements of the full mesh this corresponds to
-    # need to get the floor of this to get an integer
-    targetSMSize = thisSMPercent * 1e-2 * totCellsFM
-    targetSMSize = int(np.floor(targetSMSize))
-
     print ("Doing case with nFM = ", nFM,
            " fmSize = ", totCellsFM,
-           " and SM % = ", thisSMPercent,
-           " smSize = ", targetSMSize)
+           " and SM % = ", thisSMPercent)
 
     # running command for creating the SAMPLE mesh first
-    cmdLine1 = "python create_single_mesh.py"
-    cmdLine2 = " --nx "+str(nFM) + " --ny "+str(nFM)
-    cmdLine3 = " --sampling-type random "
-    cmdLine4 = " --target-size " + str(targetSMSize)
+    cmdL1 = "python create_single_mesh.py"
+    cmdL2 = " --nx "+str(nFM) + " --ny "+str(nFM)
+    cmdL3 = " --sampling-type random "
+    cmdL4 = " --pct " + str(thisSMPercent)
+    cmdL5 = " --ordering " + ordering + " "
     logFileName = "mesh_log_nFM" + str(nFM) + "_full.log"
-    os.system(cmdLine1 + cmdLine2 + cmdLine3 + cmdLine4 + " > " + logFileName)
+    os.system(cmdL1 + cmdL2 + cmdL3 + cmdL4 + cmdL5 + " > " + logFileName)
 
     # check if the mesh directory exists
-    meshesParentDir = os.getcwd() + "/meshes"
     meshDirName = str(nFM) + "x" + str(nFM)
     if not os.path.exists(meshesParentDir+"/"+meshDirName):
       os.system("mkdir " + meshesParentDir+"/"+meshDirName)

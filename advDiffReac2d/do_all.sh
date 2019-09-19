@@ -144,9 +144,9 @@ if [[ $WHICHTASK == *"_chem_fom_"* ]]; then
     cp ${TOPDIR}/src/input.template ${destDir}
 
     # link full meshes
-    meshDir=${destDir}/meshes
-    if [ ! -d ${destDir}/meshes ]; then
-	ln -s ${TOPDIR}/meshes ${destDir}/meshes
+    meshDir=${destDir}/meshes_rcm
+    if [ ! -d ${destDir}/meshes_rcm ]; then
+	ln -s ${TOPDIR}/meshes_rcm ${destDir}/meshes_rcm
     fi
 
     # copy python scripts
@@ -230,9 +230,9 @@ then
     cp ${TOPDIR}/src/input.template ${destDir}
 
     # link full meshes directory
-    meshDir=${destDir}/meshes
-    if [ ! -d ${destDir}/meshes ]; then
-    	ln -s ${TOPDIR}/meshes ${destDir}/meshes
+    meshDir=${destDir}/meshes_rcm
+    if [ ! -d ${destDir}/meshes_rcm ]; then
+    	ln -s ${TOPDIR}/meshes_rcm ${destDir}/meshes_rcm
     fi
 
     # copy python scripts
@@ -296,9 +296,9 @@ then
     cp ${TOPDIR}/src/input.template ${destDir}
 
     # link full meshes directory
-    meshDir=${destDir}/meshes
-    if [ ! -d ${destDir}/meshes ]; then
-    	ln -s ${TOPDIR}/meshes ${destDir}/meshes
+    meshDir=${destDir}/meshes_rcm
+    if [ ! -d ${destDir}/meshes_rcm ]; then
+    	ln -s ${TOPDIR}/meshes_rcm ${destDir}/meshes_rcm
     fi
 
     # copy python scripts

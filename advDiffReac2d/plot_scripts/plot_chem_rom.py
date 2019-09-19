@@ -107,9 +107,12 @@ def plotSingleSnapshot(n, romDataDir, fomDataDir, dt):
     ax10,ax11,ax12 = fig.add_subplot(234), fig.add_subplot(235), fig.add_subplot(236)
 
   # plot the FOM states top
-  plotImage(c0rs_fom, ax00, "$c_0$ FOM", cm.jet)
-  plotImage(c1rs_fom, ax01, "$c_1$ FOM", cm.brg)
-  plotImage(c2rs_fom, ax02, "$c_2$ FOM", cm.terrain)
+  plotScatter(x_fom, y_fom, c0_fom, ax00, "$c_0$ FOM",
+              cm.jet, bdDicFom['c0'][0], bdDicFom['c0'][1])
+  plotScatter(x_fom, y_fom, c1_fom, ax01, "$c_1$ FOM",
+              cm.brg, bdDicFom['c1'][0], bdDicFom['c1'][1])
+  plotScatter(x_fom, y_fom, c2_fom, ax02, "$c_2$ FOM",
+              cm.terrain, bdDicFom['c2'][0], bdDicFom['c2'][1])
 
   # plot ROM over sample mesh at middle
   plotScatter(x_rom, y_rom, c0_rom, ax10, "$c_0$ ROM",
@@ -157,6 +160,6 @@ if __name__== "__main__":
   assert(finalTime_rom == finalTime_fom)
   assert(diff_rom == diff_fom)
   assert(chemReac_rom == chemReac_fom)
-  print("ROM and FOM runs have compatible parameters")
+  print("The target ROM and FOM runs have compatible parameters")
 
   plotSingleSnapshot(args.n, args.romDataDir, args.fomDataDir, dt_fom)
