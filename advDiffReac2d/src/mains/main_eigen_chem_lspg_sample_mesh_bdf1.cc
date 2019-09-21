@@ -71,7 +71,7 @@ int main(int argc, char *argv[]){
   // this loads the full basis, i.e. wrt the full mesh was used
 
   const decoder_jac_t phi0 = readBasis<unsigned int>(parser.basisFileName_, parser.romSize_);
-  const int numBasis = phi0.numVectors();
+  const auto numBasis = phi0.numVectors();
   if( numBasis != parser.romSize_ ) return 1;
 
   /*----------------------
@@ -85,7 +85,7 @@ int main(int argc, char *argv[]){
    * To find out the rows I need to extract, I use the mesh. */
 
   // extract subset of basis
-  const decoder_jac_t phi1 = extractSampleMeshRows<unsigned int>(phi0, parser, appObj);
+  const decoder_jac_t phi1 = extractSampleMeshRows(phi0, parser, appObj);
 
   // create decoder obj
   decoder_t decoderObj(phi1);

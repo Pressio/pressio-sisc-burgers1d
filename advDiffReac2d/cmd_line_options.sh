@@ -20,12 +20,16 @@ for option; do
 	    SETENVscript=`expr "x$option" : "x-*with-env-script=\(.*\)"`
 	    ;;
 
-	-wipe-existing=* | --wipe-existing=* )
-	    WIPEEXISTING=`expr "x$option" : "x-*wipe-existing=\(.*\)"`
+	-wipe-existing-data=* | --wipe-existing-data=* )
+	    WIPEEXISTING=`expr "x$option" : "x-*wipe-existing-data=\(.*\)"`
+	    ;;
+
+	-mesh-ordering=* | --mesh-ordering=* )
+	    MESHORDERNAME=`expr "x$option" : "x-*mesh-ordering=\(.*\)"`
 	    ;;
 
 	-do=* | --do=* )
-	    WHICHTASK=`expr "x$option" : "x-*do=\(.*\)"`
+	    TASKNAME=`expr "x$option" : "x-*do=\(.*\)"`
 	    ;;
 
 	# unrecognized option}
@@ -54,12 +58,22 @@ Configuration:
 --with-env-script=<path-to-file>	full path to script to set the environment.
 					default = assumes environment is set.
 
---wipe-existing=[0/1]			if =1 (true), the destination folder set by
-					--target-dir will be wiped and remade.
-					default = 0
+--wipe-existing-data=[yes/no]		if yes, all the following subfolders:
+					   --target-dir/data_*
+					   --target-dir/build_*
+					will be fully wiped and re-made.
+					default = no
 
---do=					which case/stage to execute
-					options for cpp=build
+--do=					label for case to run.
+					Note: useless arg for do_build.
+					Choices:
+					- do_manuf_solution.sh accepts: eigen_rk4, eigen_bdf1, kokkos_rk4
+
+--mesh-ordering=			Name/label identifying which mesh ordering:
+					- <natural> for using meshes with natural ordering
+					- <rcm> for using meshes ordered with reverse cuthill-mackee
+					Note: this is useless if running do_build.
+					default = natural
 EOF
   exit 0
 fi

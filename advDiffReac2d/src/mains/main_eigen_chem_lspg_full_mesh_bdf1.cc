@@ -32,15 +32,16 @@ int main(int argc, char *argv[]){
 
   using fom_t		= Adr2dEigen<src_fnct_t, adv_fnct_t>;
   using native_state_t  = typename fom_t::state_type;
+  using native_dmat_t	= typename fom_t::dmatrix_type;
 
   using eig_dyn_vec	= Eigen::Matrix<scalar_t, Eigen::Dynamic, 1>;
-  using eig_dyn_mat	= Eigen::Matrix<scalar_t, Eigen::Dynamic, Eigen::Dynamic>;
 
   using lspg_state_t	= pressio::containers::Vector<eig_dyn_vec>;
-  using decoder_jac_t	= pressio::containers::MultiVector<eig_dyn_mat>;
+  using decoder_jac_t	= pressio::containers::MultiVector<native_dmat_t>;
   using decoder_t	= pressio::rom::LinearDecoder<decoder_jac_t>;
 
   // the hessian is used only if LSPG is solved using NormalEquations
+  using eig_dyn_mat	= Eigen::Matrix<scalar_t, Eigen::Dynamic, Eigen::Dynamic>;
   using lspg_hessian_t	= pressio::containers::Matrix<eig_dyn_mat>;
 
   constexpr auto zero = ::pressio::utils::constants::zero<scalar_t>();
@@ -134,7 +135,7 @@ int main(int argc, char *argv[]){
     // print generalized coordinates
     std::ofstream file;
     file.open("final_generalized_coords.txt");
-    for(auto i=0; i < xROM.size(); i++){
+    for(size_t i=0; i < xROM.size(); i++){
       file << std::setprecision(14) << xROM[i] << std::endl;
     }
     file.close();
@@ -144,7 +145,7 @@ int main(int argc, char *argv[]){
     const auto X = appObj.getX();
     const auto Y = appObj.getY();
     std::ofstream file; file.open("xy.txt");
-    for(auto i=0; i < X.size(); i++){
+    for(size_t i=0; i < X.size(); i++){
       file << std::setprecision(14) << X[i] << " " << Y[i];
       file << std::endl;
     }
@@ -156,7 +157,7 @@ int main(int argc, char *argv[]){
     // print reconstructed fom state
     std::ofstream file;
     file.open("xFomReconstructed.txt");
-    for(auto i=0; i < xFomFinal.size(); i++){
+    for(size_t i=0; i < xFomFinal.size(); i++){
       file << std::setprecision(15) << xFomFinal[i] << std::endl;
     }
     file.close();

@@ -16,7 +16,7 @@ class ChemistryABCSource
   using cell_state_arr_t  = std::array<sc_t, 3>;
 
 public:
-  sc_t K_ = {};
+  const sc_t K_ = {};
   // radius where source for second species is active
   static constexpr auto radius_ = 0.15;
   const std::array<sc_t,2> origin_ = {{0.6, 0.35}};

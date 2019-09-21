@@ -13,18 +13,18 @@ template <
   >
 struct EigenObserver{
   using matrix_t = Eigen::MatrixXd;
-  using uint_t   = unsigned int;
+  using int_t    = int32_t;
   using scalar_t = double;
 
-  uint_t numStateDof_ {};
+  int_t numStateDof_ {};
   matrix_t A_;
-  uint_t count_ = 0;
+  int_t count_ = 0;
   state_t xRef_;
   state_t xIncr_;
-  int snapshotsFreq_ = {};
+  int_t snapshotsFreq_ = {};
 
-  EigenObserver(uint_t Nsteps,
-		uint_t numStateDof,
+  EigenObserver(int_t Nsteps,
+		int_t numStateDof,
 		const state_t & xRef,
 		int shapshotsFreq)
     : numStateDof_(numStateDof),
@@ -32,7 +32,7 @@ struct EigenObserver{
       xIncr_(numStateDof),
       snapshotsFreq_(shapshotsFreq)
   {
-    uint_t numCols = 0;
+    int_t numCols = 0;
     // make sure number of steps is divisible by sampling frequency
     if ( Nsteps % shapshotsFreq == 0)
       numCols = Nsteps/shapshotsFreq;
@@ -47,7 +47,7 @@ struct EigenObserver{
     bool _subtract_ref_state = subtract_ref_state,
     typename std::enable_if<_subtract_ref_state>::type * = nullptr
     >
-  void operator()(uint_t step, scalar_t t, const state_t & x)
+  void operator()(int_t step, scalar_t t, const state_t & x)
   {
     if ( step % snapshotsFreq_ == 0 and step > 0){
       xIncr_ = x - xRef_;
@@ -60,7 +60,7 @@ struct EigenObserver{
     bool _subtract_ref_state = subtract_ref_state,
     typename std::enable_if<!_subtract_ref_state>::type * = nullptr
     >
-  void operator()(uint_t step, scalar_t t, const state_t & x)
+  void operator()(int_t step, scalar_t t, const state_t & x)
   {
     if ( step % snapshotsFreq_ == 0 and step > 0){
       this->storeInColumn(x, count_);
@@ -75,8 +75,8 @@ struct EigenObserver{
   void printSnapshotsToFile(std::string fileName) const {
     std::ofstream file;
     file.open(fileName);
-    for (uint_t i=0; i<A_.rows(); i++){
-      for (uint_t j=0; j<A_.cols(); j++){
+    for (int_t i=0; i<A_.rows(); i++){
+      for (int_t j=0; j<A_.cols(); j++){
 	file << std::fixed
 	     << std::setprecision(15)
 	     << A_(i,j) << " ";
@@ -87,8 +87,8 @@ struct EigenObserver{
   }
 
 private:
-  void storeInColumn(const state_t & x, uint_t colIndex){
-    for (uint_t i=0; i<numStateDof_; i++)
+  void storeInColumn(const state_t & x, int_t colIndex){
+    for (int_t i=0; i<numStateDof_; i++)
       A_(i, colIndex) = x(i);
   }
 };

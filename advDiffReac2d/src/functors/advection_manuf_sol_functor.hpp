@@ -8,8 +8,8 @@
 template <typename sc_t, typename state_t = void>
 class ManufacturedSolutionAdvection
 {
-  using this_t  = ManufacturedSolutionAdvection<sc_t, state_t>;
-  using cell_adv_arr_t  = std::array<sc_t, 2>;
+  using this_t		  = ManufacturedSolutionAdvection<sc_t, state_t>;
+  using cell_adv_arr_t    = std::array<sc_t, 2>;
   using cell_state_arr_t  = std::array<sc_t, 3>;
 
 public:

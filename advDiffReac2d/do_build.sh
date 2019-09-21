@@ -1,10 +1,49 @@
 #!/bin/bash
 
+set -e
+
 # -----------------------------------------------
-# purpose: builds all exe for the C++ AdvReadDiff2d
-# this script is run by do_all.sh at the top level directory
+# build the executables
 # -----------------------------------------------
 
+# load global variables
+source ${PWD}/global_vars.sh
+
+# parse cline arguments
+source ${PWD}/cmd_line_options.sh
+
+# check that all basic variables are set, otherwise leave
+check_minimum_vars_set
+
+echo ""
+echo "--------------------------------------------"
+echo " current setting is: "
+echo ""
+print_global_vars
+echo ""
+echo "--------------------------------------------"
+
+# set env if not already set
+if [[ ! -z ${SETENVscript} ]]; then
+    echo "loading environment from ${SETENVscript}"
+    source ${SETENVscript}
+    echo "PATH = $PATH"
+else
+    echo "--with-env-script NOT set, so we assume env is set already"
+fi
+
+# create working dir if not existing
+[[ ! -d ${WORKINGDIR} ]] && mkdir ${WORKINGDIR}
+
+# create subworking dir if not existing
+CPPWORKINGDIR=${WORKINGDIR}/cpp
+[[ ! -d ${CPPWORKINGDIR} ]] && mkdir ${CPPWORKINGDIR}
+
+# wipe everything if set to 1
+[[ $WIPEEXISTING == yes ]] && wipe_existing_data_in_target_dir
+
+
+#---------------------------
 # go to working dir
 cd ${CPPWORKINGDIR}
 
@@ -23,7 +62,7 @@ fi
 if [ ! -d ${CPPWORKINGDIR}/tpls/eigen ]; then
     cd ${CPPWORKINGDIR}/pressio-builder
     ./main_tpls.sh \
-	--dryrun=0 \
+	--dryrun=no \
 	--tpls=eigen \
 	--build-mode=Release\
 	--target-dir=${CPPWORKINGDIR}/tpls \
@@ -37,7 +76,7 @@ fi
 if [ ! -d ${CPPWORKINGDIR}/tpls/gtest ]; then
     cd ${CPPWORKINGDIR}/pressio-builder
     ./main_tpls.sh \
-	--dryrun=0 \
+	--dryrun=no \
 	--tpls=gtest \
 	--target-dir=${CPPWORKINGDIR}/tpls \
 	--wipe-existing=1
@@ -48,15 +87,15 @@ fi
 if [ ! -d ${CPPWORKINGDIR}/tpls/trilinos ]; then
     cd ${CPPWORKINGDIR}/pressio-builder
 
-    if [[ $ONMAC == 1 ]]; then
+    if [[ $ONMAC -eq 1 ]]; then
 	./main_tpls.sh \
-	    -dryrun=0 \
+	    -dryrun=no \
 	    -tpls=trilinos \
 	    -target-dir=${CPPWORKINGDIR}/tpls \
 	    -build-mode=Release\
-	    -wipe-existing=1 \
+	    -wipe-existing=yes \
 	    -link-type=dynamic \
-	    -cmake-custom-generator-file=${TOPDIR}/build_scripts/cmake_generators_for_pressio-builder.sh \
+	    -cmake-custom-generator-file=${TOPDIR}/cmake_generators_for_pressio-builder.sh \
 	    -cmake-generator-names=tril_mac_sisc_paper_adr2dcpp
     else
 	echo "fill in cmake line for trilinos for non mac"
@@ -86,17 +125,17 @@ then
 
     # install pressio
     cd ${CPPWORKINGDIR}/pressio-builder
-    if [[ $ONMAC == 1 ]];
+    if [[ $ONMAC -eq 1 ]];
     then
 	./main_pressio.sh \
-	    -dryrun=0 \
+	    -dryrun=no \
 	    -pressio-src=${CPPWORKINGDIR}/tpls/pressio/pressio \
 	    -target-dir=${CPPWORKINGDIR}/tpls \
 	    -package-name=rom \
-	    -wipe-existing=1 \
+	    -wipe-existing=yes \
 	    -build-mode=Release \
 	    -link-type=dynamic \
-	    -cmake-custom-generator-file=${TOPDIR}/build_scripts/cmake_generators_for_pressio-builder.sh \
+	    -cmake-custom-generator-file=${TOPDIR}/cmake_generators_for_pressio-builder.sh \
 	    -cmake-generator-name=pressio_mac_sisc_paper_adr2dcpp \
 	    -eigen-path=${CPPWORKINGDIR}/tpls/eigen/install \
 	    -gtest-path=${CPPWORKINGDIR}/tpls/gtest/install \

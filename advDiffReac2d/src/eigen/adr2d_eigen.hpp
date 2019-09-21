@@ -15,26 +15,35 @@ class Adr2dEigen
   using this_t	  = Adr2dEigen<source_functor, advection_functor>;
   using sc_t	  = double;
   using eigVec	  = Eigen::VectorXd;
-  using mv_t	  = Eigen::MatrixXd;
+  //using mv_t	  = Eigen::MatrixXd;
   using Tr	  = Eigen::Triplet<sc_t>;
   using sc_arr3_t = std::array<sc_t, 3>;
 
-  // the type to represent global indices
-  using gid_t      = unsigned int;
-  // array of 5 gids
-  using gid_arr5_t = std::array<gid_t,5>;
-
 public:
-  static constexpr int numSpecies_{3};
+  // type to use for all indexing, has to be large enough
+  // to support indexing fairly large systems
+  using index_t  = int32_t;
+
+  // type for the adjacency list for each mesh graph
+  // we use an array of 5 indices since all graph nodes have
+  // the same number of connections
+  using node_al_t = std::array<index_t,5>;
+
+  // number of dofs for each cell
+  static constexpr index_t numSpecies_{3};
+
+  // number of non zero entries for each jacobian row
+  static constexpr int32_t nonZerosPerRowJ_ = 7;
 
   using scalar_type	= sc_t;
   using state_type	= eigVec;
   using velocity_type	= eigVec;
-  using jacobian_type	= Eigen::SparseMatrix<sc_t, Eigen::ColMajor, int32_t>;
-  using dmatrix_type	= mv_t;
+  // Eigen SparseMatrix has to have a signed integer type, use index_t
+  using jacobian_type	= Eigen::SparseMatrix<sc_t, Eigen::ColMajor, index_t>;
+  using dmatrix_type	= Eigen::MatrixXd;
 
   // type to represent connectivity
-  using connectivity_t	= std::vector<gid_arr5_t>;
+  using mesh_graph_t	= std::vector<node_al_t>;
 
   static constexpr auto zero	= ::pressio::utils::constants::zero<scalar_type>();
   static constexpr auto one	= ::pressio::utils::constants::one<scalar_type>();
@@ -65,7 +74,7 @@ public:
   eigVec getX() const { return x_; }
   eigVec getY() const { return y_; }
 
-  const connectivity_t & viewGraph() const{
+  const mesh_graph_t & viewGraph() const{
     return graph_;
   }
 
@@ -100,24 +109,24 @@ public:
   }
 
   void applyJacobian(const state_type & u,
-  		     const mv_t & B,
+  		     const dmatrix_type & B,
   		     const scalar_type & t,
-  		     mv_t & A) const{
+  		     dmatrix_type & A) const{
     this->jacobian_impl(u, J_, t);
     A = J_ * B;
   }
 
-  mv_t applyJacobian(const state_type & u,
-  		     const mv_t & B,
+  dmatrix_type applyJacobian(const state_type & u,
+  		     const dmatrix_type & B,
   		     const scalar_type & t) const{
-    mv_t A( numDof_r_, B.cols() );
+    dmatrix_type A( numDof_r_, B.cols() );
     this->applyJacobian(u, B, t, A);
     return A;
   }
 
 private:
   void readMesh(){
-    typename Adr2dEigen::gid_arr5_t lineGIDs;
+    typename Adr2dEigen::node_al_t lineGIDs;
 
     std::ifstream foundFile(meshFile_);
     if(!foundFile){
@@ -191,7 +200,7 @@ private:
 
     // // loop over cells where velocity needs to be computed
     // // i.e. over all cells where we want residual
-    // for (gid_t rPt=0; rPt < graph_.size(); ++rPt)
+    // for (index_t rPt=0; rPt < graph_.size(); ++rPt)
     // {
     //   // gID of this cell
     //   const auto & cellGID = graph_[rPt][0];
@@ -240,10 +249,13 @@ private:
     /* the graph contains the connectivity for all the cells where I need
      * to copute the velocity. I can loop over it.
      */
-    for (gid_t vPt=0; vPt < numGpt_r_; ++vPt)
+    for (index_t vPt=0; vPt < numGpt_r_; ++vPt)
     {
+      // ajacency list of this cell
+      const auto & thisCellAdList = graph_[vPt];
+
       // gID of this cell
-      const auto & cellGID = graph_[vPt][0];
+      const auto & cellGID = thisCellAdList[0];
 
       // local coordinates
       const auto & thisCellX = x_[cellGID];
@@ -273,10 +285,10 @@ private:
       FDcoeffSouth_ =  cellAdv_[1]*dy2Inv_ + DovDySq_;
 
       // the gids of the neighboring cells (we assume 2nd ordered)
-      const auto & westCellGid  = graph_[vPt][1];
-      const auto & northCellGid = graph_[vPt][2];
-      const auto & eastCellGid  = graph_[vPt][3];
-      const auto & southCellGid = graph_[vPt][4];
+      const auto & westCellGid  = thisCellAdList[1];
+      const auto & northCellGid = thisCellAdList[2];
+      const auto & eastCellGid  = thisCellAdList[3];
+      const auto & southCellGid = thisCellAdList[4];
 
       // loop manually unrolled for species = 3
       // store the velocity
@@ -317,11 +329,14 @@ private:
     // triplets is used to store a series of (row, col, value)
     // loop over cells where velocity needs to be computed
     // i.e. over all cells where we want residual
-    gid_t tripCount = -1;
-    for (gid_t vPt=0; vPt < graph_.size(); ++vPt)
+    index_t tripCount = -1;
+    for (index_t vPt=0; vPt < graph_.size(); ++vPt)
     {
+      // ajacency list of this cell
+      const auto & thisCellAdList = graph_[vPt];
+
       // gID of this cell
-      const auto & cellGID = graph_[vPt][0];
+      const auto & cellGID = thisCellAdList[0];
 
       // local coordinates
       const auto & thisCellX = x_[cellGID];
@@ -351,10 +366,10 @@ private:
       FDcoeffSouth_ =  cellAdv_[1]*dy2Inv_ + DovDySq_;
 
       // the gids of the neighboring cells
-      const auto & westCellGid  = graph_[vPt][1];
-      const auto & northCellGid = graph_[vPt][2];
-      const auto & eastCellGid  = graph_[vPt][3];
-      const auto & southCellGid = graph_[vPt][4];
+      const auto & westCellGid  = thisCellAdList[1];
+      const auto & northCellGid = thisCellAdList[2];
+      const auto & eastCellGid  = thisCellAdList[3];
+      const auto & southCellGid = thisCellAdList[4];
 
       // contribution for ij
       tripletList[++tripCount] = Tr(rowIndex,   uIndex,   FDcoeff1_ + cellSrcJ_[0][0]);
@@ -404,9 +419,6 @@ private:
 
 private:
 
-  // number of non zero entries for each jacobian row
-  static constexpr int nonZerosPerRowJ_ = 7;
-
   // name of mesh file
   const std::string meshFile_ = {};
 
@@ -453,21 +465,21 @@ private:
     col 1,2,3,4 : contains GIDs of neighboring cells needed for stencil
 		  the order of the neighbors is: east, north, west, south
    */
-  connectivity_t graph_ = {};
+  mesh_graph_t graph_ = {};
 
-  mutable gid_t uWestIndex_  = {};
-  mutable gid_t uNorthIndex_ = {};
-  mutable gid_t uEastIndex_  = {};
-  mutable gid_t uSouthIndex_ = {};
+  mutable index_t uWestIndex_  = {};
+  mutable index_t uNorthIndex_ = {};
+  mutable index_t uEastIndex_  = {};
+  mutable index_t uSouthIndex_ = {};
 
   // note that dof refers to the degress of freedom,
   // which is NOT same as grid points. for this problem,
   // the dof = numSpecies_ * number_of_unknown_grid_points
   // _r_ stands for velocity
-  gid_t numGpt_	  = {};
-  gid_t numDof_	  = {};
-  gid_t numGpt_r_ = {};
-  gid_t numDof_r_ = {};
+  index_t numGpt_	  = {};
+  index_t numDof_	  = {};
+  index_t numGpt_r_ = {};
+  index_t numDof_r_ = {};
 
   // x,y define the coords of all cells centers
   eigVec x_ = {};

@@ -53,7 +53,7 @@ void printMeshCoordsToFile(const app_t & appObj){
   const auto X = appObj.getX();
   const auto Y = appObj.getY();
   std::ofstream file; file.open("xy.txt");
-  for(auto i=0; i < X.size(); i++){
+  for(size_t i=0; i < X.size(); i++){
     file << std::setprecision(14) << X[i] << " " << Y[i];
     file << std::endl;
   }
@@ -73,8 +73,8 @@ void doSVD(const obs_t & Obs,
 
   std::cout << "Print basis to file" << std::endl;
   std::ofstream file; file.open(basisFileName);
-  for (auto i=0; i<U.rows(); i++){
-    for (auto j=0; j<U.cols(); j++){
+  for (size_t i=0; i<U.rows(); i++){
+    for (size_t j=0; j<U.cols(); j++){
       file << std::fixed << std::setprecision(15) << U(i,j) << " ";
     }
     file << std::endl;

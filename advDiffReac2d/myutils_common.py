@@ -37,6 +37,7 @@ def generateMeshFilePath(meshParentDir, Nx, Ny, samplingType, smTargetPct=-1):
     print("invalid samplingType, choices are: full, random")
     sys.exit(1)
 
+
 def generateSmToFmGIDsMapFilePath(meshParentDir, Nx, Ny, samplingType, smTargetPct):
   subDir = str(Nx) + "x" + str(Ny)
   if samplingType == "random":

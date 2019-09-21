@@ -13,8 +13,8 @@ convertFromVVecToMultiVec(const std::vector<std::vector<T>> & A0)
 
   const size_t nrows = A0.size();
   const size_t ncols = A0[0].size();
-
   pressio::containers::MultiVector<eig_mat> ADW(nrows, ncols);
+
   for (size_t i=0; i<nrows; i++){
     for (size_t j=0; j<ncols; j++)
       ADW(i,j) = A0[i][j];
@@ -45,7 +45,7 @@ void readSmToFmGIDsMappingFile(std::string filename,
   while (getline(file, line)){
     std::istringstream ss(line);
     int_t entry;
-    int j = 0;
+    int_t j = 0;
     while (ss >> entry){
       lineGIDs[j] = entry;
       j++;
@@ -62,12 +62,14 @@ void readSmToFmGIDsMappingFile(std::string filename,
 }
 
 
-template <typename int_t, typename phi_t, typename app_t>
+template <typename phi_t, typename app_t>
 pressio::containers::MultiVector<Eigen::MatrixXd>
 extractSampleMeshRows(const phi_t & phi0,
 		      const InputParser & parser,
 		      const app_t & appObj)
 {
+  using int_t = typename app_t::index_t;
+
   std::vector< std::array<int_t,2> > smToFmGidMap;
   readSmToFmGIDsMappingFile(parser.gidMapFileName_, smToFmGidMap);
 
@@ -77,7 +79,7 @@ extractSampleMeshRows(const phi_t & phi0,
   const auto numBasis = phi0.numVectors();
 
   // number of rows for the sample mesh basis matrix
-  const int_t numRowsSMBasis = smToFmGidMap.size()*app_t::numSpecies_;
+  const auto numRowsSMBasis = smToFmGidMap.size()*app_t::numSpecies_;
 
   // create the native eigen matrix to store the sample-mesh bases
   Eigen::MatrixXd phi1n(numRowsSMBasis, numBasis);

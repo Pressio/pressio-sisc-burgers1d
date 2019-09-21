@@ -7,7 +7,7 @@
 struct InputParser
 {
   using scalar_t = double;
-  using step_t   = int;
+  using step_t   = int32_t;
 
   std::string problemName_	= "empty";
   std::string meshFileName_	= "empty";
@@ -26,7 +26,7 @@ struct InputParser
   std::string shapshotsFileName_= "empty";
   std::string basisFileName_	= "empty";
   int romOn_			= 0;
-  unsigned int romSize_		= {};
+  int32_t romSize_		= {};
 
 public:
   InputParser() = default;

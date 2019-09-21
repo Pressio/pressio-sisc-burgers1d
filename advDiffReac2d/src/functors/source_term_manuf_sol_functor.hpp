@@ -24,7 +24,7 @@ class ManufacturedSolutionSource
   using cell_src_jac_t    = std::array<cell_src_arr_t, 3>;
   using cell_state_arr_t  = std::array<sc_t, 3>;
 
-  sc_t D_ = {};
+  const sc_t D_ = {};
 
   static constexpr auto zero	= ::pressio::utils::constants::zero<sc_t>();
   static constexpr auto two	= ::pressio::utils::constants::two<sc_t>();

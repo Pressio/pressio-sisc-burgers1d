@@ -8,21 +8,22 @@ template <typename fom_t>
 struct time_discrete_ops
 {
   using scalar_t	 = typename fom_t::scalar_type;
+  using index_t		 = typename fom_t::index_t;
   using residual_t	 = typename fom_t::state_type;
   using state_t		 = typename fom_t::state_type;
   using velocity_t	 = typename fom_t::state_type;
   using dmatrix_t	 = typename fom_t::dmatrix_type;
-  using connectivity_t	 = typename fom_t::connectivity_t;
+  using mesh_graph_t	 = typename fom_t::mesh_graph_t;
 
-  const int numSpecies_ = fom_t::numSpecies_;
-  const connectivity_t & graph_;
+  const index_t numSpecies_ = fom_t::numSpecies_;
+  const mesh_graph_t & graph_;
 
   // this is because below we unroll the loop for Dofs
   // so it is hardwired
   static_assert( fom_t::numSpecies_==3 );
 
   // constructor
-  time_discrete_ops(const connectivity_t & graph)
+  time_discrete_ops(const mesh_graph_t & graph)
     : graph_{graph}{}
 
   void time_discrete_euler(residual_t & R,
@@ -47,7 +48,7 @@ struct time_discrete_ops
     // loop over the mesh cells where the residual needs to be computed.
     // for the sample mesh, this is only a subset of the mesh and this info
     // is contained within the graph
-    for (size_t iPt=0; iPt < graph_.size(); ++iPt)
+    for (index_t iPt=0; iPt < graph_.size(); ++iPt)
     {
       // get sample mesh GID of the current cell. This GID identifies this cell
       // within all the cells in the sample mesh.
@@ -102,7 +103,7 @@ struct time_discrete_ops
 			      scalar_t dt) const
   {
     // loop over cells where residual needs to be computed
-    for (size_t iPt=0; iPt < graph_.size(); ++iPt)
+    for (index_t iPt=0; iPt < graph_.size(); ++iPt)
     {
       // get GID of the current residual cell
       const auto & cellGID  = graph_[iPt][0];
