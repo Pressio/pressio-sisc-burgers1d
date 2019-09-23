@@ -10,7 +10,7 @@ set -e
 source ${PWD}/global_vars.sh
 
 # parse cline arguments
-source ${PWD}/cmd_line_options.sh
+source ${PWD}/cmd_line_options_build.sh
 
 # check that all basic variables are set, otherwise leave
 check_minimum_vars_set
@@ -84,32 +84,36 @@ if [ ! -d ${CPPWORKINGDIR}/tpls/gtest ]; then
 fi
 
 # do trilinos
-if [ ! -d ${CPPWORKINGDIR}/tpls/trilinos ]; then
-    cd ${CPPWORKINGDIR}/pressio-builder
+if [ -z ${TRILINOSPFX} ];
+then
+    if [ ! -d ${CPPWORKINGDIR}/tpls/trilinos ]; then
+	cd ${CPPWORKINGDIR}/pressio-builder
 
-    if [[ $ONMAC -eq 1 ]]; then
-	./main_tpls.sh \
-	    -dryrun=no \
-	    -tpls=trilinos \
-	    -target-dir=${CPPWORKINGDIR}/tpls \
-	    -build-mode=Release\
-	    -wipe-existing=yes \
-	    -link-type=dynamic \
-	    -cmake-custom-generator-file=${TOPDIR}/cmake_generators_for_pressio-builder.sh \
-	    -cmake-generator-names=tril_mac_sisc_paper_adr2dcpp
-    else
-	./main_tpls.sh \
-	    -dryrun=no \
-	    -tpls=trilinos \
-	    -target-dir=${CPPWORKINGDIR}/tpls \
-	    -build-mode=Release\
-	    -wipe-existing=yes \
-	    -link-type=dynamic \
-	    -cmake-custom-generator-file=${TOPDIR}/cmake_generators_for_pressio-builder.sh \
-	    -cmake-generator-names=tril_linux_sisc_paper_adr2dcpp
+	if [[ $ONMAC -eq 1 ]]; then
+	    ./main_tpls.sh \
+		-dryrun=no \
+		-tpls=trilinos \
+		-target-dir=${CPPWORKINGDIR}/tpls \
+		-build-mode=Release\
+		-wipe-existing=yes \
+		-link-type=dynamic \
+		-cmake-custom-generator-file=${TOPDIR}/cmake_generators_for_pressio-builder.sh \
+		-cmake-generator-names=tril_mac_sisc_paper_adr2dcpp
+	else
+	    ./main_tpls.sh \
+		-dryrun=no \
+		-tpls=trilinos \
+		-target-dir=${CPPWORKINGDIR}/tpls \
+		-build-mode=Release\
+		-wipe-existing=yes \
+		-link-type=dynamic \
+		-cmake-custom-generator-file=${TOPDIR}/cmake_generators_for_pressio-builder.sh \
+		-cmake-generator-names=tril_linux_sisc_paper_adr2dcpp
+	fi
+
+	cd ${CPPWORKINGDIR}
+	TRILINOSPFX=${CPPWORKINGDIR}/tpls/trilinos
     fi
-
-    cd ${CPPWORKINGDIR}
 fi
 
 #-------------
@@ -132,25 +136,19 @@ then
 
     # install pressio
     cd ${CPPWORKINGDIR}/pressio-builder
-    if [[ $ONMAC -eq 1 ]];
-    then
-	./main_pressio.sh \
-	    -dryrun=no \
-	    -pressio-src=${CPPWORKINGDIR}/tpls/pressio/pressio \
-	    -target-dir=${CPPWORKINGDIR}/tpls \
-	    -package-name=rom \
-	    -wipe-existing=yes \
-	    -build-mode=Release \
-	    -link-type=dynamic \
-	    -cmake-custom-generator-file=${TOPDIR}/cmake_generators_for_pressio-builder.sh \
-	    -cmake-generator-name=pressio_mac_sisc_paper_adr2dcpp \
-	    -eigen-path=${CPPWORKINGDIR}/tpls/eigen/install \
-	    -gtest-path=${CPPWORKINGDIR}/tpls/gtest/install \
-	    -trilinos-path=${CPPWORKINGDIR}/tpls/trilinos/install
-    else
-	echo "fill in cmake line for pressio for linux"
-	exit 1
-    fi
+    ./main_pressio.sh \
+	-dryrun=no \
+	-pressio-src=${CPPWORKINGDIR}/tpls/pressio/pressio \
+	-target-dir=${CPPWORKINGDIR}/tpls \
+	-package-name=rom \
+	-wipe-existing=yes \
+	-build-mode=Release \
+	-link-type=dynamic \
+	-cmake-custom-generator-file=${TOPDIR}/cmake_generators_for_pressio-builder.sh \
+	-cmake-generator-name=pressio_mac_sisc_paper_adr2dcpp \
+	-eigen-path=${CPPWORKINGDIR}/tpls/eigen/install \
+	-gtest-path=${CPPWORKINGDIR}/tpls/gtest/install \
+	-trilinos-path=${TRILINOSPFX}/install
 
     cd ${CPPWORKINGDIR}
 else
@@ -165,8 +163,8 @@ fi
 #----------------------
 # set paths for eigen, trilinos and pressio
 EIGENPATH="${CPPWORKINGDIR}/tpls/eigen/install/include/eigen3"
-TRILINOSINCPATH="${CPPWORKINGDIR}/tpls/trilinos/install/include"
-TRILINOSLIBPATH="${CPPWORKINGDIR}/tpls/trilinos/install/lib"
+TRILINOSINCPATH="${TRILINOSPFX}/install/include"
+TRILINOSLIBPATH="${TRILINOSPFX}/install/lib"
 PRESSIOPATH="${CPPWORKINGDIR}/tpls/pressio/install/include"
 
 # build C++ exes

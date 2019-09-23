@@ -24,12 +24,8 @@ for option; do
 	    WIPEEXISTING=`expr "x$option" : "x-*wipe-existing-data=\(.*\)"`
 	    ;;
 
-	-mesh-ordering=* | --mesh-ordering=* )
-	    MESHORDERNAME=`expr "x$option" : "x-*mesh-ordering=\(.*\)"`
-	    ;;
-
-	-do=* | --do=* )
-	    TASKNAME=`expr "x$option" : "x-*do=\(.*\)"`
+	-trilinos-pfx=* | --trilinos-pfx=* )
+	    TRILINOSPFX=`expr "x$option" : "x-*trilinos-pfx=\(.*\)"`
 	    ;;
 
 	# unrecognized option}
@@ -64,12 +60,9 @@ Configuration:
 					will be fully wiped and re-made.
 					default = no
 
---do=					label for case to run.
+--trilinos-pfx=				full path to installation of Trilinos
+					If not provided, I will build it
 
---mesh-ordering=			Name/label identifying which mesh ordering:
-					- <natural> for using meshes with natural ordering
-					- <rcm> for using meshes ordered with reverse cuthill-mackee
-					default = natural
 EOF
   exit 0
 fi

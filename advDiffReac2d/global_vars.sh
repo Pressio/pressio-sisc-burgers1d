@@ -19,6 +19,9 @@ WIPEEXISTING=no
 # env script
 SETENVscript=
 
+# location of trilinos if passed by user
+TRILINOSPFX=
+
 # name of the task, depends on what you run
 TASKNAME=
 

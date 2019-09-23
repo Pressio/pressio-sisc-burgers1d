@@ -21,7 +21,7 @@ chemReaction = 0.0
 samplingFreq = 10
 
 # mesh sizes
-numCell_cases = np.array([32])
+numCell_cases = np.array([128])
 
 # true solution for manuf sol problem
 def msTrueSolution(x,y,t):

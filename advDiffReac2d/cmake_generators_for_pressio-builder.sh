@@ -43,5 +43,5 @@ function pressio_mac_sisc_paper_adr2dcpp(){
     pressio_enable_eigen
     pressio_enable_trilinos
     pressio_pressio_target_package
-    pressio_enable_debug_print
+    #pressio_enable_debug_print
 }

@@ -14,61 +14,81 @@ def createInputFileFomChemTiming(stepperName, meshFileName):
   # copy template
   os.system('cp input.template input.txt')
 
-  os.system("sed -i '' s@problemNameValue@chemABC@g input.txt")
-  os.system("sed -i '' s@meshFileNameValue@"  + meshFileName            + "@g input.txt")
+  fin = open("input.txt", "rt")
+  data = fin.read()
+  data = data.replace("problemNameValue",       "chemABC")
+  data = data.replace("meshFileNameValue",      meshFileName)
+  data = data.replace("odeStepperNameValue",    stepperName)
+  data = data.replace("dtValue",                str(cch.dt) )
+  data = data.replace("finalTimeValue",         str(cch.finalTime) )
+  data = data.replace("diffusionValue",         str(cch.diffusion) )
+  data = data.replace("chemReactionValue",      str(cch.chemReaction) )
+  data = data.replace("observerOnValue",        str(0) )
+  data = data.replace("romOnValue",             str(0) )
+  fin.close()
 
-  os.system("sed -i '' s@odeStepperNameValue@"+ stepperName             + "@g input.txt")
-  os.system("sed -i '' s@dtValue@"            + str(cch.dt)             + "@g input.txt")
-  os.system("sed -i '' s@finalTimeValue@"     + str(cch.finalTime)      + "@g input.txt")
-
-  os.system("sed -i '' s@diffusionValue@"     + str(cch.diffusion)      + "@g input.txt")
-  os.system("sed -i '' s@chemReactionValue@"  + str(cch.chemReaction)   + "@g input.txt")
-
-  os.system("sed -i '' s@observerOnValue@"    + str(0)                  + "@g input.txt")
-  os.system("sed -i '' s@romOnValue@"         + str(0)                  + "@g input.txt")
+  fin = open("input.txt", "wt")
+  fin.write(data)
+  fin.close()
 
 
 def createInputFileFomChemForBasis(stepperName, meshFileName, samplingFreq):
   # copy template
   os.system('cp input.template input.txt')
 
-  os.system("sed -i '' s@problemNameValue@chemABC@g input.txt")
-  os.system("sed -i '' s@meshFileNameValue@"  + meshFileName            + "@g input.txt")
+  fin = open("input.txt", "rt")
+  data = fin.read()
+  data = data.replace("problemNameValue",       "chemABC")
+  data = data.replace("meshFileNameValue",      meshFileName)
+  data = data.replace("odeStepperNameValue",    stepperName)
+  data = data.replace("dtValue",                str(cch.dt) )
+  data = data.replace("finalTimeValue",         str(cch.finalTime) )
+  data = data.replace("diffusionValue",         str(cch.diffusion) )
+  data = data.replace("chemReactionValue",      str(cch.chemReaction) )
+  data = data.replace("observerOnValue",        str(1) )
+  data = data.replace("shapshotsFreqValue",     str(samplingFreq) )
+  data = data.replace("shapshotsFileNameValue", "snapshots.txt" )
+  data = data.replace("basisFileNameValue",     "basis.txt")
+  data = data.replace("romOnValue",             str(0) )
+  fin.close()
 
-  os.system("sed -i '' s@odeStepperNameValue@"+ stepperName             + "@g input.txt")
-  os.system("sed -i '' s@dtValue@"            + str(cch.dt)             + "@g input.txt")
-  os.system("sed -i '' s@finalTimeValue@"     + str(cch.finalTime)      + "@g input.txt")
+  fin = open("input.txt", "wt")
+  fin.write(data)
+  fin.close()
 
-  os.system("sed -i '' s@diffusionValue@"     + str(cch.diffusion)      + "@g input.txt")
-  os.system("sed -i '' s@chemReactionValue@"  + str(cch.chemReaction)   + "@g input.txt")
-
-  os.system("sed -i '' s@observerOnValue@"    + str(1)                  + "@g input.txt")
-  os.system("sed -i '' s@shapshotsFreqValue@" + str(samplingFreq)       + "@g input.txt")
-  os.system("sed -i '' s@shapshotsFileNameValue@snapshots.txt@g input.txt")
-  os.system("sed -i '' s@basisFileNameValue@basis.txt@g input.txt")
-  os.system("sed -i '' s@romOnValue@"    + str(0)                       + "@g input.txt")
 
 
 def createInputFileFomChemForLSPGFullMesh(stepperName, meshFileName, romSize):
   # copy template
   os.system('cp input.template input.txt')
 
-  os.system("sed -i '' s@problemNameValue@chemABC@g input.txt")
-  os.system("sed -i '' s@meshFileNameValue@"    + meshFileName          + "@g input.txt")
+  fin = open("input.txt", "rt")
+  data = fin.read()
+  data = data.replace("problemNameValue",       "chemABC")
+  data = data.replace("meshFileNameValue",      meshFileName)
+  data = data.replace("odeStepperNameValue",    stepperName)
+  data = data.replace("dtValue",                str(cch.dt) )
+  data = data.replace("finalTimeValue",         str(cch.finalTime) )
+  data = data.replace("diffusionValue",         str(cch.diffusion) )
+  data = data.replace("chemReactionValue",      str(cch.chemReaction) )
+  data = data.replace("observerOnValue",        str(0) )
+  data = data.replace("basisFileNameValue",     "basis.txt")
+  data = data.replace("romOnValue",             str(0) )
+  data = data.replace("romSizeValue",           str(romSize) )
+  fin.close()
 
-  os.system("sed -i '' s@odeStepperNameValue@"  + stepperName           + "@g input.txt")
-  os.system("sed -i '' s@dtValue@"              + str(cch.dt)           + "@g input.txt")
-  os.system("sed -i '' s@finalTimeValue@"       + str(cch.finalTime)    + "@g input.txt")
-
-  os.system("sed -i '' s@diffusionValue@"       + str(cch.diffusion)    + "@g input.txt")
-  os.system("sed -i '' s@chemReactionValue@"    + str(cch.chemReaction) + "@g input.txt")
-
-  os.system("sed -i '' s@observerOnValue@"      + str(0)                + "@g input.txt")
-  os.system("sed -i '' s@basisFileNameValue@basis.txt@g input.txt")
-  os.system("sed -i '' s@romOnValue@"           + str(1)                + "@g input.txt")
-  os.system("sed -i '' s@romSizeValue@"         + str(romSize)          + "@g input.txt")
+  fin = open("input.txt", "wt")
+  fin.write(data)
+  fin.close()
 
 
 def createInputFileFomChemForLSPGSampleMesh(stepperName, meshFileName, romSize, gidMapFile):
   createInputFileFomChemForLSPGFullMesh(stepperName, meshFileName, romSize)
-  os.system("sed -i '' s@smToFmGIDMappingFileNameValue@"    + gidMapFile      + "@g input.txt")
+
+  fin = open("input.txt", "rt")
+  data = fin.read()
+  data = data.replace("smToFmGIDMappingFileNameValue", gidMapFile)
+  fin.close()
+  fin = open("input.txt", "wt")
+  fin.write(data)
+  fin.close()

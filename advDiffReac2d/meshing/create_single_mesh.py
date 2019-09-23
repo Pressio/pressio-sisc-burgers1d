@@ -44,8 +44,8 @@ def main(Nx, Ny, samplingType, targetPct, plotting, orderingType):
   if plotting != "none":
     plotLabels(x, y, gids, ax00)
   print("natural order full mesh connectivity")
-  printDicPretty(G)
-  print("\n")
+  #printDicPretty(G)
+  #print("\n")
   if plotting != "none":
     ax01.spy(spMat)
 
@@ -71,7 +71,7 @@ def main(Nx, Ny, samplingType, targetPct, plotting, orderingType):
     # sort by key
     newFullMeshGraph = collections.OrderedDict(sorted(newFullMeshGraph.items()))
     print("full mesh connectivity after RCM")
-    printDicPretty(newFullMeshGraph)
+    #printDicPretty(newFullMeshGraph)
     print("\n")
 
     # this is ugly but works, replace globals
@@ -111,7 +111,7 @@ def main(Nx, Ny, samplingType, targetPct, plotting, orderingType):
   for rPt in rGIDs:
       subGraph[rPt] = G[rPt]
   print("subGraph")
-  for k,v in subGraph.items(): print(k, v)
+  #for k,v in subGraph.items(): print(k, v)
   print("\n")
 
   # the subGraph contains the sample mesh cells.
@@ -137,7 +137,7 @@ def main(Nx, Ny, samplingType, targetPct, plotting, orderingType):
   allGIDs = list(dict.fromkeys(allGIDs))
   allGIDs.sort()
   print("sample mesh allGIDs")
-  print(allGIDs)
+  #print(allGIDs)
   print("\n")
 
   # -----------------------------------------------------
@@ -158,13 +158,13 @@ def main(Nx, Ny, samplingType, targetPct, plotting, orderingType):
     fm_to_sm_map[pt] = i
     i+=1
   print("Done with fm_to_sm_map")
-  for k,v in fm_to_sm_map.items(): print(k, v)
+  #for k,v in fm_to_sm_map.items(): print(k, v)
 
   print("doing now the sm -> fm gids mapping ")
   sm_to_fm_map = collections.OrderedDict()
   for k,v in fm_to_sm_map.items():
     sm_to_fm_map[v] = k
-  for k,v in sm_to_fm_map.items(): print(k, v)
+  #for k,v in sm_to_fm_map.items(): print(k, v)
   print("Done with sm_to_fm_map")
 
   # -----------------------------------------------------
@@ -183,7 +183,7 @@ def main(Nx, Ny, samplingType, targetPct, plotting, orderingType):
   print("\n")
   print("Done with residGraphSM")
   print("sample mesh connectivity")
-  printDicPretty(residGraphSM)
+  #printDicPretty(residGraphSM)
   print("\n")
 
   gids_sm = list(sm_to_fm_map.keys())
@@ -248,20 +248,20 @@ def main(Nx, Ny, samplingType, targetPct, plotting, orderingType):
   # -----------------------------------------------------
   # print mesh file
   f = open("mesh.dat","w+")
-  f.write("dx %f\n" % dx)
-  f.write("dy %f\n" % dy)
-  f.write("numResidualPts %d\n" % numResidualPts)
-  f.write("numStatePts %d\n" % numStatePts)
+  f.write("dx %.14f\n" % dx)
+  f.write("dy %.14f\n" % dy)
+  f.write("numResidualPts %8d\n" % numResidualPts)
+  f.write("numStatePts %8d\n" % numStatePts)
   for k in sorted(residGraphSM.keys()):
-    f.write("%d " % k)
-    f.write("%f " % x[sm_to_fm_map[k]])
-    f.write("%f " % y[sm_to_fm_map[k]])
+    f.write("%8d " % k)
+    f.write("%.14f " % x[sm_to_fm_map[k]])
+    f.write("%.14f " % y[sm_to_fm_map[k]])
     for i in residGraphSM[k]:
       # print gid
-      f.write("%d " % i)
+      f.write("%8d " % i)
       # pring coords
-      f.write("%f " % x[sm_to_fm_map[i]])
-      f.write("%f " % y[sm_to_fm_map[i]])
+      f.write("%.14f " % x[sm_to_fm_map[i]])
+      f.write("%.14f " % y[sm_to_fm_map[i]])
     f.write("\n")
   f.close()
 
@@ -272,7 +272,7 @@ def main(Nx, Ny, samplingType, targetPct, plotting, orderingType):
   if (samplingType=="random"):
     f1 = open("sm_to_fm_gid_mapping.dat","w+")
     for k,v in fm_to_sm_map.items():
-      f1.write("%d %d\n" % (v, k))
+      f1.write("%8d %8d\n" % (v, k))
     f1.close()
 
   if plotting == "show":
