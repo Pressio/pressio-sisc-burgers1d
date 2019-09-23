@@ -43,7 +43,7 @@ public:
   using state_type	= eigVec;
   using velocity_type	= eigVec;
   // Eigen SparseMatrix has to have a signed integer type, use index_t
-  using jacobian_type	= Eigen::SparseMatrix<sc_t, Eigen::ColMajor, index_t>;
+  using jacobian_type	= Eigen::SparseMatrix<sc_t, Eigen::RowMajor, index_t>;
   using dmatrix_type	= Eigen::MatrixXd;
 
   // type to represent connectivity

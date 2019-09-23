@@ -57,7 +57,7 @@ def main(exeName, meshDir, stepperName):
         # based on the size of rom and number of ode steps,
         # compute the sampling frequency
         assert(cchem.numSteps % romSize == 0)
-        samplingFreq = int(cchem.numSteps/romSize)
+        samplingFreq = np.int32(cchem.numSteps/romSize)
         print ("Sampling freq = ", samplingFreq)
 
         # create input file

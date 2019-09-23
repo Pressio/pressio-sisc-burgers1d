@@ -120,11 +120,11 @@ def main(exeName, meshDir, stepperName, basisDirName):
           if i == 0:
             # dofs for residual vector
             res = re.search(utc.numDofResidRegExp, str(output))
-            numDofResid = int(res.group().split()[2])
+            numDofResid = np.int32(res.group().split()[2])
             data[rowCount][2] = numDofResid
             # dofs for state vector
             res = re.search(utc.numDofStateRegExp, str(output))
-            numDofState = int(res.group().split()[2])
+            numDofState = np.int32(res.group().split()[2])
             data[rowCount][3] = numDofState
             print("dofResid = ", numDofResid)
             print("dofState = ", numDofState)

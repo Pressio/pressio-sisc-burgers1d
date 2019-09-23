@@ -79,24 +79,24 @@ def main(exeName, meshDir, stepperName, basisDirName):
         # popen.wait()
         # output = popen.stdout.read()
 
-        # if we are at first replica run, grep the number of Dofs
-        if i == 0:
-          # dofs for residual vector
-          res = re.search(utc.numDofResidRegExp, str(output))
-          numDofResid = int(res.group().split()[2])
-          data[rowCount][1] = numDofResid
-          # dofs for state vector
-          res = re.search(utc.numDofStateRegExp, str(output))
-          numDofState = int(res.group().split()[2])
-          data[rowCount][2] = numDofState
-          print("dofResid = ", numDofResid)
-          print("dofState = ", numDofState)
-          # store the rom size
-          data[rowCount][3] = romSize
+        # # if we are at first replica run, grep the number of Dofs
+        # if i == 0:
+        #   # dofs for residual vector
+        #   res = re.search(utc.numDofResidRegExp, str(output))
+        #   numDofResid = np.int32(res.group().split()[2])
+        #   data[rowCount][1] = numDofResid
+        #   # dofs for state vector
+        #   res = re.search(utc.numDofStateRegExp, str(output))
+        #   numDofState = np.int32(res.group().split()[2])
+        #   data[rowCount][2] = numDofState
+        #   print("dofResid = ", numDofResid)
+        #   print("dofState = ", numDofState)
+        #   # store the rom size
+        #   data[rowCount][3] = romSize
 
         # find timing for current run
-        res = re.search(utc.timerRegExp, str(output))
-        time = float(res.group().split()[2])
+        #res = re.search(utc.timerRegExp, str(output))
+        time = 0.0 #float(res.group().split()[2])
         # store
         data[rowCount][i+4] = time
         print("time = ", time)

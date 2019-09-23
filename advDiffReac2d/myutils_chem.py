@@ -73,7 +73,7 @@ def createInputFileFomChemForLSPGFullMesh(stepperName, meshFileName, romSize):
   data = data.replace("chemReactionValue",      str(cch.chemReaction) )
   data = data.replace("observerOnValue",        str(0) )
   data = data.replace("basisFileNameValue",     "basis.txt")
-  data = data.replace("romOnValue",             str(0) )
+  data = data.replace("romOnValue",             str(1) )
   data = data.replace("romSizeValue",           str(romSize) )
   fin.close()
 
