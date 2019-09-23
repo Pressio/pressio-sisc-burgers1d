@@ -98,8 +98,15 @@ if [ ! -d ${CPPWORKINGDIR}/tpls/trilinos ]; then
 	    -cmake-custom-generator-file=${TOPDIR}/cmake_generators_for_pressio-builder.sh \
 	    -cmake-generator-names=tril_mac_sisc_paper_adr2dcpp
     else
-	echo "fill in cmake line for trilinos for non mac"
-	exit 1
+	./main_tpls.sh \
+	    -dryrun=no \
+	    -tpls=trilinos \
+	    -target-dir=${CPPWORKINGDIR}/tpls \
+	    -build-mode=Release\
+	    -wipe-existing=yes \
+	    -link-type=dynamic \
+	    -cmake-custom-generator-file=${TOPDIR}/cmake_generators_for_pressio-builder.sh \
+	    -cmake-generator-names=tril_linux_sisc_paper_adr2dcpp
     fi
 
     cd ${CPPWORKINGDIR}
