@@ -3,7 +3,7 @@
 #define KOKKOS_SAMPLE_MESH_TIME_DISCRETE_OPS_HPP_
 
 template <
-  typename view_t, typename graph_t, typename sc_t, int numSpecies
+  typename view_t, typename graph_t, typename sc_t, int32_t numSpecies
   >
 struct TimeDiscreteEulerFunctor
 {
@@ -19,7 +19,7 @@ struct TimeDiscreteEulerFunctor
     : graph_{graph}, R_{R}, xn_{xn}, xnm1_{xnm1}, dt_{dt}{}
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (const int iPt) const
+  void operator() (const int32_t iPt) const
   {
     const auto & cellGID  = graph_(iPt,0);
     const auto rIndex = iPt*numSpecies;
@@ -33,7 +33,7 @@ struct TimeDiscreteEulerFunctor
 
 
 template <
-  typename dmat_t, typename graph_t, typename sc_t, int numSpecies
+  typename dmat_t, typename graph_t, typename sc_t, int32_t numSpecies
   >
 struct TimeDiscreteJacobianFunctor
 {
@@ -51,7 +51,7 @@ struct TimeDiscreteJacobianFunctor
     : graph_{graph}, jphi_{jphi}, phi_{phi}, prefactor_{prefactor}, dt_{dt}{}
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (const int iPt) const
+  void operator() (const int32_t iPt) const
   {
     const auto & cellGID  = graph_(iPt,0);
     const auto rIndex = iPt*numSpecies;
@@ -77,15 +77,15 @@ struct time_discrete_ops
   using state_t		 = typename fom_t::state_type;
   using velocity_t	 = typename fom_t::state_type;
   using dmatrix_t	 = typename fom_t::mvec_t;
-  using connectivity_t	 = typename fom_t::connectivity_d_t;
+  using mesh_graph_t	 = typename fom_t::mesh_graph_d_t;
 
-  const connectivity_t & graph_;
+  const mesh_graph_t & graph_;
 
   // because below we unroll the loop for Dofs so it is hardwired
   static_assert( fom_t::numSpecies_==3 );
 
   // constructor
-  time_discrete_ops(const connectivity_t & graph)
+  time_discrete_ops(const mesh_graph_t & graph)
     : graph_{graph}{}
 
   void time_discrete_euler(residual_t & R,
@@ -106,7 +106,7 @@ struct time_discrete_ops
      *
      * On exit, R contains the residual for BDF1
      */
-    using fnctr_t = TimeDiscreteEulerFunctor<state_t, connectivity_t, scalar_t, fom_t::numSpecies_>;
+    using fnctr_t = TimeDiscreteEulerFunctor<state_t, mesh_graph_t, scalar_t, fom_t::numSpecies_>;
     fnctr_t F(graph_, R, xn, xnm1, dt);
     Kokkos::parallel_for(graph_.extent(0), F);
   }
@@ -116,7 +116,7 @@ struct time_discrete_ops
   			      scalar_t prefactor,
   			      scalar_t dt) const
   {
-    using fnctr_t = TimeDiscreteJacobianFunctor<dmatrix_t, connectivity_t, scalar_t, fom_t::numSpecies_>;
+    using fnctr_t = TimeDiscreteJacobianFunctor<dmatrix_t, mesh_graph_t, scalar_t, fom_t::numSpecies_>;
     fnctr_t F(graph_, jphi, phi, prefactor, dt);
     Kokkos::parallel_for(graph_.extent(0), F);
   }

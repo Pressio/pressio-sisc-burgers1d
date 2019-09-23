@@ -15,15 +15,16 @@ template<
   >
 class Adr2dKokkos
 {
-  // each row of the jacobian has 7 non zeros
-  static constexpr int nonZerosPerRowJ_ = 7;
-
   using this_t	= Adr2dKokkos<source_functor, advection_functor>;
   using sc_t	= double;
 
-  using ui_t	= unsigned int;
-  // the type to represent global indices, for enumerating dofs and cells
-  using gid_t   = ui_t;
+public:
+  // type to use for all indexing, has to be large enough
+  // to support indexing fairly large systems
+  using index_t  = int32_t;
+
+  // each row of the jacobian has 7 non zeros
+  static constexpr int32_t nonZerosPerRowJ_ = 7;
 
   // static constants
   static constexpr auto zero	= ::pressio::utils::constants::zero<sc_t>();
@@ -64,8 +65,8 @@ public:
   // --------------------------------------------------------------
   // the cell connectivity types, for both host and device:
   // we know at compile time that the connectivity matrix has 5 columns
-  using connectivity_d_t	= Kokkos::View<gid_t*[5], kll, exe_space>;
-  using connectivity_h_t	= connectivity_d_t::host_mirror_type;
+  using mesh_graph_d_t	= Kokkos::View<index_t*[5], kll, exe_space>;
+  using mesh_graph_h_t	= mesh_graph_d_t::host_mirror_type;
 
   // --------------------------------------------------------------
   // the coordinates type:
@@ -75,7 +76,7 @@ public:
 
   static constexpr int numSpecies_{3};
 
-  using kcrs_mat_t		= KokkosSparse::CrsMatrix<sc_t, gid_t, exe_space>;
+  using kcrs_mat_t		= KokkosSparse::CrsMatrix<sc_t, index_t, exe_space>;
   using state_type_d_t		= k1d_ll_d_t;
   using state_type_h_t		= k1d_ll_h_t;
   using velocity_type_d_t	= state_type_d_t;
@@ -136,11 +137,11 @@ public:
     return state_;
   }
 
-  const connectivity_h_t & viewGraphHost() const{
+  const mesh_graph_h_t & viewGraphHost() const{
     return graph_h_;
   }
 
-  const connectivity_d_t & viewGraphDevice() const{
+  const mesh_graph_d_t & viewGraphDevice() const{
     return graph_d_;
   }
 
@@ -196,7 +197,7 @@ private:
     std::ifstream source;
     source.open( meshFile_, std::ios_base::in);
     std::string line;
-    gid_t count=-1;
+    index_t count=-1;
     while (std::getline(source, line) )
       {
 	std::istringstream ss(line);
@@ -255,6 +256,10 @@ private:
       }
     source.close();
 
+    // we initialized the graph on the host, so deep copy to device
+    Kokkos::deep_copy(graph_d_,  graph_h_);
+    Kokkos::deep_copy(coords_d_, coords_h_);
+
     // for (auto i=0; i<numGpt_r_; ++i){
     //   for (auto j=0; j<5; ++j){
     // 	auto gid = graph_h_(i,j);
@@ -263,11 +268,6 @@ private:
     //   }
     //   std::cout << std::endl;
     // }
-
-    // we initialized the graph on the host, so deep copy to device
-    Kokkos::deep_copy(graph_d_,  graph_h_);
-    Kokkos::deep_copy(coords_d_, coords_h_);
-
   }//end readMesh
 
   void computeCoefficients(){
@@ -285,9 +285,9 @@ private:
     // this code basically creates the graph of the Jacobian only
     // and stores it into member J_
 
-    const gid_t numRows = numDof_r_;
-    const gid_t numCols = numDof_;
-    const gid_t numEnt  = numRows * nonZerosPerRowJ_;
+    const index_t numRows = numDof_r_;
+    const index_t numCols = numDof_;
+    const index_t numEnt  = numRows * nonZerosPerRowJ_;
 
     // create data on device that we need to fill to create Jacobian
     typename jacobian_type::row_map_type::non_const_type ptr ("ptr", numRows+1);
@@ -302,15 +302,15 @@ private:
 
       // first, fill in how many elements per row
       ptr_h[0] = 0;
-      for (gid_t iRow = 0; iRow < numRows; ++iRow) {
+      for (index_t iRow = 0; iRow < numRows; ++iRow) {
 	ptr_h[iRow+1] = ptr_h[iRow] + nonZerosPerRowJ_;
       }
       Kokkos::deep_copy(ptr, ptr_h);
 
       // set the column index for each entry of the Jacobian
       // we have 7 non zeros per row
-      gid_t k = -1;
-      for (gid_t rPt=0; rPt < numGpt_r_; ++rPt)
+      index_t k = -1;
+      for (index_t rPt=0; rPt < numGpt_r_; ++rPt)
       {
 	// gID of this cell
 	const auto & cellGID_ = graph_h_(rPt,0);
@@ -377,7 +377,7 @@ private:
 		     velocity_type     & f) const
   {
     using func_t = VelocityFunctor<
-      state_type, velocity_type, coords_d_t, connectivity_d_t,
+      state_type, velocity_type, coords_d_t, mesh_graph_d_t,
       advection_functor_t, source_functor_t, scalar_type, numSpecies_>;
 
     func_t F(t, u, f, coords_d_, graph_d_, advFnct_, srcFnct_,
@@ -394,10 +394,10 @@ private:
 		     const scalar_type & t,
 		     jacobian_type     & J) const
   {
-    using policy_type = Kokkos::RangePolicy<exe_space, gid_t>;
+    using policy_type = Kokkos::RangePolicy<exe_space, index_t>;
 
     using func_t = JacobianFunctor<
-      state_type, jacobian_type, coords_d_t, connectivity_d_t,
+      state_type, jacobian_type, coords_d_t, mesh_graph_d_t,
       advection_functor_t, source_functor_t, scalar_type, numSpecies_>;
 
     // construct functor
@@ -462,17 +462,17 @@ private:
     1,2,3,4 col: contains GIDs of neighboring cells needed for stencil
   		 the order of the neighbors is: east, north, west, south
    */
-  connectivity_h_t graph_h_ = {};
-  connectivity_d_t graph_d_ = {};
+  mesh_graph_h_t graph_h_ = {};
+  mesh_graph_d_t graph_d_ = {};
 
   // note that dof refers to the degress of freedom,
   // which is NOT same as grid points. for this problem,
   // the dof = numSpecies_ * number_of_unknown_grid_points
   // _r_ stands for velocity
-  gid_t numGpt_	  = {};
-  gid_t numDof_	  = {};
-  gid_t numGpt_r_ = {};
-  gid_t numDof_r_ = {};
+  index_t numGpt_	  = {};
+  index_t numDof_	  = {};
+  index_t numGpt_r_ = {};
+  index_t numDof_r_ = {};
 
   // the coords of all cells centers
   coords_h_t coords_h_ = {};

@@ -15,9 +15,13 @@ class Adr2dEigen
   using this_t	  = Adr2dEigen<source_functor, advection_functor>;
   using sc_t	  = double;
   using eigVec	  = Eigen::VectorXd;
-  //using mv_t	  = Eigen::MatrixXd;
   using Tr	  = Eigen::Triplet<sc_t>;
   using sc_arr3_t = std::array<sc_t, 3>;
+
+  static constexpr auto zero	= ::pressio::utils::constants::zero<sc_t>();
+  static constexpr auto one	= ::pressio::utils::constants::one<sc_t>();
+  static constexpr auto two	= ::pressio::utils::constants::two<sc_t>();
+  static constexpr auto oneHalf = one/two;
 
 public:
   // type to use for all indexing, has to be large enough
@@ -44,11 +48,6 @@ public:
 
   // type to represent connectivity
   using mesh_graph_t	= std::vector<node_al_t>;
-
-  static constexpr auto zero	= ::pressio::utils::constants::zero<scalar_type>();
-  static constexpr auto one	= ::pressio::utils::constants::one<scalar_type>();
-  static constexpr auto two	= ::pressio::utils::constants::two<scalar_type>();
-  static constexpr auto oneHalf = one/two;
 
 public:
   Adr2dEigen() = delete;

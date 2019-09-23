@@ -87,7 +87,7 @@ def main(powersOfTwo, fullMeshCases, smPercentCases, ordering):
 ###############################
 if __name__== "__main__":
 ###############################
-  powersOfTwo = np.array([5,6,7])#5,6,7,8,9])
+  powersOfTwo = np.array([7,8,9,10,11,12])
   fullMeshCases = 2**powersOfTwo
   # list of what percentages of the full mesh we want
   smPercentCases = np.array([5,10])#1, 5, 10, 25, 50, 75])

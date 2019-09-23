@@ -31,7 +31,6 @@ Kokkos::initialize (argc, argv);
    * TYPES
    ----------------------*/
   using scalar_t	  = double;
-
   using fom_t		  = Adr2dKokkos<ChemistryABCSource, CellularFlow>;
 
   // get the source and advection functor types from the app
@@ -94,7 +93,7 @@ Kokkos::initialize (argc, argv);
    * To find out the rows I need to extract, I use the mesh. */
 
   // extract subset of basis
-  const decoder_jac_d_t phi1 = extractSampleMeshRows<unsigned int>(phi0, parser, appObj);
+  const decoder_jac_d_t phi1 = extractSampleMeshRows(phi0, parser, appObj);
 
   // create decoder obj
   decoder_d_t decoderObj(phi1);
@@ -169,7 +168,7 @@ Kokkos::initialize (argc, argv);
     native_state_h_t xH("xH", stateSize);
     Kokkos::deep_copy(xH, *xFomFinal_d.data());
 
-    // print reconstructed host fom state
+    // printn reconstructed host fom state
     std::ofstream file;
     file.open("xFomReconstructed.txt");
     for(auto i=0; i < stateSize; i++){

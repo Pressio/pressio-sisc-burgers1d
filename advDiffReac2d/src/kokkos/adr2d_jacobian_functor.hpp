@@ -14,7 +14,7 @@ template <
   typename advection_functor,
   typename source_functor,
   typename sc_t,
-  int numSpecies
+  int32_t numSpecies
   >
 struct JacobianFunctor{
 
@@ -34,6 +34,10 @@ struct JacobianFunctor{
   sc_t DovDxSq_{}; // D/dx^2
   sc_t DovDySq_{};
   sc_t FDcoeff1_ = {};
+
+  static constexpr int32_t ncol = 7;
+  mutable std::array<ord_t, ncol> cols_ = {};
+  mutable std::array<sc_t, ncol> vals_ = {};
 
   JacobianFunctor(sc_t t,
 		  state_t u,
@@ -60,7 +64,7 @@ struct JacobianFunctor{
   {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (const int & rPt) const
+  void operator() (const int32_t & rPt) const
   {
     // gID of this cell
     const auto & cellGID_ = graph_(rPt,0);
@@ -114,39 +118,35 @@ struct JacobianFunctor{
     // given this cell, find index of state value at SOUTH cell
     const auto uSouthIndex = southCellGid*numSpecies;
 
-    constexpr int ncol = 7;
-    ord_t cols[ncol];
-    sc_t  vals[ncol];
-
     // deal with dof 0
-    cols[0] = uIndex;		vals[0] = FDcoeff1_ + cellSrc00_;
-    cols[1] = uIndex+1;		vals[1] = cellSrc01_;
-    cols[2] = uIndex+2;		vals[2] = cellSrc02_;
-    cols[3] = uWestIndex;	vals[3] = FDcoeffWest_;
-    cols[4] = uNorthIndex;	vals[4] = FDcoeffNorth_;
-    cols[5] = uEastIndex;	vals[5] = FDcoeffEast_;
-    cols[6] = uSouthIndex;	vals[6] = FDcoeffSouth_;
-    J_.replaceValues(rowIndex, cols, ncol, vals, false, true);
+    cols_[0] = uIndex;		vals_[0] = FDcoeff1_ + cellSrc00_;
+    cols_[1] = uIndex+1;	vals_[1] = cellSrc01_;
+    cols_[2] = uIndex+2;	vals_[2] = cellSrc02_;
+    cols_[3] = uWestIndex;	vals_[3] = FDcoeffWest_;
+    cols_[4] = uNorthIndex;	vals_[4] = FDcoeffNorth_;
+    cols_[5] = uEastIndex;	vals_[5] = FDcoeffEast_;
+    cols_[6] = uSouthIndex;	vals_[6] = FDcoeffSouth_;
+    J_.replaceValues(rowIndex, cols_.data(), ncol, vals_.data(), false, true);
 
     // deal with dof 1
-    cols[0] = uIndex+1;	vals[0] = FDcoeff1_ + cellSrc11_;
-    cols[1] = uIndex;	vals[1] = cellSrc10_;
-    cols[2] = uIndex+2; vals[2] = cellSrc12_;
-    cols[3] = uWestIndex+1;  vals[3] = FDcoeffWest_;
-    cols[4] = uNorthIndex+1; vals[4] = FDcoeffNorth_;
-    cols[5] = uEastIndex+1;  vals[5] = FDcoeffEast_;
-    cols[6] = uSouthIndex+1; vals[6] = FDcoeffSouth_;
-    J_.replaceValues(rowIndex+1, cols, ncol, vals, false, true);
+    cols_[0] = uIndex+1;	vals_[0] = FDcoeff1_ + cellSrc11_;
+    cols_[1] = uIndex;		vals_[1] = cellSrc10_;
+    cols_[2] = uIndex+2;	vals_[2] = cellSrc12_;
+    cols_[3] = uWestIndex+1;	vals_[3] = FDcoeffWest_;
+    cols_[4] = uNorthIndex+1;	vals_[4] = FDcoeffNorth_;
+    cols_[5] = uEastIndex+1;	vals_[5] = FDcoeffEast_;
+    cols_[6] = uSouthIndex+1;	vals_[6] = FDcoeffSouth_;
+    J_.replaceValues(rowIndex+1, cols_.data(), ncol, vals_.data(), false, true);
 
     // deal with dof 2
-    cols[0] = uIndex+2;	vals[0] = FDcoeff1_ + cellSrc22_;
-    cols[1] = uIndex;	vals[1] = cellSrc20_;
-    cols[2] = uIndex+1; vals[2] = cellSrc21_;
-    cols[3] = uWestIndex+2;  vals[3] = FDcoeffWest_;
-    cols[4] = uNorthIndex+2; vals[4] = FDcoeffNorth_;
-    cols[5] = uEastIndex+2;  vals[5] = FDcoeffEast_;
-    cols[6] = uSouthIndex+2; vals[6] = FDcoeffSouth_;
-    J_.replaceValues(rowIndex+2, cols, ncol, vals, false, true);
+    cols_[0] = uIndex+2;	vals_[0] = FDcoeff1_ + cellSrc22_;
+    cols_[1] = uIndex;		vals_[1] = cellSrc20_;
+    cols_[2] = uIndex+1;	vals_[2] = cellSrc21_;
+    cols_[3] = uWestIndex+2;	vals_[3] = FDcoeffWest_;
+    cols_[4] = uNorthIndex+2;	vals_[4] = FDcoeffNorth_;
+    cols_[5] = uEastIndex+2;	vals_[5] = FDcoeffEast_;
+    cols_[6] = uSouthIndex+2;	vals_[6] = FDcoeffSouth_;
+    J_.replaceValues(rowIndex+2, cols_.data(), ncol, vals_.data(), false, true);
   }
 };
 

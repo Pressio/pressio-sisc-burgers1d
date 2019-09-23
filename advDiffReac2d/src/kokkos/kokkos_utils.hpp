@@ -6,7 +6,7 @@
 #include "CONTAINERS_ALL"
 
 template <typename phi_t>
-auto readBasis(std::string filename, int romSize)
+auto readBasis(std::string filename, int32_t romSize)
   -> phi_t
 {
   std::vector<std::vector<double>> A0;
@@ -39,7 +39,7 @@ void readSmToFmGIDsMappingFile(std::string filename,
   while (getline(file, line)){
     std::istringstream ss(line);
     int_t entry;
-    int j = 0;
+    int_t j = 0;
     while (ss >> entry){
       lineGIDs[j] = entry;
       j++;
@@ -56,7 +56,7 @@ void readSmToFmGIDsMappingFile(std::string filename,
 }
 
 
-template <typename int_t, typename phi_d_t, typename app_t>
+template <typename phi_d_t, typename app_t>
 ::pressio::containers::MultiVector<phi_d_t>
 extractSampleMeshRows(const ::pressio::containers::MultiVector<phi_d_t> & phi0,
 		      const InputParser & parser,
@@ -64,8 +64,9 @@ extractSampleMeshRows(const ::pressio::containers::MultiVector<phi_d_t> & phi0,
 {
   // I do all operations on the host, since this is just extracting some
   // rows from the phi0 passed in, and then create a new phi1 on the device.
-
   // Note that phi0 is here a pressio wrapper
+
+  using int_t = typename app_t::index_t;
 
   // number of basis vectors
   const auto numBasis = phi0.numVectors();

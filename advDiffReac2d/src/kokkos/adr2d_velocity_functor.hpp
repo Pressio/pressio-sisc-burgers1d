@@ -14,7 +14,7 @@ template <
   typename advection_functor,
   typename source_functor,
   typename sc_t,
-  int numSpecies
+  int32_t numSpecies
   >
 struct VelocityFunctor{
 
@@ -58,7 +58,7 @@ struct VelocityFunctor{
   {}
 
   KOKKOS_INLINE_FUNCTION
-  void operator() (const int & rPt) const
+  void operator() (const int32_t & rPt) const
   {
     // gID of this cell
     const auto & cellGID_ = graph_(rPt,0);
