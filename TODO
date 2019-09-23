@@ -2,13 +2,15 @@
 ------
 ADR2D
 ------
+
+- fix number of time steps to take
+- fix meshes and sample meshes %
+
 - add checks, e.g. num of basis cannot be larger than dofs, etc.
-- fix integer type for eigen and kokkos
 - calculate approx memory footprint for FOM app
-- kokkos do FOM with bdf1 ?
-- set options to do runs with RCM meshes or natural meshes
 - implement Householder QR dense solver for Kokkos-CUDA
 - move state/xy prints to utils
+- kokkos do FOM with bdf1 ?
 
 
 MS problem:
@@ -35,11 +37,9 @@ both Eigen and Kokkos in a similar way. It seems that Householder QR
 is consistent between Eigen and Kokkos host and Kokkos cuda.
 If we use the same solver, then we can even compare.
 
-
 ########################################################################
 
 Recall powers of two:
-2^5  = 32
 2^6  = 64
 2^7  = 128
 2^8  = 256
@@ -49,9 +49,7 @@ Recall powers of two:
 2^12 = 4096
 2^13 = 8192
 
-
 Square mesh with 3 dofs per cell such that we have these cases:
-tag: a  Nx = 2^6   =>  4,096	  total cells  =>  12,288      dofs
 tag: b  Nx = 2^7   =>  16,384     total cells  =>  49,152      dofs
 tag: c  Nx = 2^8   =>  65,536     total cells  =>  196,608     dofs
 tag: d  Nx = 2^9   =>  262,144    total cells  =>  786,432     dofs
@@ -61,12 +59,6 @@ tag: g  Nx = 2^12  =>  16,777,216 total cells  =>  50,331,648  dofs
 tag: h  Nx = 2^13  =>  67,108,864 total cells  =>  201,326,592 dofs
 
 
-
 ROM sizes (the rom size MUST be less than the DOFs, because we want a tall-skinny matrix
 and ideally it should be small compared to the dofs)
-
-
-
-
-Sets of cases for chemistry:
-(a) meshes = {a,b,c,d}
+romSize_cases = np.array([10, 20])#, 50, 100, 200])
