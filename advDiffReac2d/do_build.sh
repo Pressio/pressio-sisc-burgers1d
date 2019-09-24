@@ -42,7 +42,6 @@ CPPWORKINGDIR=${WORKINGDIR}/cpp
 # wipe everything if set to 1
 [[ $WIPEEXISTING == yes ]] && wipe_existing_data_in_target_dir
 
-
 #---------------------------
 # go to working dir
 cd ${CPPWORKINGDIR}
@@ -51,7 +50,7 @@ cd ${CPPWORKINGDIR}
 if [ ! -d ${CPPWORKINGDIR}/pressio-builder ];
 then
     git clone git@github.com:Pressio/pressio-builder.git
-    #cd pressio-builder && git checkout siscPaper && cd ..
+    cd pressio-builder && git checkout master && cd ..
 else
     cd pressio-builder && git pull && cd -
 fi
@@ -83,45 +82,48 @@ if [ ! -d ${CPPWORKINGDIR}/tpls/gtest ]; then
     cd ${CPPWORKINGDIR}
 fi
 
+#-------------
 # do trilinos
+#-------------
+# only build trilinos is it is not passed by user
 if [ -z ${TRILINOSPFX} ];
 then
-    if [ ! -d ${CPPWORKINGDIR}/tpls/trilinos ]; then
+    if [[ ! -d ${CPPWORKINGDIR}/tpls/trilinos || \
+	     ! -d ${CPPWORKINGDIR}/tpls/trilinos/build ]];
+    then
 	cd ${CPPWORKINGDIR}/pressio-builder
 
-	if [[ $ONMAC -eq 1 ]]; then
-	    ./main_tpls.sh \
-		-dryrun=no \
-		-tpls=trilinos \
-		-target-dir=${CPPWORKINGDIR}/tpls \
-		-build-mode=Release\
-		-wipe-existing=yes \
-		-link-type=dynamic \
-		-cmake-custom-generator-file=${TOPDIR}/cmake_generators_for_pressio-builder.sh \
-		-cmake-generator-names=tril_mac_sisc_paper_adr2dcpp
-	else
-	    ./main_tpls.sh \
-		-dryrun=no \
-		-tpls=trilinos \
-		-target-dir=${CPPWORKINGDIR}/tpls \
-		-build-mode=Release\
-		-wipe-existing=yes \
-		-link-type=dynamic \
-		-cmake-custom-generator-file=${TOPDIR}/cmake_generators_for_pressio-builder.sh \
-		-cmake-generator-names=tril_linux_sisc_paper_adr2dcpp
+	# by default, the generator line for trilins is:
+	TRILGENFNCNAME=tril_sisc_adr2dcpp
+	if [ $WITHOPENMP == yes ]; then
+	    TRILGENFNCNAME=tril_sisc_adr2dcpp_openmp
+	    echo "${TRILGENFNCNAME} is on, enabling openmp"
 	fi
 
+	./main_tpls.sh \
+	    -dryrun=no \
+	    -tpls=trilinos \
+	    -target-dir=${CPPWORKINGDIR}/tpls \
+	    -build-mode=Release\
+	    -wipe-existing=yes \
+	    -link-type=dynamic \
+	    -cmake-custom-generator-file=${TOPDIR}/cmake_generators_for_pressio-builder.sh \
+	    -cmake-generator-names=${TRILGENFNCNAME}
+
 	cd ${CPPWORKINGDIR}
-	TRILINOSPFX=${CPPWORKINGDIR}/tpls/trilinos
+
     fi
 fi
+# set the proper trilinos pfx
+[[ -z ${TRILINOSPFX} ]] && TRILINOSPFX=${CPPWORKINGDIR}/tpls/trilinos
+
 
 #-------------
 # do pressio
 #-------------
 # (install with cmake which we need because of the cmakedefines)
 # only need rom package (others turned on automatically)
-# target-type: does not matter since Pressio is NOT compiled yet
+# link-type: does not matter since Pressio is NOT compiled yet
 if [[ ! -d ${CPPWORKINGDIR}/tpls/pressio ||\
 	 ! -d ${CPPWORKINGDIR}/tpls/pressio/build ]];
 then
@@ -134,6 +136,16 @@ then
     fi
     cd pressio && git checkout develop && cd ..
 
+    # by default, the generator line for trilins is:
+    PRESSIOGENFNCNAME=pressio_sisc_adr2dcpp
+    if [[ $WITHOPENMP == yes && $WITHDBGPRINT == yes ]]; then
+	PRESSIOGENFNCNAME=pressio_sisc_adr2dcpp_openmp_dbgprint
+    elif [[ $WITHOPENMP == yes && $WITHDBGPRINT == no ]]; then
+	PRESSIOGENFNCNAME=pressio_sisc_adr2dcpp_openmp
+    elif [[ $WITHOPENMP == no && $WITHDBGPRINT == yes ]]; then
+	PRESSIOGENFNCNAME=pressio_sisc_adr2dcpp_dbgprint
+    fi
+
     # install pressio
     cd ${CPPWORKINGDIR}/pressio-builder
     ./main_pressio.sh \
@@ -145,7 +157,7 @@ then
 	-build-mode=Release \
 	-link-type=dynamic \
 	-cmake-custom-generator-file=${TOPDIR}/cmake_generators_for_pressio-builder.sh \
-	-cmake-generator-name=pressio_mac_sisc_paper_adr2dcpp \
+	-cmake-generator-name=${PRESSIOGENFNCNAME} \
 	-eigen-path=${CPPWORKINGDIR}/tpls/eigen/install \
 	-gtest-path=${CPPWORKINGDIR}/tpls/gtest/install \
 	-trilinos-path=${TRILINOSPFX}/install
@@ -154,7 +166,7 @@ then
 else
     cd ${CPPWORKINGDIR}/tpls/pressio/pressio && git pull && cd -
     cd ${CPPWORKINGDIR}/tpls/pressio/build
-    make -j2 install
+    make -j4 install
     cd ${CPPWORKINGDIR}
 fi
 
@@ -166,6 +178,9 @@ EIGENPATH="${CPPWORKINGDIR}/tpls/eigen/install/include/eigen3"
 TRILINOSINCPATH="${TRILINOSPFX}/install/include"
 TRILINOSLIBPATH="${TRILINOSPFX}/install/lib"
 PRESSIOPATH="${CPPWORKINGDIR}/tpls/pressio/install/include"
+
+USEOMP=OFF
+[[ ${WITHOPENMP} == yes ]] && USEOMP=ON
 
 # build C++ exes
 bdirname=build
@@ -179,6 +194,7 @@ cmake -DCMAKE_C_COMPILER=${CC} \
       -DCMAKE_CXX_COMPILER=${CXX} \
       -DCMAKE_VERBOSE_MAKEFILE:BOOL=TRUE \
       -DCMAKE_BUILD_TYPE=Release \
+      -DHAVE_OMP:BOOL=${USEOMP} \
       -DEIGEN_INCLUDE_DIR=${EIGENPATH} \
       -DTRILINOS_INCLUDE_DIR=${TRILINOSINCPATH} \
       -DTRILINOS_LIBRARY_DIR=${TRILINOSLIBPATH} \

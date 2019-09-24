@@ -25,30 +25,44 @@ TRILINOSPFX=
 # name of the task, depends on what you run
 TASKNAME=
 
+# if we want OpenMP enabled
+WITHOPENMP=no
+
 # the type of mesh to use to identify the ordering method
 # use "natural" for using meshes with natural ordering
 # use "rcm" for using meshes ordered with reverse cuthill-mackee
 MESHORDERNAME=natural
 
-# var to detect if we are on mac
+# var to detect the os type [linux or mac]
+ARCH=
 if [[ $OSTYPE == *"darwin"* ]]; then
-    ONMAC=1
+    ARCH=mac
+else
+    ARCH=linux
 fi
 
+# if we want debug prints on
+WITHDBGPRINT=no
+
+
 function wipe_existing_data_in_target_dir(){
-    echo "Wiping existing data in ${CPPWORKINGDIR}"
-    rm -rf ${CPPWORKINGDIR}/build
+    echo "Wiping ${CPPWORKINGDIR}/{data_*, build}"
+    rm -rf ${CPPWORKINGDIR}/build ${CPPWORKINGDIR}/data_*
 }
 
 function print_global_vars(){
     echo "TOPDIR         = $TOPDIR"
-    echo "TASKNAME       = $TASKNAME"
     echo "CPPSRC         = $CPPSRC"
     echo "WORKINGDIR     = $WORKINGDIR"
     echo "CPPWORKINGDIR  = $CPPWORKINGDIR"
     echo "WIPEEXISTING   = ${WIPEEXISTING}"
     echo "SETENVscript   = $SETENVscript"
-    echo "ONMAC          = $ONMAC"
+    echo "TRILINOSPFX    = $TRILINOSPFX"
+    echo "TASKNAME       = $TASKNAME"
+    echo "WITHOPENMP     = $WITHOPENMP"
+    echo "MESHORDERNAME  = $MESHORDERNAME"
+    echo "ARCH           = $ARCH"
+    echo "WITHDBGPRINT   = $WITHDBGPRINT"
 }
 
 function check_minimum_vars_set(){

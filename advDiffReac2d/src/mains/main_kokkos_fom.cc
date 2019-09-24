@@ -57,7 +57,7 @@ template <typename app_t>
 void printMeshCoordsToFile(const app_t & appObj){
   const auto coords = appObj.getCoordsHost();
   std::ofstream file; file.open("xy.txt");
-  for(auto i=0; i < coords.extent(0); i++){
+  for(size_t i=0; i < coords.extent(0); i++){
     file << std::setprecision(14) << coords(i,0) << " " << coords(i,1);
     file << std::endl;
   }
@@ -77,8 +77,8 @@ void doSVD(const obs_t & Obs,
 
   std::cout << "Print basis to file" << std::endl;
   std::ofstream file; file.open(basisFileName);
-  for (auto i=0; i<U.rows(); i++){
-    for (auto j=0; j<U.cols(); j++){
+  for (size_t i=0; i<U.rows(); i++){
+    for (size_t j=0; j<U.cols(); j++){
       file << std::fixed << std::setprecision(15) << U(i,j) << " ";
     }
     file << std::endl;

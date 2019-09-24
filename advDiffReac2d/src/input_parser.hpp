@@ -148,9 +148,8 @@ private:
 
     if (odeStepperName_ != "RungeKutta4"  and
 	odeStepperName_ != "bdf1"){
-      std::cerr << "Invalid odeStepperName" << std::endl;
-      std::cerr << "odeStepperName must be: Euler, or RungeKutta4, bdf1" << std::endl;
-      return 1;
+      // std::cerr << "Invalid odeStepperName" << std::endl;
+      // std::cerr << "odeStepperName must be: Euler, or RungeKutta4, bdf1" << std::endl;
     }
 
     if (dt_<=0.){

@@ -66,7 +66,7 @@ int main(int argc, char *argv[]){
    * CREATE DECODER
    ----------------------*/
   // store basis vectors
-  const decoder_jac_t phi = readBasis<unsigned int>(parser.basisFileName_, parser.romSize_);
+  const decoder_jac_t phi = readBasis<int32_t>(parser.basisFileName_, parser.romSize_);
   const auto numBasis = phi.numVectors();
   if( numBasis != parser.romSize_ ) return 1;
 

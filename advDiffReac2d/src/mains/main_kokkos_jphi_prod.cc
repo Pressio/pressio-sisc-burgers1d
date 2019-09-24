@@ -12,6 +12,7 @@
 #include "advection_cellular_flow_functor.hpp"
 #include "source_term_chemABC_functor.hpp"
 #include "kokkos_utils.hpp"
+#include <random>
 
 int main(int argc, char *argv[]){
 Kokkos::initialize (argc, argv);
@@ -42,9 +43,6 @@ Kokkos::initialize (argc, argv);
   using native_mv_d_t     = typename fom_t::mv_d_t;
   using native_mv_h_t	  = typename fom_t::mv_h_t;
 
-  // the lspg state type on the DEVICE(d)
-  using lspg_state_d_t	  = pressio::containers::Vector<native_state_d_t>;
-
   // decoder jacobian types for both device(d) and host(h)
   using decoder_jac_d_t   = pressio::containers::MultiVector<native_mv_d_t>;
   using decoder_jac_h_t	  = pressio::containers::MultiVector<native_mv_h_t>;
@@ -55,15 +53,17 @@ Kokkos::initialize (argc, argv);
   using lspg_hessian_t  = pressio::containers::Matrix<native_mv_d_t>;
 
   constexpr auto zero = ::pressio::utils::constants::zero<scalar_t>();
+  constexpr auto one  = ::pressio::utils::constants::one<scalar_t>();
 
   /*----------------------
    * CREATE APP OBJECT
    ----------------------*/
-  // functors for advection and source
+  // here we do everything as if we were setting up a real rom problem,
+  // but then we use the Jacobian and basis matrix to repeat mat-mat prodducts
+  // to test the performacne
+
   adv_fnct_t advFunctor;
   src_fnct_t srcFunctor(parser.K_);
-
-  // app object
   fom_t appObj(parser.meshFileName_, srcFunctor, advFunctor, parser.D_);
   // get the number of total dofs
   const auto stateSize = appObj.getStateSize();
@@ -71,50 +71,50 @@ Kokkos::initialize (argc, argv);
   // the device reference state = all zeros
   // just need to initialize, since by default kokkos zeros out
   native_state_d_t yRef("yRef", stateSize);
+  {
+    native_state_h_t yRefh("yRefh", stateSize);
+    for (size_t i=0; i<stateSize; ++i)
+      yRefh(i) = one;
+    Kokkos::deep_copy(yRef, yRefh);
+  }
 
   /*----------------------
-   * CREATE LINEAR DECODER
+   * CREATE RANDOM basis vectors
+   * since we do not care about numbers here
    ----------------------*/
-  const auto phi = readBasis<decoder_jac_d_t>(parser.basisFileName_, parser.romSize_);
+  decoder_jac_d_t phi("phi", stateSize, parser.romSize_);
   const auto numBasis = phi.numVectors();
   if( numBasis != romSize ) return 0;
+  {
+    using gen_t	   = std::mt19937;
+    using rand_distr_t = std::uniform_real_distribution<scalar_t>;
+    gen_t engine(473445);
+    rand_distr_t distr(zero, one);
+    auto genFnc = [&distr, &engine](){
+		   return distr(engine);
+		 };
 
-  // create decoder obj
-  decoder_d_t decoderObj(phi);
+    // fill randomly
+    decoder_jac_h_t phi_h("phi_h", stateSize, parser.romSize_);
+    for (size_t i=0; i<phi_h.data()->extent(0); i++){
+      for (size_t j=0; j<phi_h.data()->extent(1); j++)
+	(*phi_h.data())(i,j) = genFnc();
+    }
+    Kokkos::deep_copy(*phi.data(), *phi_h.data());
+  }
 
-  /*----------------------
-   * DEFINE LSPG PROBLEM
-   ----------------------*/
   // start timer: we do it here because we do not count reading the basis
   auto startTime = std::chrono::high_resolution_clock::now();
 
-  // device ROM state: this is zero initialized, like we want.
-  lspg_state_d_t xROM("xROM", romSize);
-
-  // define LSPG type
-  constexpr auto ode_case  = pressio::ode::ImplicitEnum::Euler;
-  using lspg_problem_type  = pressio::rom::DefaultLSPGTypeGenerator<
-  				fom_t, ode_case, decoder_d_t, lspg_state_d_t>;
-  using lspg_stepper_t	   = typename lspg_problem_type::lspg_stepper_t;
-  using lspg_generator	   = pressio::rom::LSPGUnsteadyProblemGenerator<lspg_problem_type>;
-  lspg_generator lspgProblem(appObj, yRef, decoderObj, xROM, zero);
-
-  // --- linear solver ---
-  using solver_tag	   = pressio::solvers::linear::direct::getrs;
-  using linear_solver_t	   = pressio::solvers::direct::KokkosDirect<solver_tag, lspg_hessian_t>;
-  linear_solver_t linSolverObj;
-
-  // --- normal-equations-based GaussNewton solver ---
-  using gnsolver_t   = pressio::solvers::iterative::GaussNewton<lspg_stepper_t,	linear_solver_t>;
-  gnsolver_t solver(lspgProblem.stepperObj_, xROM, linSolverObj);
-  solver.setTolerance(1e-13);
-  solver.setMaxIterations(10);
-
-  /*----------------------
-   * INTEGRATE
-   ----------------------*/
-  pressio::ode::integrateNSteps(lspgProblem.stepperObj_, xROM, zero,
-  				parser.dt_, parser.NSteps_, solver);
+  // do product of Jacobian times phi, i.e. sparse time dense
+  // this is how it is done inside the app
+  const auto JJ = appObj.jacobian(yRef, zero);
+  native_mv_d_t A("AA", stateSize, phi.data()->extent(1));
+  const char ct = 'N';
+  for (auto i=0; i<20; ++i){
+    std::cout << i << std::endl;
+    KokkosSparse::spmv(&ct, one, JJ, *phi.data(), zero, A);
+  }
 
   // Record end time
   auto finishTime = std::chrono::high_resolution_clock::now();
@@ -122,39 +122,6 @@ Kokkos::initialize (argc, argv);
   std::cout << "Elapsed time: "
   	    << std::fixed << std::setprecision(10)
   	    << elapsed.count() << std::endl;
-
-  /*----------------------
-   * FINISH UP
-   ----------------------*/
-  {
-    // create a host mirror for the device ROM coords
-    native_state_h_t xROMh("xROMh", romSize);
-    Kokkos::deep_copy(xROMh, *xROM.data());
-
-    // print generalized coordinates
-    std::ofstream file;
-    file.open("final_generalized_coords.txt");
-    for(size_t i=0; i < romSize; i++){
-      file << std::setprecision(14) << xROMh(i) << std::endl;
-    }
-    file.close();
-  }
-  {
-    // reconstruct the FOM state on the device using the final generalized coordinates
-    const auto xFomFinal_d = lspgProblem.yFomReconstructor_(xROM);
-
-    // create a host mirror for the device reconstructed FOM state
-    native_state_h_t xH("xH", stateSize);
-    Kokkos::deep_copy(xH, *xFomFinal_d.data());
-
-    // print reconstructed host fom state
-    std::ofstream file;
-    file.open("xFomReconstructed.txt");
-    for(size_t i=0; i < stateSize; i++){
-      file << std::setprecision(15) << xH(i) << std::endl;
-    }
-    file.close();
-  }
 
 }//end kokkos scope
 return 0;

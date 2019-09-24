@@ -155,7 +155,7 @@ Kokkos::initialize (argc, argv);
     // print generalized coordinates
     std::ofstream file;
     file.open("final_generalized_coords.txt");
-    for(auto i=0; i < parser.romSize_; i++){
+    for(size_t i=0; i < parser.romSize_; i++){
       file << std::setprecision(14) << xROMh(i) << std::endl;
     }
     file.close();
@@ -171,7 +171,7 @@ Kokkos::initialize (argc, argv);
     // printn reconstructed host fom state
     std::ofstream file;
     file.open("xFomReconstructed.txt");
-    for(auto i=0; i < stateSize; i++){
+    for(size_t i=0; i < stateSize; i++){
       file << std::setprecision(15) << xH(i) << std::endl;
     }
     file.close();

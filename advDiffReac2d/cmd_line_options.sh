@@ -64,7 +64,8 @@ Configuration:
 					will be fully wiped and re-made.
 					default = no
 
---do=					label for case to run.
+--do=					label identifying the case to run,
+					depends on the launching script.
 
 --mesh-ordering=			Name/label identifying which mesh ordering:
 					- <natural> for using meshes with natural ordering

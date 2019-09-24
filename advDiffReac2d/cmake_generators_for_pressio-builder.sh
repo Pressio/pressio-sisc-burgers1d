@@ -3,7 +3,7 @@
 #---------------------------------
 # trilinos generators
 #---------------------------------
-function tril_mac_sisc_paper_adr2dcpp(){
+function tril_sisc_adr2dcpp(){
     trilinos_build_type
     trilinos_link_type
     trilinos_verbose_makefile_on
@@ -16,7 +16,7 @@ function tril_mac_sisc_paper_adr2dcpp(){
     trilinos_packages_for_pressio
 }
 
-function tril_linux_sisc_paper_adr2dcpp(){
+function tril_sisc_adr2dcpp_openmp(){
     trilinos_build_type
     trilinos_link_type
     trilinos_verbose_makefile_on
@@ -24,7 +24,7 @@ function tril_linux_sisc_paper_adr2dcpp(){
     trilinos_mpi_fortran_on
     trilinos_tests_off
     trilinos_examples_off
-    trilinos_kokkos_serial
+    trilinos_kokkos_omp
     trilinos_openblaslapack
     trilinos_packages_for_pressio
 }
@@ -32,7 +32,7 @@ function tril_linux_sisc_paper_adr2dcpp(){
 #---------------------------------
 # pressio generators
 #---------------------------------
-function pressio_mac_sisc_paper_adr2dcpp(){
+function pressio_sisc_adr2dcpp(){
     pressio_build_type
     pressio_link_type
     pressio_mpi_c_cxx_compilers
@@ -43,5 +43,19 @@ function pressio_mac_sisc_paper_adr2dcpp(){
     pressio_enable_eigen
     pressio_enable_trilinos
     pressio_pressio_target_package
-    #pressio_enable_debug_print
+}
+
+function pressio_sisc_adr2dcpp_dbgprint(){
+    pressio_sisc_adr2dcpp
+    pressio_enable_debug_print
+}
+
+function pressio_sisc_adr2dcpp_openmp(){
+    pressio_sisc_adr2dcpp
+    pressio_enable_omp
+}
+
+function pressio_sisc_adr2dcpp_openmp_dbgprint(){
+    pressio_sisc_adr2dcpp
+    pressio_enable_omp
 }
