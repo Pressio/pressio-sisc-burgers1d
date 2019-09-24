@@ -62,6 +62,14 @@ public:
       D_{diffusion}
   {
     this->readMesh();
+    /* the jacobian has
+     * num of rows = number of residuals dofs
+     * num of cols = number of state dofs
+     */
+    J_.resize(numDof_r_, numDof_);
+    tripletList.resize(nonZerosPerRowJ_*numDof_r_);
+
+    // compute and store all coefficients for stencils
     this->computeCoefficients();
   }
 
@@ -157,6 +165,7 @@ private:
 	  ss >> colVal;
 	  numGpt_r_ = std::stoi(colVal);
 	  numDof_r_ = numGpt_r_ * this_t::numSpecies_;
+	  f_.resize(numDof_r_);
 	  std::cout << "numGpt_r = " << numGpt_r_ << std::endl;
 	  std::cout << "numDof_r = " << numDof_r_ << std::endl;
 	}
@@ -164,21 +173,13 @@ private:
 	  ss >> colVal;
 	  numGpt_ = std::stoi(colVal);
 	  numDof_   = numGpt_ * this_t::numSpecies_;
+	  state_.resize(numDof_);
+	  x_.resize(numGpt_);
+	  y_.resize(numGpt_);
 	  std::cout << "numGpt = " << numGpt_ << std::endl;
 	  std::cout << "numDof = " << numDof_ << std::endl;
 	}
 	else{
-	  x_.resize(numGpt_);
-	  y_.resize(numGpt_);
-	  state_.resize(numDof_);
-	  f_.resize(numDof_r_);
-	  /* the jacobian has
-	   * num of rows = number of residuals dofs
-	   * num of cols = number of state dofs
-	   */
-	  J_.resize(numDof_r_, numDof_);
-	  tripletList.resize(nonZerosPerRowJ_*numDof_r_);
-
 	  // store first value and its coords
 	  auto thisGid = std::stoi(colVal);
 	  lineGIDs[0] = thisGid;

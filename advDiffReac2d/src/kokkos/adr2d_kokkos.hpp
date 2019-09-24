@@ -219,6 +219,11 @@ private:
 	  ss >> colVal;
 	  numGpt_r_ = std::stoi(colVal);
 	  numDof_r_ = numGpt_r_ * this_t::numSpecies_;
+	  Kokkos::resize( f_, numDof_r_);
+	  // since graph has fix num of cols, only resize rows
+	  Kokkos::resize( graph_h_, numGpt_r_);
+	  Kokkos::resize( graph_d_, numGpt_r_);
+
 	  std::cout << "numGpt_r = " << numGpt_r_ << " "
 		    << "numDof_r = " << numDof_r_ << std::endl;
 	}
@@ -226,19 +231,15 @@ private:
 	  ss >> colVal;
 	  numGpt_ = std::stoi(colVal);
 	  numDof_   = numGpt_ * this_t::numSpecies_;
-	  std::cout << "numGpt = " << numGpt_ << " "
-		    << "numDof = " << numDof_ << std::endl;
-	}
-	else{
 	  Kokkos::resize( state_, numDof_);
-	  Kokkos::resize( f_, numDof_r_);
-	  // since graph has fix num of cols, only resize rows
-	  Kokkos::resize( graph_h_, numGpt_r_);
-	  Kokkos::resize( graph_d_, numGpt_r_);
 	  // since coords has fix num of cols, only resize the rows
 	  Kokkos::resize( coords_h_, numGpt_);
 	  Kokkos::resize( coords_d_, numGpt_);
 
+	  std::cout << "numGpt = " << numGpt_ << " "
+		    << "numDof = " << numDof_ << std::endl;
+	}
+	else{
 	  ++count;
 	  // store first value and its coords
 	  auto thisGid = std::stoi(colVal);

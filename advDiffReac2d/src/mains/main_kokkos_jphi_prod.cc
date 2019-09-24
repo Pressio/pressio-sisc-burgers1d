@@ -86,19 +86,20 @@ Kokkos::initialize (argc, argv);
   const auto numBasis = phi.numVectors();
   if( numBasis != romSize ) return 0;
   {
-    using gen_t	   = std::mt19937;
-    using rand_distr_t = std::uniform_real_distribution<scalar_t>;
-    gen_t engine(473445);
-    rand_distr_t distr(zero, one);
-    auto genFnc = [&distr, &engine](){
-		   return distr(engine);
-		 };
+    const auto phiEig = Eigen::MatrixXd::Random(phi.length(), phi.numVectors());
+    // using gen_t	   = std::mt19937;
+    // using rand_distr_t = std::uniform_real_distribution<scalar_t>;
+    // gen_t engine(473445);
+    // rand_distr_t distr(zero, one);
+    // auto genFnc = [&distr, &engine](){
+    // 		   return distr(engine);
+    // 		 };
 
     // fill randomly
     decoder_jac_h_t phi_h("phi_h", stateSize, parser.romSize_);
     for (size_t i=0; i<phi_h.data()->extent(0); i++){
       for (size_t j=0; j<phi_h.data()->extent(1); j++)
-	(*phi_h.data())(i,j) = genFnc();
+  	(*phi_h.data())(i,j) = phiEig(i,j);
     }
     Kokkos::deep_copy(*phi.data(), *phi_h.data());
   }
