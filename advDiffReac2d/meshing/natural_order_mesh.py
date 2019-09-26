@@ -58,7 +58,7 @@ class NatOrdMesh:
 
   # lower-left corner is where i,j=(0,0)
   def globalIDToGiGj(self,ID):
-    return [ID % self.Nx_, int(ID/self.Nx_)]
+    return [ID % self.Nx_, np.int64(ID/self.Nx_)]
 
   # lower-left corner is where origin is
   def createFullGrid(self):
@@ -77,7 +77,7 @@ class NatOrdMesh:
       [gi, gj] = self.globalIDToGiGj(iPt)
 
       # temporary list holding neighbors
-      tmpList = np.zeros(4, dtype=int)
+      tmpList = np.zeros(4, dtype=np.int64)
 
       # west neighbor
       # if gi==0, we are on left BD

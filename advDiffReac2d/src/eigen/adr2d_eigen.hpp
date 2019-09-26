@@ -24,6 +24,19 @@ class Adr2dEigen
   static constexpr auto oneHalf = one/two;
 
 public:
+
+  // the layout to use for SparseMatrix,
+  // if using RowMajor, we can benefit for OpenMP quoting from website:
+  // ***
+  // Currently, the following algorithms can make use of multi-threading:
+  // general dense matrix - matrix products
+  // row-major-sparse * dense vector/matrix products
+  // ConjugateGradient with Lower|Upper as the UpLo template parameter.
+  // BiCGSTAB with a row-major sparse matrix format.
+  // LeastSquaresConjugateGradient
+  // **
+  static constexpr auto spmat_layout = Eigen::RowMajor;
+
   // type to use for all indexing, has to be large enough
   // to support indexing fairly large systems
   using index_t  = int32_t;
@@ -43,8 +56,11 @@ public:
   using state_type	= eigVec;
   using velocity_type	= eigVec;
   // Eigen SparseMatrix has to have a signed integer type, use index_t
-  using jacobian_type	= Eigen::SparseMatrix<sc_t, Eigen::RowMajor, index_t>;
-  using dmatrix_type	= Eigen::MatrixXd;
+  using jacobian_type	= Eigen::SparseMatrix<sc_t, spmat_layout, index_t>;
+
+  // for some reason, the best outcome is when the sparse is row-major
+  // and the dense matrix is colmajor
+  using dmatrix_type	= Eigen::Matrix<sc_t, Eigen::Dynamic, Eigen::Dynamic, Eigen::ColMajor>;
 
   // type to represent connectivity
   using mesh_graph_t	= std::vector<node_al_t>;
@@ -413,6 +429,8 @@ private:
     }// end vPt loop
 
     J.setFromTriplets(tripletList.begin(), tripletList.end());
+    if ( !J.isCompressed() )
+      J.makeCompressed();
 
   }// end jacobian_impl
 

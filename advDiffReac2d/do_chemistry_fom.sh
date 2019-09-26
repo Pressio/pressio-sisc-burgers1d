@@ -1,5 +1,12 @@
 #!/bin/bash
 
+#--------------------------------------
+#
+#     Chemisty adr2d FOM only
+#
+# either FOM timing or basis generation
+#-------------------------------------
+
 set -e
 
 # load global variables
@@ -51,12 +58,7 @@ then
     exit 3
 fi
 
-#--------------------------------------
-#
-#     Chemisty adr2d FOM only
-#
-# either FOM timing or basis generation
-#-------------------------------------
+
 # check if the build was already done
 if [ ! -d ${CPPWORKINGDIR}/build ]; then
     echo "there is no build in the target folder, do that first"
@@ -86,9 +88,9 @@ if [ ! -d $meshDir ]; then
 fi
 
 # copy python scripts
-cp ${TOPDIR}/myutils_common.py ${destDir}
-cp ${TOPDIR}/constants_chem.py ${destDir}/
-cp ${TOPDIR}/myutils_chem.py ${destDir}/
+cp ${TOPDIR}/help_scripts/myutils_common.py ${destDir}
+cp ${TOPDIR}/help_scripts/constants_chem.py ${destDir}/
+cp ${TOPDIR}/help_scripts/myutils_chem.py ${destDir}/
 
 if [[ $TASKNAME == *"_timing"* ]]; then
     cp ${TOPDIR}/run_scripts/run_fom_timing.py ${destDir}/

@@ -48,7 +48,7 @@ def reverseCuthillMckee(spMat, symmetric):
 def plotLabels(x, y, gids, ax, m='o', col='b', ms='3'):
   ax.plot(x, y, m, markerfacecolor=col, markersize=ms)
   for i in range(0, len(x)):
-    ax.text(x[i], y[i], str(int(gids[i])),verticalalignment='center')
+    ax.text(x[i], y[i], str(np.int64(gids[i])),verticalalignment='center')
   ax.set_aspect(aspect=1)
 
 
@@ -61,6 +61,6 @@ def createRandomListTargetResidualGIDs(nx, ny, numCells, targetPct):
   # how many elements of the full mesh the targetPct corresponds to
   # need to get the floor of this to get an integer
   targetSMSize = targetPct * 1e-2 * numCells
-  targetSMSize = int(np.floor(targetSMSize))
+  targetSMSize = np.int64(np.floor(targetSMSize))
   rGIDs = random.sample(range(numCells), targetSMSize)
   return rGIDs

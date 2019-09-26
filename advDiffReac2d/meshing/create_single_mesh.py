@@ -131,7 +131,7 @@ def main(Nx, Ny, samplingType, targetPct, plotting, orderingType):
       allGIDs.append(k)
       # append GID of stencils/neighborin cells
       for j in v:
-        allGIDs.append(int(j))
+        allGIDs.append(np.int64(j))
 
   # remove duplicates and sort
   allGIDs = list(dict.fromkeys(allGIDs))

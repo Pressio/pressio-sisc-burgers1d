@@ -1,10 +1,4 @@
 
-// pressio headers
-#include "CONTAINERS_ALL"
-#include "ODE_IMPLICIT"
-#include "ODE_INTEGRATORS"
-#include "SOLVERS_NONLINEAR"
-#include "ROM_LSPG"
 // local headers
 #include "adr2d_eigen.hpp"
 #include "input_parser.hpp"
@@ -34,9 +28,6 @@ int main(int argc, char *argv[]){
   using native_state_t  = typename fom_t::state_type;
   using native_dmat_t	= typename fom_t::dmatrix_type;
 
-  using decoder_jac_t	= pressio::containers::MultiVector<native_dmat_t>;
-  using decoder_t	= pressio::rom::LinearDecoder<decoder_jac_t>;
-
   constexpr auto zero = ::pressio::utils::constants::zero<scalar_t>();
   constexpr auto one  = ::pressio::utils::constants::one<scalar_t>();
 
@@ -65,30 +56,37 @@ int main(int argc, char *argv[]){
    * CREATE RANDOM basis vectors
    * since we do not care about numbers here
    ----------------------*/
-  decoder_jac_t phi(stateSize, parser.romSize_);
-  *phi.data() = Eigen::MatrixXd::Random(phi.length(), phi.numVectors());
-  const auto numBasis = phi.numVectors();
+  native_dmat_t phi(stateSize, parser.romSize_);
+  phi = native_dmat_t::Random(phi.rows(), phi.cols());
+  const auto numBasis = phi.cols();
   if( numBasis != parser.romSize_ ) return 1;
 
   // start timer: we do it here because we do not count reading the basis
   auto startTime = std::chrono::high_resolution_clock::now();
 
+  // native_dmat_t phi2( phi.cols(), 200);
+  // phi2 = native_dmat_t::Random(phi.cols(), 200);
+  // native_dmat_t C( phi.rows(), phi2.cols() );
+  // for (auto i=0; i<20; ++i){
+  //   std::cout << i << std::endl;
+  //   C = phi * phi2;
+  // }
+
   // native_dmat_t A( 4000, 1000 );
   // native_dmat_t B( 1000, 500 );
   // native_dmat_t C( 4000, 500 );
-  // for (auto i=0; i<100; ++i){
-  //   if (i % 25 == 0)
-  //     std::cout << i << std::endl;
+  // for (auto i=0; i<20; ++i){
+  //   std::cout << i << std::endl;
   //   C = A * B;
   // }
 
   // do product of Jacobian times phi, i.e. sparse time dense
   // this is how it is done inside the app
   const auto JJ = appObj.jacobian(yRef, zero);
-  native_dmat_t A( JJ.rows(), phi.data()->cols() );
+  native_dmat_t A( JJ.rows(), phi.cols() );
   for (auto i=0; i<20; ++i){
     std::cout << i << std::endl;
-    A = JJ * (*phi.data());
+    A = JJ * phi;
   }
 
   // Record end time

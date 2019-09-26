@@ -34,9 +34,7 @@ int main(int argc, char *argv[]){
   using native_state_t  = typename fom_t::state_type;
   using native_dmat_t	= typename fom_t::dmatrix_type;
 
-  using eig_dyn_vec	= Eigen::Matrix<scalar_t, Eigen::Dynamic, 1>;
-
-  using lspg_state_t	= pressio::containers::Vector<eig_dyn_vec>;
+  using lspg_state_t	= pressio::containers::Vector<native_state_t>;
   using decoder_jac_t	= pressio::containers::MultiVector<native_dmat_t>;
   using decoder_t	= pressio::rom::LinearDecoder<decoder_jac_t>;
 
@@ -44,6 +42,7 @@ int main(int argc, char *argv[]){
   using eig_dyn_mat	= Eigen::Matrix<scalar_t, Eigen::Dynamic, Eigen::Dynamic>;
   using lspg_hessian_t	= pressio::containers::Matrix<eig_dyn_mat>;
 
+  // helper constexpr
   constexpr auto zero = ::pressio::utils::constants::zero<scalar_t>();
 
   /*----------------------
@@ -65,8 +64,12 @@ int main(int argc, char *argv[]){
   /*----------------------
    * CREATE DECODER
    ----------------------*/
-  // store basis vectors
-  const decoder_jac_t phi = readBasis<int32_t>(parser.basisFileName_, parser.romSize_);
+  // store basis vectors into native format
+  const auto phiNative = readBasis<scalar_t, int32_t, native_dmat_t>(parser.basisFileName_,
+								     parser.romSize_);
+  // wrap native basis with a pressio wrapper
+  const decoder_jac_t phi(phiNative);
+  // check
   const auto numBasis = phi.numVectors();
   if( numBasis != parser.romSize_ ) return 1;
 

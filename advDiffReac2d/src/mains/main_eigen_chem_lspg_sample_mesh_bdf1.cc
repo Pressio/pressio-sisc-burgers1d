@@ -37,9 +37,7 @@ int main(int argc, char *argv[]){
   using native_state_t  = typename fom_t::state_type;
   using native_dmat_t	= typename fom_t::dmatrix_type;
 
-  using eig_dyn_vec	= Eigen::Matrix<scalar_t, Eigen::Dynamic, 1>;
-
-  using lspg_state_t	= pressio::containers::Vector<eig_dyn_vec>;
+  using lspg_state_t	= pressio::containers::Vector<native_state_t>;
   using decoder_jac_t	= pressio::containers::MultiVector<native_dmat_t>;
   using decoder_t	= pressio::rom::LinearDecoder<decoder_jac_t>;
 
@@ -47,6 +45,7 @@ int main(int argc, char *argv[]){
   using eig_dyn_mat	= Eigen::Matrix<scalar_t, Eigen::Dynamic, Eigen::Dynamic>;
   using lspg_hessian_t	= pressio::containers::Matrix<eig_dyn_mat>;
 
+  // a helper constant
   constexpr auto zero = ::pressio::utils::constants::zero<scalar_t>();
 
   /*----------------------
@@ -69,25 +68,24 @@ int main(int argc, char *argv[]){
    * READ BASIS VECTORS
    ----------------------*/
   // this loads the full basis, i.e. wrt the full mesh was used
-
-  const decoder_jac_t phi0 = readBasis<unsigned int>(parser.basisFileName_, parser.romSize_);
-  const auto numBasis = phi0.numVectors();
+  const auto phi0Native = readBasis<scalar_t, int32_t, native_dmat_t>(parser.basisFileName_,
+								      parser.romSize_);
+  const auto numBasis = phi0Native.cols();
   if( numBasis != parser.romSize_ ) return 1;
+
+  /* when using the sample mesh we don't have all the cells of the domain.
+   * Therefore, I need to extract from the FULL basis vectors only the entries
+   * relative to the sample mesh. Specifically, we want the rows corresponding
+   * to the sample mesh cells where we have state.
+   * The decoder will then be constructed using this subset of the basis vectors.*/
+  const auto phi1Native = extractSampleMeshRows(phi0, parser, appObj);
+
+  // wrap native basis with a pressio wrapper
+  const decoder_jac_t phi1(phi1Native);
 
   /*----------------------
    * CREATE DECODER
    ----------------------*/
-  /* when using the sample mesh, it means that I don't have all the cells of the domain.
-   * Therefore, I need to extract from the basis vectors only the entries
-   * relative to the sample mes. Specifically, we want all the ROWs corresponding
-   * to the sample mesh cells where we have state.
-   * The decoder will then be constructed using this subset of the basis vectors.
-   * To find out the rows I need to extract, I use the mesh. */
-
-  // extract subset of basis
-  const decoder_jac_t phi1 = extractSampleMeshRows(phi0, parser, appObj);
-
-  // create decoder obj
   decoder_t decoderObj(phi1);
 
   /*----------------------

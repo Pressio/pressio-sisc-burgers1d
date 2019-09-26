@@ -55,27 +55,28 @@ def main(exeName, meshDir, stepperName):
     # loop over the number of runs to do for each mesh size
     for i in range(0, cch.numSamplesForTiming):
       print("replica # = ", i+1)
-      popen = subprocess.Popen(args, stdout=subprocess.PIPE)
-      popen.wait()
-      output = popen.stdout.read()
-      print (output)
+      os.system("./" + exeName + " input.txt")
+      # popen = subprocess.Popen(args, stdout=subprocess.PIPE)
+      # popen.wait()
+      # output = popen.stdout.read()
+      # print (output)
 
-      # if we are at first replica run, grep the number of Dofs
-      if i == 0:
-        # dofs for residual vector
-        res = re.search(utc.numDofResidRegExp, str(output))
-        numDofResid = np.int32(res.group().split()[2])
-        data[iMesh][1] = numDofResid
-        # dofs for state vector
-        res = re.search(utc.numDofStateRegExp, str(output))
-        numDofState = np.int32(res.group().split()[2])
-        data[iMesh][2] = numDofState
-        print("dofResid = ", numDofResid)
-        print("dofState = ", numDofState)
+      # # if we are at first replica run, grep the number of Dofs
+      # if i == 0:
+      #   # dofs for residual vector
+      #   res = re.search(utc.numDofResidRegExp, str(output))
+      #   numDofResid = np.int32(res.group().split()[2])
+      #   data[iMesh][1] = numDofResid
+      #   # dofs for state vector
+      #   res = re.search(utc.numDofStateRegExp, str(output))
+      #   numDofState = np.int32(res.group().split()[2])
+      #   data[iMesh][2] = numDofState
+      #   print("dofResid = ", numDofResid)
+      #   print("dofState = ", numDofState)
 
       # find timing from executable output
-      res = re.search(utc.timerRegExp, str(output))
-      time = float(res.group().split()[2])
+      #res = re.search(utc.timerRegExp, str(output))
+      time = 0.0 #float(res.group().split()[2])
       # store in data
       data[iMesh][i+3] = time
       print("Time = ", time, "\n")

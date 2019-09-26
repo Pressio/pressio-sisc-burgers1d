@@ -22,6 +22,7 @@ endif()
 # EIGEN exes
 #-------------------
 set(TRILLIBNAMESEIGEN
+  kokkosalgorithms kokkoscontainers kokkoscore teuchoskokkoscomm teuchoskokkoscompat
   teuchosremainder teuchosnumerics teuchoscomm teuchosparameterlist teuchosparser teuchoscore
 )
 
@@ -42,15 +43,25 @@ else()
 endif()
 
 
-# # eigen fom
-# add_executable(adr2d_eigen_fom ${MAINDIR}/main_eigen_fom.cc)
-# target_include_directories(adr2d_eigen_fom BEFORE PUBLIC ${EIGENINCDIRS})
-# target_link_libraries(adr2d_eigen_fom ${TRILLIBNAMES} OpenMP::OpenMP_CXX)
+# eigen fom
+set(exeName adr2d_eigen_fom)
+add_executable(${exeName} ${MAINDIR}/main_eigen_fom.cc)
+target_include_directories(${exeName} BEFORE PUBLIC ${EIGENINCDIRS})
+if(${HAVE_OMP})
+  target_link_libraries(${exeName} ${TRILLIBNAMESEIGEN} OpenMP::OpenMP_CXX)
+else()
+  target_link_libraries(${exeName} ${TRILLIBNAMESEIGEN})
+endif()
 
-# # chemical problem, LSPG with full mesh bdf1
-# add_executable(adr2d_eigen_chem_lspg_full_mesh_bdf1 ${MAINDIR}/main_eigen_chem_lspg_full_mesh_bdf1.cc)
-# target_include_directories(adr2d_eigen_chem_lspg_full_mesh_bdf1 BEFORE PUBLIC ${EIGENINCDIRS})
-# target_link_libraries(adr2d_eigen_chem_lspg_full_mesh_bdf1 ${TRILLIBNAMES} OpenMP::OpenMP_CXX)
+# chemical problem, LSPG with full mesh bdf1
+set(exeName adr2d_eigen_chem_lspg_full_mesh_bdf1)
+add_executable(${exeName} ${MAINDIR}/main_eigen_chem_lspg_full_mesh_bdf1.cc)
+target_include_directories(${exeName} BEFORE PUBLIC ${EIGENINCDIRS})
+if(${HAVE_OMP})
+  target_link_libraries(${exeName} ${TRILLIBNAMESEIGEN} OpenMP::OpenMP_CXX)
+else()
+  target_link_libraries(${exeName} ${TRILLIBNAMESEIGEN})
+endif()
 
 # # chemical problem, LSPG with SAMPLE mesh bdf1
 # add_executable(adr2d_eigen_chem_lspg_sample_mesh_bdf1 ${MAINDIR}/main_eigen_chem_lspg_sample_mesh_bdf1.cc)

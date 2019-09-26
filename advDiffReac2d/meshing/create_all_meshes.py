@@ -56,8 +56,11 @@ def main(powersOfTwo, fullMeshCases, smPercentCases, ordering):
       # get what percent this SM wants
       thisSMPercent = smPercentCases[iSM]
       print ("Doing case with nFM = ", nFM,
-             " fmSize = ", totCellsFM,
-             " and SM % = ", thisSMPercent)
+             " totCellsFM = ", totCellsFM,
+             " totDofsFM = ", totCellsFM*3,
+             " and SM % = ", thisSMPercent,
+             " totCellsSM = ", thisSMPercent*totCellsFM*0.01,
+             " totDofsSM = ", thisSMPercent*totCellsFM*3*0.01)
 
       # running command for creating the SAMPLE mesh first
       cmdL1 = "python create_single_mesh.py"

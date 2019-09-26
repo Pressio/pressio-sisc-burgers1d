@@ -1,11 +1,11 @@
 
-// pressio headers
-#include "UTILS_ALL"
-#include "CONTAINERS_ALL"
-#include "ODE_IMPLICIT"
-#include "ODE_INTEGRATORS"
-#include "SOLVERS_NONLINEAR"
-#include "ROM_LSPG"
+// // pressio headers
+// #include "UTILS_ALL"
+// #include "CONTAINERS_ALL"
+// #include "ODE_IMPLICIT"
+// #include "ODE_INTEGRATORS"
+// #include "SOLVERS_NONLINEAR"
+// #include "ROM_LSPG"
 // local headers
 #include "adr2d_kokkos.hpp"
 #include "input_parser.hpp"
@@ -43,15 +43,6 @@ Kokkos::initialize (argc, argv);
   using native_mv_d_t     = typename fom_t::mv_d_t;
   using native_mv_h_t	  = typename fom_t::mv_h_t;
 
-  // decoder jacobian types for both device(d) and host(h)
-  using decoder_jac_d_t   = pressio::containers::MultiVector<native_mv_d_t>;
-  using decoder_jac_h_t	  = pressio::containers::MultiVector<native_mv_h_t>;
-  // device decoder type
-  using decoder_d_t	  = pressio::rom::LinearDecoder<decoder_jac_d_t>;
-
-  // the hessian is used only if LSPG is solved using NormalEquations
-  using lspg_hessian_t  = pressio::containers::Matrix<native_mv_d_t>;
-
   constexpr auto zero = ::pressio::utils::constants::zero<scalar_t>();
   constexpr auto one  = ::pressio::utils::constants::one<scalar_t>();
 
@@ -82,11 +73,11 @@ Kokkos::initialize (argc, argv);
    * CREATE RANDOM basis vectors
    * since we do not care about numbers here
    ----------------------*/
-  decoder_jac_d_t phi("phi", stateSize, parser.romSize_);
-  const auto numBasis = phi.numVectors();
+  native_mv_d_t phi("phi", stateSize, parser.romSize_);
+  const auto numBasis = phi.extent(1);
   if( numBasis != romSize ) return 0;
   {
-    const auto phiEig = Eigen::MatrixXd::Random(phi.length(), phi.numVectors());
+    const auto phiEig = Eigen::MatrixXd::Random(phi.extent(0), phi.extent(1));
     // using gen_t	   = std::mt19937;
     // using rand_distr_t = std::uniform_real_distribution<scalar_t>;
     // gen_t engine(473445);
@@ -96,12 +87,12 @@ Kokkos::initialize (argc, argv);
     // 		 };
 
     // fill randomly
-    decoder_jac_h_t phi_h("phi_h", stateSize, parser.romSize_);
-    for (size_t i=0; i<phi_h.data()->extent(0); i++){
-      for (size_t j=0; j<phi_h.data()->extent(1); j++)
-  	(*phi_h.data())(i,j) = phiEig(i,j);
+    native_mv_h_t phi_h("phi_h", stateSize, parser.romSize_);
+    for (size_t i=0; i<phi_h.extent(0); i++){
+      for (size_t j=0; j<phi_h.extent(1); j++)
+  	phi_h(i,j) = phiEig(i,j);
     }
-    Kokkos::deep_copy(*phi.data(), *phi_h.data());
+    Kokkos::deep_copy(phi, phi_h);
   }
 
   // start timer: we do it here because we do not count reading the basis
@@ -110,11 +101,11 @@ Kokkos::initialize (argc, argv);
   // do product of Jacobian times phi, i.e. sparse time dense
   // this is how it is done inside the app
   const auto JJ = appObj.jacobian(yRef, zero);
-  native_mv_d_t A("AA", stateSize, phi.data()->extent(1));
+  native_mv_d_t A("AA", stateSize, phi.extent(1));
   const char ct = 'N';
   for (auto i=0; i<20; ++i){
     std::cout << i << std::endl;
-    KokkosSparse::spmv(&ct, one, JJ, *phi.data(), zero, A);
+    KokkosSparse::spmv(&ct, one, JJ, phi, zero, A);
   }
 
   // Record end time
