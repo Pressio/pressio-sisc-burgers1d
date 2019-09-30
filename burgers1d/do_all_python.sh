@@ -1,8 +1,6 @@
 #!/bin/bash
 
-# -----------------------------------------------
-# handle all steps for the Python Burgers1d
-# -----------------------------------------------
+set -e
 
 # load global variables
 source ${PWD}/common/global_vars.sh
@@ -35,14 +33,14 @@ fi
 PYWORKINGDIR=${WORKINGDIR}/python
 [[ ! -d ${PYWORKINGDIR} ]] && mkdir ${PYWORKINGDIR}
 
-# wipe everything if set to 1
-[[ $WIPEEXISTING = 1 ]] && rm -rf ${PYWORKINGDIR}/*
+## wipe everything if set to 1
+#[[ $WIPEEXISTING = 1 ]] && rm -rf ${PYWORKINGDIR}/*
 
 #---------------------------
 # only build
 #---------------------------
 if [ $WHICHTASK = "build" ]; then
-    source ${topDir}/python/build_scripts/build.sh
+    source ${TOPDIR}/python/build_scripts/build.sh
 fi
 
 #---------------------------
@@ -55,11 +53,10 @@ then
 	echo "there is no build in the target folder, do that first"
 	exit 0
     fi
-
     # check if the basis are present
     BASISDIRNAME=
-    [[ $WHICHTASK = "lspg" ]] && BASISDIRNAME=fomBdf1Basis
-    [[ $WHICHTASK = "galerkin" ]] && BASISDIRNAME=fomRk4Basis
+    [[ $WHICHTASK = "lspg" ]] && BASISDIRNAME=fom_bdf1_basis
+    [[ $WHICHTASK = "galerkin" ]] && BASISDIRNAME=fom_rk4_basis
     if [ ! -d ${WORKINGDIR}/cpp/data_${BASISDIRNAME} ]; then
 	echo "there is not basis dir in the target folder, do that first"
 	exit 0
@@ -67,7 +64,7 @@ then
 
     # create folder inside workindir
     destDir=${PYWORKINGDIR}/"data_"${WHICHTASK}
-    mkdir ${destDir}
+    [[ ! -d ${destDir} ]] && mkdir ${destDir}
 
     # alias the name of target executable
     EXENAME=
@@ -86,22 +83,24 @@ then
 	ln -s ${PYWORKINGDIR}/build/pressio4pyGalerkin.so ${destDir}
     fi
     # link the ops
-    [[ -f ${destDir}/pressio4pyOps.so ]] && rm ${destDir}/pressio4pyOps.so
-    ln -s ${PYWORKINGDIR}/build/pressio4pyOps.py ${destDir}
+    if [[ -f ${destDir}/pressio4pyOps.so ]]; then
+       rm ${destDir}/pressio4pyOps.so
+       ln -s ${PYWORKINGDIR}/build/pressio4pyOps.py ${destDir}
+    fi
 
     # copy all pything scripts there
-    cp ${topDir}/common/constants.py ${destDir}/
-    cp ${topDir}/python/run_scripts/run_rom_timing.py ${destDir}/
-    cp ${topDir}/python/src/burgers1d.py ${destDir}/
+    cp ${TOPDIR}/common/constants.py ${destDir}/
+    cp ${TOPDIR}/python/run_scripts/run_rom_timing.py ${destDir}/
+    cp ${TOPDIR}/python/src/burgers1d.py ${destDir}/
     if [ $WHICHTASK = "lspg" ]; then
-	cp ${topDir}/python/src/main_rom_lspg.py ${destDir}/
+	cp ${TOPDIR}/python/src/main_rom_lspg.py ${destDir}/
     fi
     if [ $WHICHTASK = "galerkin" ]; then
-	cp ${topDir}/python/src/main_rom_galerkin.py ${destDir}/
+	cp ${TOPDIR}/python/src/main_rom_galerkin.py ${destDir}/
     fi
 
     # enter there and run
     cd ${destDir}
     python run_rom_timing.py --exe=${EXENAME} --basis-dir-name=${BASISDIRNAME}
-    cd ${topDir}
+    cd ${TOPDIR}
 fi

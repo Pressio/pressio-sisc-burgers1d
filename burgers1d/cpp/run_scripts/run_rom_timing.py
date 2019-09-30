@@ -13,7 +13,7 @@ import myutils, constants
 # scope: generate timings for C++ Burgers1D rom
 #-------------------------------------------------------
 
-def main(exename, basisDirName):
+def main(exeName, basisDirName):
   # data stored as:
   # - first col  = mesh size
   # - second col = rom size
@@ -23,7 +23,7 @@ def main(exename, basisDirName):
   data = np.zeros((len(constants.numCell_cases), nCols))
 
   # args for the executable
-  args = ("./"+exename, "input.txt")
+  args = ("./"+exeName, "input.txt")
 
   # store parent directory where all basis are stored
   basisParentDir = os.getcwd() + "/../data_" + basisDirName
@@ -49,28 +49,32 @@ def main(exename, basisDirName):
       subs1 = "numCell" + str(numCell)
       subs2 = "basis" + str(romSize)
       basisDir = basisParentDir + "/" + subs1 + "/" + subs2
-      os.system("cp "+basisDir+"/basis.txt .")
+      # always remove the link to basis to make sure we link the right one
+      os.system("rm -rf ./basis.txt")
+      os.system("ln -s "+basisDir+"/basis.txt ./basis.txt")
 
       for i in range(0, constants.numSamplesForTiming):
-        popen = subprocess.Popen(args, stdout=subprocess.PIPE)
-        popen.wait()
-        output = popen.stdout.read()
-        print(output)
+        # popen = subprocess.Popen(args, stdout=subprocess.PIPE)
+        # popen.wait()
+        # output = popen.stdout.read()
+        # print(output)
+        os.system("./" + exeName + " input.txt")
+
         # find timing
-        res = re.search(constants.timerRegExp, str(output))
-        time = float(res.group().split()[2])
+        #res = re.search(constants.timerRegExp, str(output))
+        time = -1.0 #float(res.group().split()[2])
         print("time = ", time)
         # store
         data[iMesh][i+2] = time
 
-  np.savetxt(exename+"_timings.txt", data, fmt='%.12f')
+  np.savetxt(exeName+"_timings.txt", data, fmt='%.12f')
   print(data)
 
 
 if __name__== "__main__":
   parser = ArgumentParser()
-  parser.add_argument("-exe", "--exe", dest="exename")
+  parser.add_argument("-exe", "--exe", dest="exeName")
   parser.add_argument("-basis-dir-name", "--basis-dir-name",
                       dest="basisDirName")
   args = parser.parse_args()
-  main(args.exename, args.basisDirName)
+  main(args.exeName, args.basisDirName)

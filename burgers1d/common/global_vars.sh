@@ -1,13 +1,13 @@
 #!/bin/bash
 
 # top dir where this lives
-topDir=${PWD}
+TOPDIR=${PWD}
 
 # burgers1d cpp source
-CPPSRC=${topDir}/cpp/src
+CPPSRC=${TOPDIR}/cpp/src
 
 # burgers1d python sources
-PYSRC=${topDir}/python/src
+PYSRC=${TOPDIR}/python/src
 
 # store the working dir
 WORKINGDIR=
@@ -20,40 +20,59 @@ CPPWORKINGDIR=
 # which is WORKINGDIR/python
 PYWORKINGDIR=
 
-# bool to wipe existing content of target directory
-WIPEEXISTING=0
+# yes/no wipe existing data content of target directory
+WIPEEXISTING=no
 
+# name of the task to run
 WHICHTASK=
 
 # env script
 SETENVscript=
 
-print_global_vars(){
-    echo "TOPDIR	 = $TOPDIR"
-    echo "CPPSRC	 = $CPPSRC"
+# var to detect the os type [linux or mac]
+ARCH=
+if [[ $OSTYPE == *"darwin"* ]]; then
+    ARCH=mac
+else
+    ARCH=linux
+fi
+
+# if we want debug prints on
+WITHDBGPRINT=no
+
+
+function print_global_vars(){
+    echo "TOPDIR         = $TOPDIR"
+    echo "CPPSRC         = $CPPSRC"
     echo "PYSRC		 = $PYSRC"
     echo "WORKINGDIR     = $WORKINGDIR"
+    echo "CPPWORKINGDIR  = $CPPWORKINGDIR"
+    echo "PYWORKINGDIR   = $PYWORKINGDIR"
     echo "WIPEEXISTING   = ${WIPEEXISTING}"
     echo "SETENVscript   = $SETENVscript"
+    echo "TASKNAME       = $TASKNAME"
+    echo "ARCH           = $ARCH"
+    echo "WITHDBGPRINT   = $WITHDBGPRINT"
 }
 
-check_minimum_vars_set(){
+function check_minimum_vars_set(){
     if [ -z $WORKINGDIR ]; then
 	echo "--working-dir is empty, must be set: exiting"
-	exit 0
+	exit 11
     fi
     if [ -z $WHICHTASK ]; then
-	echo "--do is empty, must be set"
-	echo " for do_all_cpp, choose one of: build, fom_bdf1_timing,"\
-	     "fom_bdf1_basis, lspg, fom_rk4_timing,"\
-	     "fom_rk4_basis, galerkin"
+	echo "--do cannot be empty!"
+	echo " for do_all_cpp, choose one of:"\
+	     "build, "\
+	     "fom_rk4_timing, fom_rk4_basis, galerkin"\
+	     "fom_bdf1_timing, fom_bdf1_basis, lspg"
 
 	echo " for do_all_python, choose one of: build, lspg, galerkin"
-	exit 0
+	exit 23
     fi
 }
 
-check_minimum_vars_set_cpp(){
+function check_minimum_vars_set_cpp(){
     # check for common
     check_minimum_vars_set
 
@@ -73,7 +92,7 @@ check_minimum_vars_set_cpp(){
     fi
 }
 
-check_minimum_vars_set_python(){
+function check_minimum_vars_set_python(){
     # check for common
     check_minimum_vars_set
 

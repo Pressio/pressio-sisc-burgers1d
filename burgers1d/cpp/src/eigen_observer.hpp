@@ -4,25 +4,25 @@
 
 template <typename state_t>
 struct EigenObserver{
-  using matrix_t = Eigen::MatrixXd;
-  using uint_t   = unsigned int;
   using scalar_t = double;
+  using matrix_t = Eigen::Matrix<scalar_t, -1, -1>;
+  using int_t    = int32_t;
 
-  uint_t numCell_ {};
+  int_t numCell_ {};
   matrix_t A_;
-  uint_t count_ = 0;
-  state_t x0_;
+  int_t count_ = 0;
+  state_t xRef_;
   state_t xIncr_;
   int snapshotsFreq_ = {};
 
-  EigenObserver(uint_t Nsteps, uint_t numCell,
-	   const state_t & x0, int shapshotsFreq)
+  EigenObserver(int_t Nsteps, int_t numCell,
+	   const state_t & xRef, int shapshotsFreq)
     : numCell_(numCell),
-      x0_(x0),
+      xRef_(xRef),
       xIncr_(numCell),
       snapshotsFreq_(shapshotsFreq)
   {
-    uint_t numCols = 0;
+    int_t numCols = 0;
     // make sure number of steps is divisible by sampling frequency
     if ( Nsteps % shapshotsFreq == 0)
       numCols = Nsteps/shapshotsFreq;
@@ -33,10 +33,11 @@ struct EigenObserver{
     A_.resize(numCell_, numCols);
   }
 
-  void operator()(uint_t step, scalar_t t, const state_t & x)
+  void operator()(int_t step, scalar_t t, const state_t & x)
   {
+    // we do not keep the step = 0
     if ( step % snapshotsFreq_ == 0 and step > 0){
-      xIncr_ = x - x0_;
+      xIncr_ = x - xRef_;
       this->storeInColumn(xIncr_, count_);
       count_++;
     }
@@ -49,8 +50,8 @@ struct EigenObserver{
   void printSnapshotsToFile(std::string fileName) const {
     std::ofstream file;
     file.open(fileName);
-    for (uint_t i=0; i<A_.rows(); i++){
-      for (uint_t j=0; j<A_.cols(); j++){
+    for (int_t i=0; i<A_.rows(); i++){
+      for (int_t j=0; j<A_.cols(); j++){
 	file << std::fixed
 	     << std::setprecision(15)
 	     << A_(i,j) << " ";
@@ -61,8 +62,8 @@ struct EigenObserver{
   }
 
 private:
-  void storeInColumn(const state_t & x, uint_t colIndex){
-    for (uint_t i=0; i<numCell_; i++)
+  void storeInColumn(const state_t & x, int_t colIndex){
+    for (int_t i=0; i<numCell_; i++)
       A_(i, colIndex) = x(i);
   }
 };

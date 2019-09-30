@@ -8,21 +8,21 @@ struct InputParser{
   using scalar_t = double;
 
   std::string fileName_ = "empty";
-  unsigned int numCell_ = {};
+  int32_t numCell_ = {};
   scalar_t dt_	        = {};
   scalar_t finalT_	= {};
-  int observerOn_	= 0;
-  int snapshotsFreq_    = {}; // freq of collecting snapshots
+  int32_t observerOn_	= 0;
+  int32_t snapshotsFreq_    = {}; // freq of collecting snapshots
   std::string shapshotsFileName_ = "empty";
   std::string basisFileName_ = "empty";
 
-  int romOn_	= 0;
-  unsigned int romSize_ = {};
+  int32_t romOn_	= 0;
+  int32_t romSize_ = {};
 
   InputParser() = default;
   ~InputParser() = default;
 
-  int parse(int argc, char *argv[])
+  int32_t parse(int32_t argc, char *argv[])
   {
     if (argc != 2){
       std::cerr << "Usage: " << argv[0] << " inputFile " << std::endl;

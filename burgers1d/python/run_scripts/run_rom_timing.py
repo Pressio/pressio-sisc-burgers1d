@@ -42,7 +42,9 @@ def main(exename, basisDirName):
       subs1 = "numCell" + str(numCell)
       subs2 = "basis" + str(romSize)
       basisDir = basisParentDir + "/" + subs1 + "/" + subs2
-      os.system("cp "+basisDir+"/basis.txt .")
+      # always remove the link to basis to make sure we link the right one
+      os.system("rm -rf ./basis.txt")
+      os.system("ln -s "+basisDir+"/basis.txt ./basis.txt")
 
       # args to run (args changes since each replica
       # is done with different values of inputs)
@@ -55,6 +57,7 @@ def main(exename, basisDirName):
         popen.wait()
         output = popen.stdout.read()
         print(output)
+
         # find timing
         res = re.search(constants.timerRegExp, str(output))
         time = float(res.group().split()[2])

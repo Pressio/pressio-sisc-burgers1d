@@ -12,7 +12,7 @@ for option; do
 	    want_help=yes
 	    ;;
 
-	-working-dir=* | --working-dir=* | -work-dir=* | --work-dir=*)
+	-working-dir=* | --working-dir=* )
 	    WORKINGDIR=`expr "x$option" : "x-*working-dir=\(.*\)"`
 	    ;;
 
@@ -26,6 +26,10 @@ for option; do
 
 	-do=* | --do=* )
 	    WHICHTASK=`expr "x$option" : "x-*do=\(.*\)"`
+	    ;;
+
+	-dbg-print=* | --dbg-print=* )
+	    WITHDBGPRINT=`expr "x$option" : "x-*dbg-print=\(.*\)"`
 	    ;;
 
 	# unrecognized option}
@@ -55,17 +59,19 @@ Configuration:
 --with-env-script=<path-to-file>	full path to script to set the environment.
 					default = assumes environment is set.
 
---wipe-existing=[0/1]			if =1 (true), the destination folder set by
-					--target-dir will be wiped and remade.
-					default = 0
+--wipe-existing-data=[yes/no]		if yes, all the following subfolders:
+						--target-dir/data_*
+						--target-dir/build_*
+					will be fully wiped and re-made.
+				   	default = no
 
 --do=					which case/stage to execute
 					options for cpp=build, fomBdf1Timing, fomBdf1Basis,
 							lspg, fomRk4Timing, fomRk4Basis, galerkin
 					options for python=build, lspg, galerkin
 
+--dbg-print=[yes/no]			if yes, enable pressio debug print
+					default = no
 EOF
+  exit 0
 fi
-
-# if help, then exit
-test -n "$want_help" && exit 0

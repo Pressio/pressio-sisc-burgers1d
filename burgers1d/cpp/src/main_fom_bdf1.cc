@@ -15,15 +15,12 @@ int main(int argc, char *argv[]){
   using app_velo_t	= typename app_t::velocity_type;
   using app_jacob_t	= typename app_t::jacobian_type;
 
-  using ode_state_t = pressio::containers::Vector<app_state_t>;
-  using ode_r_t	    = pressio::containers::Vector<app_velo_t>;
-  using ode_j_t     = pressio::containers::Matrix<app_jacob_t>;
+  using ode_state_t	= pressio::containers::Vector<app_state_t>;
+  using ode_r_t		= pressio::containers::Vector<app_velo_t>;
+  using ode_j_t		= pressio::containers::Matrix<app_jacob_t>;
 
-  constexpr auto zero = ::pressio::utils::constants::zero<scalar_t>();
-  constexpr auto one  = ::pressio::utils::constants::one<scalar_t>();
-
-  // Record start time
-  auto startTime = std::chrono::high_resolution_clock::now();
+  constexpr auto zero	= ::pressio::utils::constants::zero<scalar_t>();
+  constexpr auto one	= ::pressio::utils::constants::one<scalar_t>();
 
   // parse input file
   InputParser parser;
@@ -46,26 +43,33 @@ int main(int argc, char *argv[]){
   // wrap init state
   ode_state_t x(x0n);
 
+  // Record start time
+  auto startTime = std::chrono::high_resolution_clock::now();
+
   // define stepper
   constexpr auto ode_case = pressio::ode::ImplicitEnum::Euler;
   using stepper_t = pressio::ode::ImplicitStepper<
     ode_case, ode_state_t, ode_r_t, ode_j_t, app_t>;
   stepper_t stepperObj(x, appObj);
 
-  // define solver
+  // define linear solver
   using lin_solver_t = pressio::solvers::iterative::EigenIterative<
-    pressio::solvers::linear::iterative::LSCG, ode_j_t>;
-  pressio::solvers::NewtonRaphson<scalar_t, lin_solver_t> solverO;
-  solverO.setMaxIterations(10);
+    pressio::solvers::linear::iterative::Bicgstab, ode_j_t>;
+  lin_solver_t linearSolverObj;
+
+  // define non-linear solver
+  using non_lin_solver_t = pressio::solvers::NewtonRaphson<scalar_t, lin_solver_t>;
+  non_lin_solver_t solverObj(linearSolverObj);
   // by default, newton raphson exits when norm of correction is below tolerance
-  solverO.setTolerance(1e-13);
+  solverObj.setTolerance(1e-13);
+  solverObj.setMaxIterations(10);
 
   // integrate in time
   if (observerOn == 1){
     // construct observer, pass y which now contains init condition
     using obs_t = EigenObserver<ode_state_t>;
     obs_t Obs(Nsteps, numCell, x, parser.snapshotsFreq_);
-    pressio::ode::integrateNSteps(stepperObj, x, zero, dt, Nsteps, Obs, solverO);
+    pressio::ode::integrateNSteps(stepperObj, x, zero, dt, Nsteps, Obs, solverObj);
 
     // print snapshots to file
     Obs.printSnapshotsToFile(parser.shapshotsFileName_);
@@ -89,7 +93,7 @@ int main(int argc, char *argv[]){
     std::cout << "Done with basis" << std::endl;
   }
   else{
-    pressio::ode::integrateNSteps(stepperObj, x, zero, dt, Nsteps, solverO);
+    pressio::ode::integrateNSteps(stepperObj, x, zero, dt, Nsteps, solverObj);
   }
 
   // Record end time

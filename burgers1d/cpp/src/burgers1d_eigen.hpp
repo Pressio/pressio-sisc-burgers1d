@@ -5,14 +5,15 @@
 #include "Eigen/Dense"
 #include "Eigen/SparseCore"
 #include <iostream>
+#include "UTILS_ALL"
 
 class Burgers1dEigen{
-  using ui_t	= unsigned int;
+  using int_t	= int32_t;
   using sc_t	= double;
   using eigVec	= Eigen::VectorXd;
   using muVec	= Eigen::Vector3d;
   using mv_t	= Eigen::MatrixXd;
-  using eigSM	= Eigen::SparseMatrix<sc_t, Eigen::ColMajor, int32_t>;
+  using eigSM	= Eigen::SparseMatrix<sc_t, Eigen::RowMajor, int_t>;
   using Tr	= Eigen::Triplet<sc_t>;
 
 public:
@@ -22,12 +23,12 @@ public:
   using jacobian_type	= eigSM;
 
 public:
-  Burgers1dEigen(muVec params, ui_t Ncell)
+  Burgers1dEigen(muVec params, int_t Ncell)
     : mu_(params), Ncell_(Ncell){
     setup();
   }
 
-  explicit Burgers1dEigen(ui_t Ncell)
+  explicit Burgers1dEigen(int_t Ncell)
     : Ncell_(Ncell){
     setup();
   }
@@ -66,14 +67,13 @@ private:
   const scalar_type xL_ = 0.0;		// left side of domain
   const scalar_type xR_ = 100.0;	// right side of domain
   muVec mu_ = {5., 0.02, 0.02};		// parameters
-  ui_t Ncell_ = {};			// # of cells
+  int_t Ncell_ = {};			// # of cells
   scalar_type dx_ = {};			// cell size
   scalar_type dxInv_ = {};		// inv of cell size
   eigVec xGrid_ = {};			// mesh points coordinates
   mutable state_type U_ = {};		// state vector
   mutable jacobian_type JJ_ = {};	// jacobian matrix
-  mutable std::vector<Tr> tripletList = {};
-
+  mutable std::vector<Tr> tripletList_ = {};
 
 };//end class
 

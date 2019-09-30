@@ -28,7 +28,7 @@ int main(int argc, char *argv[]){
 
   // parse input file
   InputParser parser;
-  int err = parser.parse(argc, argv);
+  int32_t err = parser.parse(argc, argv);
   if (err == 1) return 1;
 
   // store inputs
@@ -36,7 +36,7 @@ int main(int argc, char *argv[]){
   const auto dt		= parser.dt_;
   const auto finalT	= parser.finalT_;
   const auto observerOn = parser.observerOn_;
-  const auto Nsteps	= static_cast<unsigned int>(finalT/dt);
+  const auto Nsteps	= static_cast<int32_t>(finalT/dt);
   const auto romSize	= parser.romSize_;
   const auto basisFileName = parser.basisFileName_;
 
@@ -44,8 +44,11 @@ int main(int argc, char *argv[]){
   fom_t appobj(numCell);
 
   // store modes computed before from file
-  decoder_jac_t phi = readBasis(basisFileName, romSize, numCell);
-  const int numBasis = phi.numVectors();
+  // store basis vectors into native format
+  const auto phiNative = readBasis<scalar_t, int32_t>(basisFileName, romSize);
+  // wrap native basis with a pressio wrapper
+  const decoder_jac_t phi(phiNative);
+  const int32_t numBasis = phi.numVectors();
   if( numBasis != romSize ) return 0;
 
   // create decoder obj
@@ -99,7 +102,7 @@ int main(int argc, char *argv[]){
     elapsed.count() << std::endl;
 
   std::cout << "Printing first 5 elements of gen coords" << std::endl;
-  for (int i=0; i<5; ++i)
+  for (int32_t i=0; i<5; ++i)
     std::cout << (*yROM.data())[i] << std::endl;
 
   // // compute the fom corresponding to our rom final state

@@ -1,8 +1,6 @@
 #!/bin/bash
 
-# -----------------------------------------------
-# handle all steps for the C++ Burgers1d
-# -----------------------------------------------
+set -e
 
 # load global variables
 source ${PWD}/common/global_vars.sh
@@ -35,20 +33,20 @@ fi
 CPPWORKINGDIR=${WORKINGDIR}/cpp
 [[ ! -d ${CPPWORKINGDIR} ]] && mkdir ${CPPWORKINGDIR}
 
-# wipe everything if set to 1
-[[ $WIPEEXISTING = 1 ]] && rm -rf ${CPPWORKINGDIR}/*
+## wipe everything if set to 1
+#[[ $WIPEEXISTING = 1 ]] && rm -rf ${CPPWORKINGDIR}/*
 
 #---------------------------
-# do build all c++ exes
+# build c++ exes
 #---------------------------
 if [ $WHICHTASK = "build" ]; then
-    source ${topDir}/cpp/build_scripts/build.sh
+    source ${TOPDIR}/cpp/build_scripts/build.sh
 fi
 
 #---------------------------
-# fom timing
+# fom timing or basis
 #---------------------------
-if [ $WHICHTASK = "fom_bdf1_timing" ] || [ $WHICHTASK = "fom_rk4_timing" ];
+if [[ $WHICHTASK == *"fom"* ]];
 then
     # check if the build was already done
     if [ ! -d ${CPPWORKINGDIR}/build ]; then
@@ -58,63 +56,42 @@ then
 
     # create folder inside workindir
     destDir=${CPPWORKINGDIR}/"data_"${WHICHTASK}
-    mkdir ${destDir}
+    [[ ! -d ${destDir} ]] && mkdir ${destDir}
 
     # link the executable from build directory
     EXENAME=
-    [[ $WHICHTASK = "fom_bdf1_timing" ]] && EXENAME=burgers1d_fom_bdf1
-    [[ $WHICHTASK = "fom_rk4_timing" ]] && EXENAME=burgers1d_fom_rk4
+    [[ $WHICHTASK == *"fom_bdf1"* ]] && EXENAME=burgers1d_fom_bdf1
+    [[ $WHICHTASK == *"fom_rk4"* ]] && EXENAME=burgers1d_fom_rk4
     [[ -f ${destDir}/${EXENAME} ]] && rm ${destDir}/${EXENAME}
     ln -s ${CPPWORKINGDIR}/build/${EXENAME} ${destDir}
 
     # copy the template input
-    cp ${topDir}/cpp/src/input.template ${destDir}
+    cp ${TOPDIR}/cpp/src/input.template ${destDir}
 
     # copy python scripts there
-    cp ${topDir}/cpp/run_scripts/myutils.py ${destDir}/
-    cp ${topDir}/cpp/run_scripts/run_fom_timing.py ${destDir}/
-    cp ${topDir}/common/*.py ${destDir}/
+    cp ${TOPDIR}/cpp/run_scripts/myutils.py ${destDir}/
+
+    cp ${TOPDIR}/common/*.py ${destDir}/
+
+    if [[ $WHICHTASK == *"timing"* ]]; then
+	cp ${TOPDIR}/cpp/run_scripts/run_fom_timing.py ${destDir}/
+    elif [[ $WHICHTASK == *"basis"* ]];
+    then
+	cp ${TOPDIR}/cpp/run_scripts/run_fom_basis.py ${destDir}/
+    else
+	echo "error: unrecognized task for WHICHTASK=${WHICHTASK}. Terminating."
+	exit 11
+    fi
+
+    # set python driver which depends on the task
+    PYTHONEXE=
+    [[ $WHICHTASK == *"timing"* ]] && PYTHONEXE=run_fom_timing.py
+    [[ $WHICHTASK == *"basis"* ]] && PYTHONEXE=run_fom_basis.py
 
     # enter and run
     cd ${destDir}
-    python run_fom_timing.py --exe ${EXENAME}
-    cd ${topDir}
-fi
-
-#---------------------------
-# fom to generate basis
-#---------------------------
-if [ $WHICHTASK = "fom_bdf1_basis" ] || [ $WHICHTASK = "fom_rk4_basis" ];
-then
-    # check if the build was already done
-    if [ ! -d ${CPPWORKINGDIR}/build ]; then
-	echo "there is no build in the target folder, do that first"
-	exit 0
-    fi
-
-    # create folder inside workindir
-    destDir=${CPPWORKINGDIR}/"data_"${WHICHTASK}
-    mkdir ${destDir}
-
-    # link the executable from build directory
-    EXENAME=
-    [[ $WHICHTASK = "fom_bdf1_basis" ]] && EXENAME=burgers1d_fom_bdf1
-    [[ $WHICHTASK = "fom_rk4_basis" ]] && EXENAME=burgers1d_fom_rk4
-    [[ -f ${destDir}/${EXENAME} ]] && rm ${destDir}/${EXENAME}
-    ln -s ${CPPWORKINGDIR}/build/${EXENAME} ${destDir}
-
-    # copy the template input
-    cp ${topDir}/cpp/src/input.template ${destDir}
-
-    # copy all pything scripts there
-    cp ${topDir}/cpp/run_scripts/myutils.py ${destDir}/
-    cp ${topDir}/cpp/run_scripts/run_fom_basis.py ${destDir}/
-    cp ${topDir}/common/*.py ${destDir}/
-
-    # enter there and run
-    cd ${destDir}
-    python run_fom_basis.py --exe ${EXENAME}
-    cd ${topDir}
+    python ${PYTHONEXE} --exe ${EXENAME}
+    cd ${TOPDIR}
 fi
 
 
@@ -140,7 +117,7 @@ then
 
     # create folder inside workindir
     destDir=${CPPWORKINGDIR}/"data_"${WHICHTASK}
-    mkdir ${destDir}
+    [[ ! -d ${destDir} ]] && mkdir ${destDir}
 
     # link the executable
     EXENAME=
@@ -150,15 +127,15 @@ then
     ln -s ${CPPWORKINGDIR}/build/${EXENAME} ${destDir}
 
     # copy the template input
-    cp ${topDir}/cpp/src/input.template ${destDir}
+    cp ${TOPDIR}/cpp/src/input.template ${destDir}
 
     # copy all python scripts there
-    cp ${topDir}/cpp/run_scripts/myutils.py ${destDir}/
-    cp ${topDir}/cpp/run_scripts/run_rom_timing.py ${destDir}/
-    cp ${topDir}/common/*.py ${destDir}/
+    cp ${TOPDIR}/cpp/run_scripts/myutils.py ${destDir}/
+    cp ${TOPDIR}/cpp/run_scripts/run_rom_timing.py ${destDir}/
+    cp ${TOPDIR}/common/*.py ${destDir}/
 
     # enter there and run
     cd ${destDir}
     python run_rom_timing.py --exe ${EXENAME} --basis-dir-name=${BASISDIRNAME}
-    cd ${topDir}
+    cd ${TOPDIR}
 fi

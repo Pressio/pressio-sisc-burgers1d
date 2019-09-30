@@ -9,11 +9,9 @@ import re
 
 import myutils, constants
 
-# this Python script generates basis from the Burgers1D fom
-
-def main(exename):
+def main(exeName):
   # args for the executable
-  args = ("./"+exename, "input.txt")
+  args = ("./"+exeName, "input.txt")
   print("Starting basis runs")
 
   # loop over mesh sizes
@@ -39,8 +37,9 @@ def main(exename):
       # create input file
       myutils.createInputFileFomForBasis(numCell, samplingFreq)
 
-      popen = subprocess.Popen(args, stdout=subprocess.PIPE)
-      popen.wait()
+      os.system("./" + exeName + " input.txt")
+      #popen = subprocess.Popen(args, stdout=subprocess.PIPE)
+      #popen.wait()
       #output = popen.stdout.read()
 
       childDir=parentDir + '/basis' + str(romSize)
@@ -55,7 +54,7 @@ def main(exename):
 
 if __name__== "__main__":
   parser = ArgumentParser()
-  parser.add_argument("-exe", "--exe", dest="exename",
+  parser.add_argument("-exe", "--exe", dest="exeName",
                       help="generate basis for fom")
   args = parser.parse_args()
-  main(args.exename)
+  main(args.exeName)
