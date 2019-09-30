@@ -136,7 +136,7 @@ then
     fi
     cd pressio && git checkout develop && cd ..
 
-    # by default, the generator line for trilins is:
+    # the generator line
     PRESSIOGENFNCNAME=pressio_sisc_adr2dcpp
     if [[ $WITHOPENMP == yes && $WITHDBGPRINT == yes ]]; then
 	PRESSIOGENFNCNAME=pressio_sisc_adr2dcpp_openmp_dbgprint
