@@ -9,14 +9,14 @@ import os.path
 pwd = os.getcwd()
 
 dt = 0.01
-numSteps = 10
+numSteps = 500
 finalTime = numSteps*dt
 
 # mesh sizes
-numCell_cases = np.array([500])#, 5000, 10000, 50000, 100000])
+numCell_cases = np.array([20000])#, 5000, 10000, 50000, 100000])
 
 # rom sizes: remember that ROM size has to be smaller than mesh
-romSize_cases = np.array([10])#, 50, 100])
+romSize_cases = np.array([50])#, 50, 100])
 
 # number of samples to run to compute timing statistics
 numSamplesForTiming = 1

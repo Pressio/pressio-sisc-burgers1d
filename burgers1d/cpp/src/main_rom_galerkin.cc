@@ -22,9 +22,6 @@ int main(int argc, char *argv[]){
   constexpr auto zero = ::pressio::utils::constants::zero<scalar_t>();
   constexpr auto one  = ::pressio::utils::constants::one<scalar_t>();
 
-  // Record start time
-  auto startTime = std::chrono::high_resolution_clock::now();
-
   // parse input file
   InputParser parser;
   int32_t err = parser.parse(argc, argv);
@@ -60,6 +57,9 @@ int main(int argc, char *argv[]){
   // define ROM state
   rom_state_t yROM(romSize);
   yROM.putScalar(zero);
+
+  // Record start time
+  auto startTime = std::chrono::high_resolution_clock::now();
 
   // initial time
   constexpr auto t0 = zero;

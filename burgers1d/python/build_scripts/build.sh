@@ -142,5 +142,6 @@ cd ${bdirname} && rm -rf *
 ln -s ${PYWORKINGDIR}/tpls/pressio4py/build/pressio4py.*.so pressio4py.so
 ln -s ${PYWORKINGDIR}/tpls/pressio4py/build/pressio4pyGalerkin.*.so pressio4pyGalerkin.so
 ln -s ${PYWORKINGDIR}/tpls/pressio4py/build/pressio4pyLspg.*.so pressio4pyLspg.so
+ln -s ${PYWORKINGDIR}/tpls/pressio4py/pressio4py/src/ops/pressio4pyOps.py pressio4pyOps.py
 
 cd ${TOPDIR}

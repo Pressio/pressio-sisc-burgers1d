@@ -30,9 +30,6 @@ print(romSize)
 print(Nsteps)
 print(dt)
 
-# start timer
-startTime = time.time()
-
 # create app
 appObj = Burgers1d(Ncell)
 
@@ -50,6 +47,9 @@ decoder = pressio4py.LinearDecoder(phi, ops)
 
 # the LSPG (reduced) state
 yRom = np.zeros(romSize)
+
+# start timer
+startTime = time.time()
 
 # the problem
 t0 = 0.

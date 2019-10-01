@@ -16,9 +16,6 @@ int main(int argc, char *argv[]){
   constexpr auto zero = ::pressio::utils::constants::zero<scalar_t>();
   constexpr auto one  = ::pressio::utils::constants::one<scalar_t>();
 
-  // Record start time
-  auto startTime = std::chrono::high_resolution_clock::now();
-
   // parse input file
   InputParser parser;
   int err = parser.parse(argc, argv);
@@ -39,6 +36,9 @@ int main(int argc, char *argv[]){
   x0n.setConstant(one);
   // wrap init state
   ode_state_t x(x0n);
+
+  // Record start time
+  auto startTime = std::chrono::high_resolution_clock::now();
 
   // define stepper
   constexpr auto ode_case = pressio::ode::ExplicitEnum::RungeKutta4;

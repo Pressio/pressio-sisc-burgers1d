@@ -53,14 +53,19 @@ def main(exename, basisDirName):
               str(constants.numSteps), str(constants.dt))
 
       for i in range(0, constants.numSamplesForTiming):
-        popen = subprocess.Popen(args, stdout=subprocess.PIPE)
-        popen.wait()
-        output = popen.stdout.read()
-        print(output)
+        # popen = subprocess.Popen(args, stdout=subprocess.PIPE)
+        # popen.wait()
+        # output = popen.stdout.read()
+        # print(output)
+        os.system("python "+exename+".py"+" "+
+                  str(numCell)+" "+
+                  str(romSize)+" "+
+                  str(constants.numSteps)+" "+
+                  str(constants.dt) )
 
         # find timing
-        res = re.search(constants.timerRegExp, str(output))
-        time = float(res.group().split()[2])
+        #res = re.search(constants.timerRegExp, str(output))
+        time = -1 #float(res.group().split()[2])
         print("time = ", time)
         # store
         data[iMesh][i+2] = time
