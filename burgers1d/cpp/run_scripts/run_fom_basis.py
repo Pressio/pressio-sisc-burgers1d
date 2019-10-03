@@ -48,6 +48,7 @@ def main(exeName):
       os.system('mv input.txt ' + childDir)
       os.system('mv basis.txt ' + childDir)
       os.system('mv snapshots.txt ' + childDir)
+      os.system('mv yFom.txt ' + childDir)
 
   print("Done with basis runs")
 

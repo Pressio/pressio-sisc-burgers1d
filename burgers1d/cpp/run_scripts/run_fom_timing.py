@@ -9,18 +9,18 @@ from argparse import ArgumentParser
 
 import myutils, constants
 
-# this Python script generates many runs of the Burgers1D fom
+# this Python script generates replica runs of the Burgers1D fom
 # this is purely FOM timings, no snapshots are created
 
-
 def main(exename):
-  # first col contains mesh sizes, then all timings
+  # col0 : mesh size
+  # col1,2...: all timings
   data = np.zeros((len(constants.numCell_cases), constants.numSamplesForTiming+1))
 
   # args for the executable
   args = ("./"+exename, "input.txt")
 
-  # loop over mesh sizes
+  #--- loop over mesh sizes ---
   for iMesh in range(0, len(constants.numCell_cases)):
     numCell = constants.numCell_cases[iMesh]
     print("Current numCell = ", numCell)
@@ -29,22 +29,29 @@ def main(exename):
     # is used to run multiple replica runs
     myutils.createInputFileFomTiming(numCell)
 
+    # store the current mesh size
     data[iMesh][0] = numCell
 
+    # loop over replicas
     for i in range(0, constants.numSamplesForTiming):
       print("replica # = ", i)
+
+      # run with subprocess
       popen = subprocess.Popen(args, stdout=subprocess.PIPE)
       popen.wait()
+      # get output
       output = popen.stdout.read()
 
       # find timing
       res = re.search(constants.timerRegExp, str(output))
       time = float(res.group().split()[2])
-      # store
+      # store time for this replica
       data[iMesh][i+1] = time
       print("time = ", time)
 
+  # save to text
   np.savetxt(exename+"_timings.txt", data, fmt='%.12f')
+  np.set_printoptions(edgeitems=10, linewidth=100000)
   print(data)
 
 

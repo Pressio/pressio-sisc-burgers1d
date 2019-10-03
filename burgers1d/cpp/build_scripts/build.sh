@@ -16,7 +16,9 @@ cd ${CPPWORKINGDIR}
 if [ ! -d ${CPPWORKINGDIR}/pressio-builder ];
 then
     git clone git@github.com:Pressio/pressio-builder.git
-    cd pressio-builder && git checkout master && cd ..
+    cd pressio-builder
+    git checkout ${pressioBuilderBranch}
+    cd ..
 else
     cd pressio-builder && git pull && cd -
 fi
@@ -27,26 +29,20 @@ fi
 if [ ! -d ${CPPWORKINGDIR}/tpls/eigen ]; then
     cd ${CPPWORKINGDIR}/pressio-builder
     ./main_tpls.sh \
-	--dryrun=no \
-	--tpls=eigen \
-	--build-mode=Release\
-	--target-dir=${CPPWORKINGDIR}/tpls \
-	--wipe-existing=1
+	-dryrun=no --tpls=eigen -build-mode=Release \
+	-target-dir=${CPPWORKINGDIR}/tpls --wipe-existing=1
     cd ${CPPWORKINGDIR}
 fi
 
-#-------------
-# do gtest
-#-------------
-if [ ! -d ${CPPWORKINGDIR}/tpls/gtest ]; then
-    cd ${CPPWORKINGDIR}/pressio-builder
-    ./main_tpls.sh \
-	--dryrun=no \
-	--tpls=gtest \
-	--target-dir=${CPPWORKINGDIR}/tpls \
-	--wipe-existing=1
-    cd ${CPPWORKINGDIR}
-fi
+# #-------------
+# # do gtest
+# #-------------
+# if [ ! -d ${CPPWORKINGDIR}/tpls/gtest ]; then
+#     cd ${CPPWORKINGDIR}/pressio-builder
+#     ./main_tpls.sh \
+# 	--dryrun=no -tpls=gtest -target-dir=${CPPWORKINGDIR}/tpls -wipe-existing=1
+#     cd ${CPPWORKINGDIR}
+# fi
 
 #-------------
 # do pressio
@@ -64,8 +60,9 @@ then
     if [ ! -d ${CPPWORKINGDIR}/tpls/pressio/pressio ]; then
 	git clone --recursive git@github.com:Pressio/pressio.git
     fi
-    #cd pressio && git checkout v0.1.0 && cd ..
-    cd pressio && git checkout develop && cd ..
+    cd pressio
+    git checkout ${pressioBranch}
+    cd ..
 
     # the generator line
     PRESSIOGENFNCNAME=pressio_sisc_burgerscpp
@@ -85,8 +82,7 @@ then
 	-link-type=dynamic \
 	-cmake-custom-generator-file=${TOPDIR}/cpp/build_scripts/cmake_generators_for_pressio-builder.sh \
 	-cmake-generator-name=${PRESSIOGENFNCNAME} \
-	-eigen-path=${CPPWORKINGDIR}/tpls/eigen/install \
-	-gtest-path=${CPPWORKINGDIR}/tpls/gtest/install
+	-eigen-path=${CPPWORKINGDIR}/tpls/eigen/install
 
     cd ${CPPWORKINGDIR}
 else
@@ -106,19 +102,17 @@ bdirname=build
 #check if build dir exists
 if [ ! -d ${bdirname} ]; then
     mkdir ${bdirname}
-else
-    # enter
-    cd ${bdirname} && rm -rf *
-    cmake -DCMAKE_C_COMPILER=${CC} \
-	  -DCMAKE_CXX_COMPILER=${CXX} \
-	  -DCMAKE_VERBOSE_MAKEFILE:BOOL=TRUE \
-	  -DCMAKE_BUILD_TYPE=Release \
-	  -DEIGEN_INCLUDE_DIR=${EIGENPATH} \
-	  -DPRESSIO_INCLUDE_DIR=${PRESSIOPATH} \
-	  ${CPPSRC}
-    make -j6
-    cd ..
 fi
+# enter
+cd ${bdirname} && rm -rf *
+cmake -DCMAKE_C_COMPILER=${CC} \
+      -DCMAKE_CXX_COMPILER=${CXX} \
+      -DCMAKE_VERBOSE_MAKEFILE:BOOL=TRUE \
+      -DCMAKE_BUILD_TYPE=Release \
+      -DEIGEN_INCLUDE_DIR=${EIGENPATH} \
+      -DPRESSIO_INCLUDE_DIR=${PRESSIOPATH} \
+      ${CPPSRC}
+make -j6
 
 # go back where we started
 cd ${TOPDIR}

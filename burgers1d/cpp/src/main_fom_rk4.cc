@@ -11,7 +11,7 @@ int main(int argc, char *argv[]){
   using app_t		= Burgers1dEigen;
   using scalar_t	= typename app_t::scalar_type;
   using app_state_t	= typename app_t::state_type;
-  using ode_state_t = pressio::containers::Vector<app_state_t>;
+  using ode_state_t	= pressio::containers::Vector<app_state_t>;
 
   constexpr auto zero = ::pressio::utils::constants::zero<scalar_t>();
   constexpr auto one  = ::pressio::utils::constants::one<scalar_t>();
@@ -42,8 +42,7 @@ int main(int argc, char *argv[]){
 
   // define stepper
   constexpr auto ode_case = pressio::ode::ExplicitEnum::RungeKutta4;
-  using stepper_t = pressio::ode::ExplicitStepper<
-    ode_case, ode_state_t, scalar_t, app_t>;
+  using stepper_t = pressio::ode::ExplicitStepper<ode_case, ode_state_t, scalar_t, app_t>;
   stepper_t stepperObj(x, appObj);
 
   // integrate in time

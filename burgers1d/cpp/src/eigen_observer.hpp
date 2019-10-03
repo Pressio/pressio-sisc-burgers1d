@@ -3,7 +3,8 @@
 #define BURGERS1D_CPP_EIGEN_OBSERVER_HPP
 
 template <typename state_t>
-struct EigenObserver{
+struct EigenObserver
+{
   using scalar_t = double;
   using matrix_t = Eigen::Matrix<scalar_t, -1, -1>;
   using int_t    = int32_t;
@@ -16,7 +17,7 @@ struct EigenObserver{
   int snapshotsFreq_ = {};
 
   EigenObserver(int_t Nsteps, int_t numCell,
-	   const state_t & xRef, int shapshotsFreq)
+		const state_t & xRef, int shapshotsFreq)
     : numCell_(numCell),
       xRef_(xRef),
       xIncr_(numCell),

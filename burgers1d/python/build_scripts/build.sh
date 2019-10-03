@@ -9,7 +9,10 @@ cd ${PYWORKINGDIR}
 if [ ! -d ${PYWORKINGDIR}/pressio-builder ];
 then
     git clone git@github.com:Pressio/pressio-builder.git
-    cd pressio-builder && git checkout master && cd ..
+
+    cd pressio-builder
+    git checkout ${pressioBuilderBranch}
+    cd ..
 else
     cd pressio-builder && git pull && cd -
 fi
@@ -59,7 +62,11 @@ then
     if [ ! -d ${PYWORKINGDIR}/tpls/pressio/pressio ]; then
 	git clone --recursive git@github.com:Pressio/pressio.git
     fi
-    cd pressio && git checkout develop && cd ..
+
+    # get proper branch
+    cd pressio
+    git checkout ${pressioBranch}
+    cd ..
 
     # by default, the generator line is
     PRESSIOGENFNCNAME=pressio_sisc_burgerspython
@@ -103,6 +110,9 @@ then
     if [ ! -d pressio4py ]; then
 	git clone git@github.com:fnrizzi/pressio4py.git
     fi
+    cd pressio4py
+    git checkout ${pressioFourPyBranch}
+    cd -
 
     # set paths for eigen, pybind11 and pressio
     EIGENPATH="${PYWORKINGDIR}/tpls/eigen/install/include/eigen3"

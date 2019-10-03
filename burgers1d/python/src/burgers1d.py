@@ -39,7 +39,7 @@ class Burgers1d:
 
   def jacobianImpl(self, u, t):
     self.diag[:] = -self.dxInv_*u[:]
-    self.ldiag[:] = self.dxInv_*u[1:]
+    self.ldiag[:] = self.dxInv_*u[0:-1]
     return diags( [self.ldiag, self.diag], [-1,0],
                   shape=[self.Ncell_, self.Ncell_])
 

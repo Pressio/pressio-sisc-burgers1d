@@ -1,6 +1,7 @@
 
 #include "CONTAINERS_ALL"
-#include "ODE_ALL"
+#include "ODE_INTEGRATORS"
+#include "ODE_IMPLICIT"
 #include "SOLVERS_NONLINEAR"
 #include "burgers1d_eigen.hpp"
 #include "burgers1d_input_parser.hpp"
@@ -99,12 +100,19 @@ int main(int argc, char *argv[]){
   // Record end time
   auto finishTime = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = finishTime - startTime;
-  std::cout << "Elapsed time: " <<
-    std::fixed << std::setprecision(10) <<
-    elapsed.count() << std::endl;
+  std::cout << "Elapsed time: "
+	    << std::fixed << std::setprecision(10)
+	    << elapsed.count() << std::endl;
 
-  // // print solution
-  // std::cout << std::setprecision(14) << *x.data() << std::endl;
+  {
+    // print
+    std::ofstream file;
+    file.open("yFom.txt");
+    for(size_t i=0; i < x.size(); i++){
+      file << std::setprecision(15) << x[i] << std::endl;
+    }
+    file.close();
+  }
 
   return 0;
 }

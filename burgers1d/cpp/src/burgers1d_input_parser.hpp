@@ -83,15 +83,15 @@ struct InputParser{
       }
     source.close();
 
-    std::cout << numCell_ << " "
-	      << dt_ << " "
-	      << finalT_ << " "
-	      << observerOn_ << " "
-	      << shapshotsFileName_ << " "
-	      << snapshotsFreq_ << " "
-	      << romOn_ << " "
-	      << romSize_ << " "
-	      << basisFileName_
+    std::cout << "Ncell = "		<< numCell_		<< " \n"
+	      << "dt = "		<< dt_			<< " \n"
+	      << "finalT = "		<< finalT_		<< " \n"
+	      << "observerOn "		<< observerOn_		<< " \n"
+	      << "shapshotsFileName_ = "<< shapshotsFileName_	<< " \n"
+	      << "snapshotsFreq_ = "	<< snapshotsFreq_	<< " \n"
+	      << "romOn_ = "		<< romOn_		<< " \n"
+	      << "romSize_ = "		<< romSize_		<< " \n"
+	      << "basisFileName_ = "	<< basisFileName_
 	      << std::endl;
 
     if (numCell_==0){

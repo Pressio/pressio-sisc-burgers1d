@@ -16,20 +16,8 @@ for option; do
 	    WORKINGDIR=`expr "x$option" : "x-*working-dir=\(.*\)"`
 	    ;;
 
-	-with-env-script=* | --with-env-script=* )
-	    SETENVscript=`expr "x$option" : "x-*with-env-script=\(.*\)"`
-	    ;;
-
-	-wipe-existing=* | --wipe-existing=* )
-	    WIPEEXISTING=`expr "x$option" : "x-*wipe-existing=\(.*\)"`
-	    ;;
-
 	-do=* | --do=* )
 	    WHICHTASK=`expr "x$option" : "x-*do=\(.*\)"`
-	    ;;
-
-	-dbg-print=* | --dbg-print=* )
-	    WITHDBGPRINT=`expr "x$option" : "x-*dbg-print=\(.*\)"`
 	    ;;
 
 	# unrecognized option}
@@ -56,19 +44,9 @@ Configuration:
 
 --working-dir=				the working directory where we build/run
 
---with-env-script=<path-to-file>	full path to script to set the environment.
-					default = assumes environment is set.
-
---wipe-existing-data=[yes/no]		if yes, all the following subfolders:
-						--target-dir/data_*
-						--target-dir/build_*
-					will be fully wiped and re-made.
-				   	default = no
-
 --do=					which case/stage to execute
+					options= lspg, galerkin
 
---dbg-print=[yes/no]			if yes, enable pressio debug print
-					default = no
 EOF
   exit 0
 fi
