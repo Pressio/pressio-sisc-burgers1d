@@ -14,13 +14,12 @@ int main(int argc, char *argv[])
   using fom_t		= Burgers1dEigen;
   using scalar_t	= typename fom_t::scalar_type;
 
-  // eigen native column vector
+  // eigen native
   using eig_dyn_vec	= Eigen::Matrix<scalar_t, -1, 1>;
-  // wrap it
+  using eig_dyn_mat	= Eigen::Matrix<scalar_t, -1, -1>;
+
   using lspg_state_t	= pressio::containers::Vector<eig_dyn_vec>;
   using native_dmat_t	= typename fom_t::dmatrix_type;
-
-  using eig_dyn_mat	= Eigen::Matrix<scalar_t, -1, -1>;
   using decoder_jac_t	= pressio::containers::MultiVector<eig_dyn_mat>;
   using decoder_t	= pressio::rom::LinearDecoder<decoder_jac_t>;
   using hessian_t	= pressio::containers::Matrix<eig_dyn_mat>;

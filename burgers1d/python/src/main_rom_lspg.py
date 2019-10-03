@@ -1,5 +1,7 @@
 
+# by default, numpy has row-major memory layout
 import numpy as np
+from scipy import linalg
 import sys, time
 
 # local app class
@@ -10,14 +12,17 @@ import pressio4py
 import pressio4pyLspg
 import pressio4pyOps
 
-
 np.set_printoptions(linewidth=400)
 
 class MyLinSolver:
-  def __init__(self): pass
+  def __init__(self, matrixType):
+    self.assume_ = matrixType
 
+  # default to LU-based solve
   def solve(self,A,b,x):
-    x[:] = np.linalg.solve(A,b)
+    x[:] = linalg.solve(A, b,
+                        assume_a=self.assume_,
+                        check_finite=False)
 
 
 Ncell   = int(float(sys.argv[1]))
@@ -58,9 +63,9 @@ lspgObj = pressio4pyLspg.ProblemEuler(appObj, yRef, decoder, yRom, t0, ops)
 # get stepper
 stepper = lspgObj.getStepper()
 
-# linear solver
-#lsO = pressio4pyOps.LinSolver()
-lsO = MyLinSolver()
+# linear solver: this is used for the normal equations,
+# which has a symmetric matrix, so use the information
+lsO = MyLinSolver('sym')
 
 # non linear solver
 nlsO = pressio4pyLspg.GaussNewton(stepper, yRom, lsO, ops)
