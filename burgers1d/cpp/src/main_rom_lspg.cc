@@ -101,6 +101,11 @@ int main(int argc, char *argv[])
 	    << std::fixed << std::setprecision(10)
 	    << elapsed.count() << std::endl;
 
+  // // print summary from timers
+  // #ifdef HAVE_TEUCHOS_TIMERS
+  // pressio::utils::TeuchosPerformanceMonitor::stackedTimersReportSerial();
+  // #endif
+
   {
     // compute the fom corresponding to our rom final state
     const auto yFomFinal = lspgProblem.yFomReconstructor_(yROM);

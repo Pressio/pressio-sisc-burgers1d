@@ -43,7 +43,8 @@ class Burgers1d:
     self.diag[:] = -self.dxInv_*u[:]
     self.ldiag[:] = self.dxInv_*u[0:-1]
     return diags( [self.ldiag, self.diag], [-1,0],
-                  shape=[self.Ncell_, self.Ncell_], format='csr')
+                  shape=[self.Ncell_, self.Ncell_],
+                  format='csr')
 
   def jacobian(self, *args):
     u, t = args[0], args[1]

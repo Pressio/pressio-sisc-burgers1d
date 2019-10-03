@@ -111,6 +111,8 @@ cmake -DCMAKE_C_COMPILER=${CC} \
       -DCMAKE_BUILD_TYPE=Release \
       -DEIGEN_INCLUDE_DIR=${EIGENPATH} \
       -DPRESSIO_INCLUDE_DIR=${PRESSIOPATH} \
+      -DBLAS_LIB_DIR=${BLAS_ROOT}/lib \
+      -DLAPACK_LIB_DIR=${LAPACK_ROOT}/lib \
       ${CPPSRC}
 make -j6
 

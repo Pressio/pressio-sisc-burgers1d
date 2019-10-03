@@ -33,7 +33,9 @@ fi
 CPPWORKINGDIR=${WORKINGDIR}/cpp
 [[ ! -d ${CPPWORKINGDIR} ]] && mkdir ${CPPWORKINGDIR}
 
-## wipe everything if set to 1
+# wipe everything if set to 1
+[[ $WIPEEXISTING == yes  ]] && wipe_existing_data_in_target_dir ${CPPWORKINGDIR}
+
 #[[ $WIPEEXISTING = 1 ]] && rm -rf ${CPPWORKINGDIR}/*
 
 #---------------------------

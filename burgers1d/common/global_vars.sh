@@ -49,6 +49,14 @@ pressioBuilderBranch=master
 # which branch to use for pressio4py
 pressioFourPyBranch=master
 
+
+
+function wipe_existing_data_in_target_dir(){
+    echo "Wiping $1/{data_*, build}"
+    rm -rf $1/build $1/data_*
+}
+
+
 function print_global_vars(){
     echo "TOPDIR			= $TOPDIR"
     echo "CPPSRC			= $CPPSRC"

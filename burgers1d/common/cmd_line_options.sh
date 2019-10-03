@@ -20,8 +20,8 @@ for option; do
 	    SETENVscript=`expr "x$option" : "x-*with-env-script=\(.*\)"`
 	    ;;
 
-	-wipe-existing=* | --wipe-existing=* )
-	    WIPEEXISTING=`expr "x$option" : "x-*wipe-existing=\(.*\)"`
+	-wipe-existing-data=* | --wipe-existing-data=* )
+	    WIPEEXISTING=`expr "x$option" : "x-*wipe-existing-data=\(.*\)"`
 	    ;;
 
 	-do=* | --do=* )

@@ -13,13 +13,13 @@ numSteps = 500
 finalTime = numSteps*dt
 
 # mesh sizes
-numCell_cases = np.array([1000, 2000, 5000, 10000])#, 5000, 10000, 50000, 100000])
+numCell_cases = np.array([8000])#, 5000, 10000, 50000, 100000])
 
 # rom sizes: remember that ROM size has to be smaller than mesh
-romSize_cases = np.array([5, 10, 25])#, 50, 100])
+romSize_cases = np.array([25])#, 50, 100])
 
 # number of samples to run to compute timing statistics
-numSamplesForTiming = 3
+numSamplesForTiming = 2
 
 # regex for getting timing from code output
 # \d{1,} match one or more (any) digits before the .

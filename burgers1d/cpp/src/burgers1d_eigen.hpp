@@ -17,7 +17,7 @@ class Burgers1dEigen{
   using muVec	= Eigen::Vector3d;
 
 public:
-  static constexpr auto spmat_layout = Eigen::RowMajor;
+  static constexpr auto spmat_layout = Eigen::ColMajor;
 
   using scalar_type	= sc_t;
   using state_type	= eigVec;
