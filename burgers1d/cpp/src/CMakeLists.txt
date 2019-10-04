@@ -4,12 +4,18 @@ project(burgers1dcpp)
 
 include_directories(${EIGEN_INCLUDE_DIR} ${PRESSIO_INCLUDE_DIR})
 
-set(HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/burgers1d_eigen.hpp)
-set(SOURCES_FOM_BDF1 ${CMAKE_CURRENT_SOURCE_DIR}/burgers1d_eigen.cc main_fom_bdf1.cc)
-set(SOURCES_ROM_LSPG ${CMAKE_CURRENT_SOURCE_DIR}/burgers1d_eigen.cc main_rom_lspg.cc)
-add_executable(burgers1d_fom_bdf1 ${SOURCES_FOM_BDF1} ${HEADERS})
-add_executable(burgers1d_rom_lspg ${SOURCES_ROM_LSPG} ${HEADERS})
+link_directories(${BLAS_LIB_DIR})
+add_definitions(-DEIGEN_USE_BLAS -DEIGEN_USE_LAPACKE)
 
+set(HEADERS ${CMAKE_CURRENT_SOURCE_DIR}/burgers1d_eigen.hpp)
+
+set(SOURCES_FOM_BDF1 ${CMAKE_CURRENT_SOURCE_DIR}/burgers1d_eigen.cc main_fom_bdf1.cc)
+add_executable(burgers1d_fom_bdf1 ${SOURCES_FOM_BDF1} ${HEADERS})
+target_link_libraries(burgers1d_fom_bdf1 openblas)
+
+set(SOURCES_ROM_LSPG ${CMAKE_CURRENT_SOURCE_DIR}/burgers1d_eigen.cc main_rom_lspg.cc)
+add_executable(burgers1d_rom_lspg ${SOURCES_ROM_LSPG} ${HEADERS})
+target_link_libraries(burgers1d_rom_lspg openblas)
 
 
 #set(EIGEN_USE_BLAS ON)
@@ -17,7 +23,6 @@ add_executable(burgers1d_rom_lspg ${SOURCES_ROM_LSPG} ${HEADERS})
 #link_directories(${BLAS_LIB_DIR} ${LAPACK_LIB_DIR})
 #set(SOURCES_FOM_RK4  ${CMAKE_CURRENT_SOURCE_DIR}/burgers1d_eigen.cc main_fom_rk4.cc)
 #set(SOURCES_ROM_GALERKIN  ${CMAKE_CURRENT_SOURCE_DIR}/burgers1d_eigen.cc main_rom_galerkin.cc)
-
 
 #target_link_libraries(burgers1d_rom_lspg openblas)
 

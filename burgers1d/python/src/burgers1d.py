@@ -1,5 +1,5 @@
 import numpy as np
-from scipy.sparse import csr_matrix, diags
+from scipy.sparse import csr_matrix, diags, spdiags
 
 # by default, numpy has row-major memory layout
 
@@ -17,6 +17,7 @@ class Burgers1d:
     self.f_ = np.zeros(self.Ncell_)
     self.diag = np.zeros(self.Ncell_)
     self.ldiag = np.zeros(self.Ncell_-1)
+    #self.J_ = np.zeros((self.Ncell_, self.Ncell_))
 
   def setup(self):
     self.dx_ = (self.xR_ - self.xL_)/float(self.Ncell_)
@@ -45,6 +46,17 @@ class Burgers1d:
     return diags( [self.ldiag, self.diag], [-1,0],
                   shape=[self.Ncell_, self.Ncell_],
                   format='csr')
+
+  # def jacobianImpl(self, u, t):
+  #   self.J_[np.arange(self.Ncell_), np.arange(self.Ncell_)] = -self.dxInv_*u[:]
+  #   self.J_[np.arange(1, self.Ncell_),
+  #           np.arange(self.Ncell_-1)] = self.dxInv_*u[0:self.Ncell_-1]
+
+  #   # self.J_[0][0] = -self.dxInv_*u[0]
+  #   # for i in range(self.Ncell_):
+  #   #     self.J_[i][i-1] = self.dxInv_ * u[i-1]
+  #   #     self.J_[i][i] = -self.dxInv_ * u[i]
+  #   return self.J_
 
   def jacobian(self, *args):
     u, t = args[0], args[1]

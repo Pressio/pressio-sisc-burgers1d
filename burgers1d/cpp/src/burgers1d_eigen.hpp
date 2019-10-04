@@ -19,15 +19,18 @@ class Burgers1dEigen{
 public:
   static constexpr auto spmat_layout = Eigen::ColMajor;
 
+  //// Eigen SparseMatrix has to have a signed integer type, use index_t
+  using eig_sp_mat   = Eigen::SparseMatrix<sc_t, spmat_layout, int_t>;
+  using eig_dense_mat = Eigen::Matrix<sc_t, -1, -1, Eigen::ColMajor>;
+
   using scalar_type	= sc_t;
   using state_type	= eigVec;
   using velocity_type	= state_type;
-  // Eigen SparseMatrix has to have a signed integer type, use index_t
-  using jacobian_type	= Eigen::SparseMatrix<sc_t, spmat_layout, int_t>;
+  using jacobian_type	= eig_sp_mat;
 
   // for some reason, the best outcome is when the sparse is row-major
   // and the dense matrix is colmajor
-  using dmatrix_type	= Eigen::Matrix<sc_t, -1, -1, Eigen::ColMajor>;
+  using dmatrix_type	= eig_dense_mat;
 
 public:
   Burgers1dEigen(muVec params, int_t Ncell)
@@ -90,11 +93,62 @@ private:
 
   void velocity_impl(const state_type & u,
 		     const scalar_type & t,
-		     velocity_type & f) const;
+		     velocity_type & f) const
+  {
+    constexpr auto one = ::pressio::utils::constants::one<sc_t>();
+    constexpr auto two = ::pressio::utils::constants::two<sc_t>();
+    constexpr auto oneHalf = one/two;
 
+    f(0) = oneHalf * dxInv_ * (mu_(0)*mu_(0) - u(0)*u(0));
+    for (int_t i=1; i<Ncell_; ++i){
+      f(i) = oneHalf * dxInv_ * (u(i-1)*u(i-1) - u(i)*u(i));
+    }
+    for (int_t i=0; i<Ncell_; ++i){
+      f(i) += mu_(1)*exp(mu_(2)*xGrid_(i));
+    }
+  }
+
+  template <
+    typename _jac_type = jacobian_type,
+    typename std::enable_if<
+      std::is_same<
+	_jac_type, eig_dense_mat
+	>::value
+      >::type * = nullptr
+    >
   void jacobian_impl(const state_type & u,
 		     const scalar_type & t,
-		     jacobian_type & jac) const;
+		     _jac_type & jac) const
+  {
+    jac(0,0) = -dxInv_*u(0);
+    for (int_t i=1; i<Ncell_; ++i){
+      jac(i, i-1) = dxInv_ * u(i-1);
+      jac(i, i) = -dxInv_ * u(i);
+    }
+  }
+
+  template <
+    typename _jac_type = jacobian_type,
+    typename std::enable_if<
+      std::is_same<
+	_jac_type, eig_sp_mat
+	>::value
+      >::type * = nullptr
+    >
+  void jacobian_impl(const state_type & u,
+		     const scalar_type & t,
+		     _jac_type & jac) const
+  {
+    tripletList_[0] = Tr( 0, 0, -dxInv_*u(0));
+    int_t k = 0;
+    for (int_t i=1; i<Ncell_; ++i){
+      tripletList_[++k] = Tr( i, i-1, dxInv_ * u(i-1) );
+      tripletList_[++k] = Tr( i, i, -dxInv_ * u(i) );
+    }
+    jac.setFromTriplets(tripletList_.begin(), tripletList_.end());
+    if ( !jac.isCompressed() )
+      jac.makeCompressed();
+  }
 
 private:
   const scalar_type xL_ = 0.0;		// left side of domain

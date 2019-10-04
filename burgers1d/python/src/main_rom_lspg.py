@@ -20,9 +20,10 @@ class MyLinSolver:
 
   # default to LU-based solve
   def solve(self,A,b,x):
-    x[:] = linalg.solve(A, b,
-                        assume_a=self.assume_,
-                        check_finite=False)
+    x[:] = 1.0
+    #x[:] = linalg.solve(A, b,
+    #                    assume_a=self.assume_,
+    #                    check_finite=False)
 
 
 Ncell   = int(float(sys.argv[1]))
@@ -45,7 +46,9 @@ yRef = np.ones(Ncell)
 ops = pressio4pyOps.Ops()
 
 # load basis into numpy array
-phi = np.loadtxt("basis.txt")
+phi0 = np.loadtxt("basis.txt")
+phi = np.zeros((Ncell, romSize), order='F')
+phi = phi0
 
 # create a decoder
 decoder = pressio4py.LinearDecoder(phi, ops)
@@ -65,7 +68,7 @@ stepper = lspgObj.getStepper()
 
 # linear solver: this is used for the normal equations,
 # which has a symmetric matrix, so use the information
-lsO = MyLinSolver('sym')
+lsO = MyLinSolver('gen')
 
 # non linear solver
 nlsO = pressio4pyLspg.GaussNewton(stepper, yRom, lsO, ops)

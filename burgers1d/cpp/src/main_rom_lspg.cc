@@ -88,8 +88,8 @@ int main(int argc, char *argv[])
   using lspg_stepper_t = typename lspg_problem_type::lspg_stepper_t;
   using gnsolver_t   = pressio::solvers::iterative::GaussNewton<lspg_stepper_t, linear_solver_t>;
   gnsolver_t solver(lspgProblem.stepperObj_, yROM, linSolverObj);
+  solver.setMaxIterations(10);
   solver.setTolerance(1e-13);
-  solver.setMaxIterations(20);
 
   // integrate in time
   pressio::ode::integrateNSteps(lspgProblem.stepperObj_, yROM, t0, dt, Nsteps, solver);

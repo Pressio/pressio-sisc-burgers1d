@@ -21,37 +21,3 @@ void Burgers1dEigen::setup()
   JJ_.resize(Ncell_, Ncell_);
   tripletList_.resize( (Ncell_-1)*2 + 1 );
 };
-
-
-void Burgers1dEigen::velocity_impl(const state_type & u,
-				   const scalar_type & t,
-				   velocity_type & f) const
-{
-  constexpr auto one = ::pressio::utils::constants::one<sc_t>();
-  constexpr auto two = ::pressio::utils::constants::two<sc_t>();
-  constexpr auto oneHalf = one/two;
-
-  f(0) = oneHalf * dxInv_ * (mu_(0)*mu_(0) - u(0)*u(0));
-  for (int_t i=1; i<Ncell_; ++i){
-    f(i) = oneHalf * dxInv_ * (u(i-1)*u(i-1) - u(i)*u(i));
-  }
-  for (int_t i=0; i<Ncell_; ++i){
-    f(i) += mu_(1)*exp(mu_(2)*xGrid_(i));
-  }
-}
-
-
-void Burgers1dEigen::jacobian_impl(const state_type & u,
-				   const scalar_type & t,
-				   jacobian_type & J) const
-{
-  tripletList_[0] = Tr( 0, 0, -dxInv_*u(0));
-  int_t k = 0;
-  for (int_t i=1; i<Ncell_; ++i){
-    tripletList_[++k] = Tr( i, i-1, dxInv_ * u(i-1) );
-    tripletList_[++k] = Tr( i, i, -dxInv_ * u(i) );
-  }
-  J.setFromTriplets(tripletList_.begin(), tripletList_.end());
-  if ( !J.isCompressed() )
-    J.makeCompressed();
-}
