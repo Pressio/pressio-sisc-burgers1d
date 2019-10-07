@@ -44,7 +44,7 @@ int main(int argc, char *argv[])
 
   for (auto i=1; i<=parser.numRepli_; ++i){
     std::cout << i << std::endl;
-    C = A * B;
+    C = A.transpose() * B;
   }
 
   // Record run time

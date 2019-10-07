@@ -11,6 +11,7 @@ struct InputParser{
   int32_t numCell_ = {};
   scalar_t dt_	        = {};
   scalar_t finalT_	= {};
+  int32_t numSteps_	= {};
   int32_t observerOn_	= 0;
   int32_t snapshotsFreq_    = {}; // freq of collecting snapshots
   std::string shapshotsFileName_ = "empty";
@@ -81,11 +82,15 @@ struct InputParser{
 	  }
 	}
       }
+
+    numSteps_ = static_cast<int32_t>(finalT_/dt_);
+
     source.close();
 
     std::cout << "Ncell = "		<< numCell_		<< " \n"
 	      << "dt = "		<< dt_			<< " \n"
 	      << "finalT = "		<< finalT_		<< " \n"
+	      << "numSteps = "		<< numSteps_		<< " \n"
 	      << "observerOn "		<< observerOn_		<< " \n"
 	      << "shapshotsFileName_ = "<< shapshotsFileName_	<< " \n"
 	      << "snapshotsFreq_ = "	<< snapshotsFreq_	<< " \n"

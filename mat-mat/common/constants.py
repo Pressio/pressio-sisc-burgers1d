@@ -10,7 +10,7 @@ pwd = os.getcwd()
 
 # sizes
 matRowSizes = np.array([10000])
-matColSizes = np.array([50, 100, 200])
+matColSizes = np.array([1])
 
 # of times we do mat mat prod inside code
 numReplicas = 100

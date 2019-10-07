@@ -44,6 +44,36 @@ fi
 #     cd ${CPPWORKINGDIR}
 # fi
 
+
+#-------------
+# do trilinos
+#-------------
+# only build trilinos is it is not passed by user
+if [ -z ${TRILINOSPFX} ];
+then
+    if [[ ! -d ${CPPWORKINGDIR}/tpls/trilinos || \
+	     ! -d ${CPPWORKINGDIR}/tpls/trilinos/build ]];
+    then
+	cd ${CPPWORKINGDIR}/pressio-builder
+
+	./main_tpls.sh \
+	    -dryrun=no \
+	    -tpls=trilinos \
+	    -target-dir=${CPPWORKINGDIR}/tpls \
+	    -build-mode=Release\
+	    -wipe-existing=yes \
+	    -link-type=dynamic \
+	    -cmake-custom-generator-file=${TOPDIR}/cpp/build_scripts/cmake_generators_for_pressio-builder.sh \
+	    -cmake-generator-names=tril_sisc_burgerscpp
+
+	cd ${CPPWORKINGDIR}
+
+    fi
+fi
+# set the proper trilinos pfx
+[[ -z ${TRILINOSPFX} ]] && TRILINOSPFX=${CPPWORKINGDIR}/tpls/trilinos
+
+
 #-------------
 # do pressio
 #-------------
@@ -82,7 +112,8 @@ then
 	-link-type=dynamic \
 	-cmake-custom-generator-file=${TOPDIR}/cpp/build_scripts/cmake_generators_for_pressio-builder.sh \
 	-cmake-generator-name=${PRESSIOGENFNCNAME} \
-	-eigen-path=${CPPWORKINGDIR}/tpls/eigen/install
+	-eigen-path=${CPPWORKINGDIR}/tpls/eigen/install\
+	-trilinos-path=${TRILINOSPFX}/install
 
     cd ${CPPWORKINGDIR}
 else
@@ -95,7 +126,12 @@ fi
 
 # set paths for eigen and pressio
 EIGENPATH="${CPPWORKINGDIR}/tpls/eigen/install/include/eigen3"
+TRILINOSINCPATH="${TRILINOSPFX}/install/include"
+TRILINOSLIBPATH="${TRILINOSPFX}/install/lib"
 PRESSIOPATH="${CPPWORKINGDIR}/tpls/pressio/install/include"
+
+USEDENSE=OFF
+[[ ${DENSEJACOBIAN} == yes ]] && USEDENSE=ON
 
 # build Burgers1d C++ exes
 bdirname=build
@@ -110,11 +146,17 @@ cmake -DCMAKE_C_COMPILER=${CC} \
       -DCMAKE_VERBOSE_MAKEFILE:BOOL=TRUE \
       -DCMAKE_BUILD_TYPE=Release \
       -DEIGEN_INCLUDE_DIR=${EIGENPATH} \
+      -DTRILINOS_INCLUDE_DIR=${TRILINOSINCPATH} \
+      -DTRILINOS_LIBRARY_DIR=${TRILINOSLIBPATH} \
       -DPRESSIO_INCLUDE_DIR=${PRESSIOPATH} \
-      -DCMAKE_CXX_FLAGS="-march=native"\
-      -DBLAS_LIB_DIR="/opt/local/lib/" \
+      -DHAVE_DENSE:BOOL=${USEDENSE} \
+      -DBLAS_LIB_DIR=${BLAS_ROOT}/lib \
+      -DLAPACK_LIB_DIR=${LAPACK_ROOT}/lib \
       ${CPPSRC}
 make -j6
+
+#-DBLAS_LIB_DIR="/opt/local/lib/" \
+#-DCMAKE_CXX_FLAGS="-march=native"\
 
 # go back where we started
 cd ${TOPDIR}

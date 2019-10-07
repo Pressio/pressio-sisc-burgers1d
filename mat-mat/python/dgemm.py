@@ -29,7 +29,7 @@ C = np.zeros((nArows, nBcols), order='C')
 startTime = time.time()
 
 for i in range(nReplic+1):
-  C = A.dot(B)
+  C = np.dot(A.T, B)
 
 endTime = time.time()
 elapsed = endTime-startTime

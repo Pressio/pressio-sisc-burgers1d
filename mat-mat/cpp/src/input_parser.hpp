@@ -82,11 +82,11 @@ struct InputParser{
       return 1;
     }
 
-    // TO DO MAT MAT PRODUCT, I NEED TO HAVE rows of B = cols of A
-    if (matBrows_ != matAcols_){
-      std::cerr << "Cannot do A*B if # rows in B != # cols in A" << std::endl;
-      return 1;
-    }
+    // // TO DO MAT MAT PRODUCT, I NEED TO HAVE rows of B = cols of A
+    // if (matBrows_ != matAcols_){
+    //   std::cerr << "Cannot do A*B if # rows in B != # cols in A" << std::endl;
+    //   return 1;
+    // }
 
     return 0;
   }

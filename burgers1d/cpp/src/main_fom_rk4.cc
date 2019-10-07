@@ -7,7 +7,7 @@
 #include <chrono>
 
 int main(int argc, char *argv[]){
-  // type aliasing
+  // types
   using app_t		= Burgers1dEigen;
   using scalar_t	= typename app_t::scalar_type;
   using app_state_t	= typename app_t::state_type;
@@ -21,18 +21,11 @@ int main(int argc, char *argv[]){
   int err = parser.parse(argc, argv);
   if (err == 1) return 1;
 
-  // store cmd line args
-  const auto numCell = parser.numCell_;
-  const auto dt = parser.dt_;
-  const auto finalT = parser.finalT_;
-  const auto observerOn = parser.observerOn_;
-  const auto Nsteps = static_cast<unsigned int>(finalT/dt);
-
   // create app object
-  app_t appObj(numCell);
+  app_t appObj(parser.numCell_);
 
   // initial state
-  app_state_t x0n(numCell);
+  app_state_t x0n(parser.numCell_);
   x0n.setConstant(one);
   // wrap init state
   ode_state_t x(x0n);
@@ -46,11 +39,11 @@ int main(int argc, char *argv[]){
   stepper_t stepperObj(x, appObj);
 
   // integrate in time
-  if (observerOn == 1){
-    // construct observer, pass y which now contains init condition
+  if (parser.observerOn_ == 1){
+    // construct observer, pass state which now contains init condition
     using obs_t = EigenObserver<ode_state_t>;
-    obs_t Obs(Nsteps, numCell, x, parser.snapshotsFreq_);
-    pressio::ode::integrateNSteps(stepperObj, x, zero, dt, Nsteps, Obs);
+    obs_t Obs(parser.numSteps_, parser.numCell_, x, parser.snapshotsFreq_);
+    pressio::ode::integrateNSteps(stepperObj, x, zero, parser.dt_, parser.numSteps_, Obs);
 
     // print snapshots to file
     Obs.printSnapshotsToFile(parser.shapshotsFileName_);
@@ -74,15 +67,15 @@ int main(int argc, char *argv[]){
     std::cout << "Done with basis" << std::endl;
   }
   else{
-    pressio::ode::integrateNSteps(stepperObj, x, zero, dt, Nsteps);
+    pressio::ode::integrateNSteps(stepperObj, x, zero, parser.dt_, parser.numSteps_);
   }
 
   // Record end time
   auto finishTime = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = finishTime - startTime;
-  std::cout << "Elapsed time: " <<
-    std::fixed << std::setprecision(10) <<
-    elapsed.count() << std::endl;
+  std::cout << "Elapsed time: "
+	    << std::fixed << std::setprecision(10)
+	    << elapsed.count() << std::endl;
 
   // // print solution
   // std::cout << std::setprecision(14) << *x.data() << std::endl;

@@ -26,9 +26,9 @@ class MyLinSolver:
     #                    check_finite=False)
 
 
-Ncell   = int(float(sys.argv[1]))
-romSize = int(float(sys.argv[2]))
-Nsteps  = int(float(sys.argv[3]))
+Ncell   = int(sys.argv[1])
+romSize = int(sys.argv[2])
+Nsteps  = int(sys.argv[3])
 dt      = float(sys.argv[4])
 
 print(Ncell)
@@ -46,9 +46,7 @@ yRef = np.ones(Ncell)
 ops = pressio4pyOps.Ops()
 
 # load basis into numpy array
-phi0 = np.loadtxt("basis.txt")
-phi = np.zeros((Ncell, romSize), order='F')
-phi = phi0
+phi = np.loadtxt("basis.txt")
 
 # create a decoder
 decoder = pressio4py.LinearDecoder(phi, ops)
@@ -68,14 +66,14 @@ stepper = lspgObj.getStepper()
 
 # linear solver: this is used for the normal equations,
 # which has a symmetric matrix, so use the information
-lsO = MyLinSolver('gen')
+lsO = MyLinSolver('sym')
 
 # non linear solver
 nlsO = pressio4pyLspg.GaussNewton(stepper, yRom, lsO, ops)
 nlsO.setMaxIterations(10)
 nlsO.setTolerance(1e-13)
 
-pressio4pyLspg.integrateNSteps(stepper, yRom, 0.0, dt, Nsteps, nlsO)
+pressio4pyLspg.integrateNSteps(stepper, yRom, t0, dt, Nsteps, nlsO)
 
 endTime = time.time()
 elapsed = endTime-startTime

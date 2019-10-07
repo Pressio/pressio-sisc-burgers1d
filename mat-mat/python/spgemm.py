@@ -23,6 +23,9 @@ ldiag = Vdm1*np.ones(nAcols-1)
 diag  = Vd*np.ones(nArows)
 udiag = Vdp1*np.ones(nAcols-1)
 
+A = diags( [ldiag, diag, udiag], [-1,0,1],
+           shape=[nArows, nAcols],
+           format='csr')
 
 #print(A.todense())
 #B0 = np.random.rand(nBrows, nBcols)
@@ -35,12 +38,7 @@ C = np.zeros((nArows, nBcols), order='C')
 startTime = time.time()
 
 for i in range(nReplic+1):
-  A = diags( [ldiag, diag, udiag], [-1,0,1],
-           shape=[nArows, nAcols],
-           format='csr')
-
   C = A.dot(B)
-
 
 endTime = time.time()
 elapsed = endTime-startTime

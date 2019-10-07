@@ -12,12 +12,15 @@ import pressio4pyOps
 
 np.set_printoptions(linewidth=400)
 
-Ncell   = int(float(sys.argv[1]))
-romSize = int(float(sys.argv[2]))
-Nsteps  = int(float(sys.argv[3]))
+Ncell   = int(sys.argv[1])
+romSize = int(sys.argv[2])
+Nsteps  = int(sys.argv[3])
 dt      = float(sys.argv[4])
 
-print(Ncell, romSize, Nsteps, dt)
+print(Ncell)
+print(romSize)
+print(Nsteps)
+print(dt)
 
 # start timer
 startTime = time.time()
@@ -47,7 +50,7 @@ galerkinObj = pressio4pyGalerkin.ProblemRK4(appObj, yRef, decoder, yRom, t0, ops
 # get stepper
 stepper = galerkinObj.getStepper()
 
-pressio4pyGalerkin.integrateNStepsRK4(stepper, yRom, 0.0, dt, Nsteps)
+pressio4pyGalerkin.integrateNStepsRK4(stepper, yRom, t0, dt, Nsteps)
 
 endTime = time.time()
 elapsed = endTime-startTime

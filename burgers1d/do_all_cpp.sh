@@ -3,7 +3,7 @@
 set -e
 
 # load global variables
-source ${PWD}/common/global_vars.sh
+source ${PWD}/common/global_vars_cpp.sh
 
 # parse cline arguments
 source ${PWD}/common/cmd_line_options.sh
@@ -35,8 +35,6 @@ CPPWORKINGDIR=${WORKINGDIR}/cpp
 
 # wipe everything if set to 1
 [[ $WIPEEXISTING == yes  ]] && wipe_existing_data_in_target_dir ${CPPWORKINGDIR}
-
-#[[ $WIPEEXISTING = 1 ]] && rm -rf ${CPPWORKINGDIR}/*
 
 #---------------------------
 # build c++ exes

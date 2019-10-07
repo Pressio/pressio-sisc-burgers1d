@@ -35,48 +35,30 @@ int main(int argc, char *argv[])
   constexpr scalar_t Vd   = 34.1232;
   constexpr scalar_t Vdp1 = 5654.55652;
 
-  // std::vector<Tr> tripletList_;
-  // tripletList_.push_back( Tr(0, 0, Vd) );
-  // tripletList_.push_back( Tr(0, 1, Vdp1) );
-  // for (int_t i=1; i<rA; ++i){
-  //   tripletList_.push_back( Tr(i, i-1, Vdm1) );
-  //   tripletList_.push_back( Tr(i, i, Vd) );
-  //   if (i<rA-1)
-  //     tripletList_.push_back( Tr(i, i+1, Vdp1) );
-  // }
-  // eig_sp_mat A(rA, cA);
-  // A.setFromTriplets(tripletList_.begin(), tripletList_.end());
-  // if ( !A.isCompressed() )
-  //   A.makeCompressed();
-
-  //std::cout << Eigen::MatrixXd(A) << std::endl;
+  std::vector<Tr> tripletList_;
+  tripletList_.push_back( Tr(0, 0, Vd) );
+  tripletList_.push_back( Tr(0, 1, Vdp1) );
+  for (int_t i=1; i<rA; ++i){
+    tripletList_.push_back( Tr(i, i-1, Vdm1) );
+    tripletList_.push_back( Tr(i, i, Vd) );
+    if (i<rA-1)
+      tripletList_.push_back( Tr(i, i+1, Vdp1) );
+  }
+  eig_sp_mat A(rA, cA);
+  A.setFromTriplets(tripletList_.begin(), tripletList_.end());
+  if ( !A.isCompressed() )
+    A.makeCompressed();
 
   eig_de_mat B(rB, cB);
   //B = eig_de_mat::Random(rB, cB);
   B.setConstant(1);
 
-  eig_de_mat C(rA, cB);
-
   // Record start time
   auto startTime = std::chrono::high_resolution_clock::now();
 
   for (auto i=1; i<=parser.numRepli_; ++i){
-    std::vector<Tr> tripletList_;
-    tripletList_.push_back( Tr(0, 0, Vd) );
-    tripletList_.push_back( Tr(0, 1, Vdp1) );
-    for (int_t i=1; i<rA; ++i){
-      tripletList_.push_back( Tr(i, i-1, Vdm1) );
-      tripletList_.push_back( Tr(i, i, Vd) );
-      if (i<rA-1)
-	tripletList_.push_back( Tr(i, i+1, Vdp1) );
-    }
-    eig_sp_mat A(rA, cA);
-    A.setFromTriplets(tripletList_.begin(), tripletList_.end());
-    if ( !A.isCompressed() )
-      A.makeCompressed();
-
     std::cout << i << std::endl;
-    C = A * B;
+    auto C = A.transpose() * B;
   }
   //std::cout << Eigen::MatrixXd(C) << std::endl;
 

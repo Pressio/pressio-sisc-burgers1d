@@ -20,7 +20,7 @@ int main(int argc, char *argv[])
 
   using lspg_state_t	= pressio::containers::Vector<eig_dyn_vec>;
   using native_dmat_t	= typename fom_t::dmatrix_type;
-  using decoder_jac_t	= pressio::containers::MultiVector<eig_dyn_mat>;
+  using decoder_jac_t	= pressio::containers::MultiVector<native_dmat_t>;
   using decoder_t	= pressio::rom::LinearDecoder<decoder_jac_t>;
   using hessian_t	= pressio::containers::Matrix<eig_dyn_mat>;
 

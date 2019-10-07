@@ -11,8 +11,6 @@ class Burgers1dEigen{
   using int_t	= int32_t;
   using sc_t	= double;
   using Tr	= Eigen::Triplet<sc_t>;
-
-  // dynamic column vector
   using eigVec	= Eigen::Matrix<sc_t, -1, 1>;
   using muVec	= Eigen::Vector3d;
 
