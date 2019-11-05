@@ -3,7 +3,7 @@
 set -e
 
 # load global variables
-source ${PWD}/common/global_vars.sh
+source ${PWD}/common/global_vars_py.sh
 
 # parse cline arguments
 source ${PWD}/common/cmd_line_options.sh
@@ -42,6 +42,37 @@ PYWORKINGDIR=${WORKINGDIR}/python
 if [ $WHICHTASK = "build" ]; then
     source ${TOPDIR}/python/build_scripts/build.sh
 fi
+
+#---------------------------
+# rom: lspg or galerkin
+#---------------------------
+if [ $WHICHTASK = "fom_velocity" ];
+then
+    # check if the build was already done
+    if [ ! -d ${PYWORKINGDIR}/build ]; then
+	echo "there is no build in the target folder, do that first"
+	exit 0
+    fi
+
+    # create folder inside workindir
+    destDir=${PYWORKINGDIR}/"data_"${WHICHTASK}
+    [[ ! -d ${destDir} ]] && mkdir ${destDir}
+
+    # alias the name of target executable
+    EXENAME=main_fom_velocity
+
+    # copy all pything scripts there
+    cp ${TOPDIR}/common/constants.py ${destDir}/
+    cp ${TOPDIR}/python/src/burgers1d.py ${destDir}/
+    cp ${TOPDIR}/python/src/main_fom_velocity.py ${destDir}/
+    cp ${TOPDIR}/python/run_scripts/run_fom_timing.py ${destDir}/
+
+    # enter there and run
+    cd ${destDir}
+    python run_fom_timing.py --exe=${EXENAME}
+    cd ${TOPDIR}
+fi
+
 
 #---------------------------
 # rom: lspg or galerkin

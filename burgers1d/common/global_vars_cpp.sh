@@ -3,6 +3,12 @@
 # top dir where this lives
 TOPDIR=${PWD}
 
+# which branch to use for pressio
+pressioBranch=develop
+
+# which branch to use for pressio-builder
+pressioBuilderBranch=master
+
 # burgers1d cpp source
 CPPSRC=${TOPDIR}/cpp/src
 
@@ -15,9 +21,6 @@ CPPWORKINGDIR=
 
 # yes/no wipe existing data content of target directory
 WIPEEXISTING=no
-
-# location of trilinos
-TRILINOSPFX=
 
 # if we want to solver burgers1d with dense vs sparse data (yes/no)
 DENSEJACOBIAN=no
@@ -39,12 +42,6 @@ fi
 # if we want debug prints on
 WITHDBGPRINT=no
 
-# which branch to use for pressio
-pressioBranch=siscPaper
-
-# which branch to use for pressio-builder
-pressioBuilderBranch=master
-
 
 function wipe_existing_data_in_target_dir(){
     echo "Wiping $1/{data_*, build}"
@@ -60,7 +57,7 @@ function print_global_vars(){
     echo "WIPEEXISTING		= ${WIPEEXISTING}"
     echo "SETENVscript		= $SETENVscript"
     echo "TASKNAME		= $TASKNAME"
-    echo "DENSEJACOBIAN		= $DENSEJACOBIAN"
+    #echo "DENSEJACOBIAN		= $DENSEJACOBIAN"
     echo "ARCH			= $ARCH"
     echo "WITHDBGPRINT		= $WITHDBGPRINT"
     echo "Pressio branch		= $pressioBranch"
@@ -92,6 +89,7 @@ function check_minimum_vars_set_cpp(){
     check_minimum_vars_set
 
     if [ ${WHICHTASK} != build ] &&\
+	   [ ${WHICHTASK} != fom_velocity_timing ] &&\
 	   [ ${WHICHTASK} != fom_bdf1_timing ] &&\
 	   [ ${WHICHTASK} != fom_bdf1_basis ] &&\
 	   [ ${WHICHTASK} != lspg ] &&\
@@ -100,9 +98,11 @@ function check_minimum_vars_set_cpp(){
 	   [ ${WHICHTASK} != galerkin ];
     then
 	echo "--do is set to non-admissible value"
-	echo "choose one of: build, fom_bdf1_timing,"\
-	     "fom_bdf1_basis, lspg "\
-	     "fom_rk4_timing, fom_rk4_basis, galerkin"
+	echo "choose one of: "\
+	     "build, "\
+	     "fom_velocity_timing "\
+	     "fom_bdf1_timing, fom_bdf1_basis, lspg "\
+	     "fom_rk4_timing,  fom_rk4_basis,  galerkin"
 	exit 0
     fi
 }

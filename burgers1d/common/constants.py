@@ -5,21 +5,22 @@ import numpy as np
 from subprocess import Popen, list2cmdline, PIPE
 import os.path
 
-# store current directory
-pwd = os.getcwd()
-
-dt = 0.01
-numSteps = 400
+dt = 0.001
+numSteps = 5000
 finalTime = numSteps*dt
 
 # mesh sizes
-numCell_cases = np.array([10000])#, 5000, 10000, 50000, 100000])
+mesh_sizes = np.array([10000])
+# number of mesh sizes
+num_meshes = len(mesh_sizes)
 
 # rom sizes: remember that ROM size has to be smaller than mesh
-romSize_cases = np.array([50, 100, 200])#, 50, 100])
+rom_sizes = np.array([200]) #50, 100, 200, 400])#, 50, 100])
+# number of rom sizes
+num_rom_sizes = len(rom_sizes)
 
 # number of samples to run to compute timing statistics
-numSamplesForTiming = 1
+numSamplesForTiming = 3
 
 # regex for getting timing from code output
 # \d{1,} match one or more (any) digits before the .

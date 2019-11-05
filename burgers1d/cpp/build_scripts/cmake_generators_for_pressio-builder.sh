@@ -15,15 +15,11 @@ function tril_sisc_burgerscpp(){
 
 function pressio_sisc_burgerscpp(){
     pressio_build_type
-    pressio_link_type
-    pressio_mpi_c_cxx_compilers
-    pressio_mpi_fortran_on
-    pressio_tests_off
-    pressio_examples_off
+    pressio_cmake_verbose
+    pressio_serial_c_cxx_compilers
+    pressio_serial_fortran_compiler
     pressio_openblaslapack
     pressio_enable_eigen
-    pressio_enable_trilinos
-    pressio_pressio_target_package
 }
 
 function pressio_sisc_burgerscpp_dbgprint(){

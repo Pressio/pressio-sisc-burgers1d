@@ -1,9 +1,7 @@
 
-#define EIGEN_USE_BLAS
 #include "CONTAINERS_ALL"
 #include "ODE_ALL"
 #include "ROM_GALERKIN"
-#include <chrono>
 #include "utils.hpp"
 #include "burgers1d_input_parser.hpp"
 #include "burgers1d_eigen.hpp"
@@ -16,6 +14,7 @@ int main(int argc, char *argv[]){
   using eig_dyn_vec	= Eigen::Matrix<scalar_t, -1, 1>;
   using rom_state_t	= pressio::containers::Vector<eig_dyn_vec>;
 
+  using native_state_t	= typename fom_t::state_type;
   using native_dmat_t	= typename fom_t::dmatrix_type;
   using decoder_jac_t	= pressio::containers::MultiVector<native_dmat_t>;
   using decoder_t	= pressio::rom::LinearDecoder<decoder_jac_t>;
@@ -34,7 +33,7 @@ int main(int argc, char *argv[]){
   // store modes computed before from file
   // store basis vectors into native format
   const auto phiNative = readBasis<scalar_t, int32_t, native_dmat_t>(parser.basisFileName_,
-								     parser.romSize_);
+  								     parser.romSize_);
   // wrap native basis with a pressio wrapper
   const decoder_jac_t phi(phiNative);
   const int32_t numBasis = phi.numVectors();
@@ -44,7 +43,7 @@ int main(int argc, char *argv[]){
   decoder_t decoderObj(phi);
 
   // the reference state = initial condition
-  typename fom_t::state_type yRef(parser.numCell_);
+  native_state_t yRef(parser.numCell_);
   yRef.setConstant(one);
 
   // define ROM state
@@ -56,24 +55,24 @@ int main(int argc, char *argv[]){
 
   // define ROM problem
   constexpr auto ode_case  = pressio::ode::ExplicitEnum::RungeKutta4;
-  using galerkin_t = pressio::rom::DefaultGalerkinExplicitTypeGenerator<
-    ode_case, rom_state_t, fom_t, decoder_t>;
-  pressio::rom::GalerkinProblemGenerator<galerkin_t> galerkinProb(
-      appobj, yRef, decoderObj, yROM, t0);
+  using galerkin_t = pressio::rom::DefaultGalerkinExplicitTypeGenerator<ode_case, rom_state_t, fom_t, decoder_t>;
+  using galerkin_prob = pressio::rom::GalerkinProblemGenerator<galerkin_t>;
+  galerkin_prob galerkinProb(appobj, yRef, decoderObj, yROM, zero);
+
+  auto & stepper = galerkinProb.getStepperRef();
 
   // integrate in time
-  pressio::ode::integrateNSteps(galerkinProb.stepperObj_, yROM, zero, parser.dt_, parser.numSteps_);
+  pressio::ode::integrateNSteps(stepper, yROM, zero, parser.dt_, parser.numSteps_);
 
   // Record end time
   auto finishTime = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = finishTime - startTime;
   std::cout << "Elapsed time: "
-	    << std::fixed << std::setprecision(10)
-	    << elapsed.count() << std::endl;
-
+  	    << std::fixed << std::setprecision(10)
+  	    << elapsed.count() << std::endl;
   {
     // compute the fom corresponding to our rom final state
-    const auto yFomFinal = galerkinProb.yFomReconstructor_(yROM);
+    const auto yFomFinal = galerkinProb.getFomStateReconstructorCRef()(yROM);
     std::ofstream file;
     file.open("yFomReconstructed.txt");
     for(size_t i=0; i < yFomFinal.size(); i++){
@@ -82,15 +81,11 @@ int main(int argc, char *argv[]){
     file.close();
   }
   {
-    std::cout << "Printing first 5 elements of gen coords" << std::endl;
-    for (int32_t i=0; i<5; ++i)
-      std::cout << (*yROM.data())[i] << std::endl;
-
     // print generalized coords
     std::ofstream file;
     file.open("final_generalized_coords.txt");
     for(size_t i=0; i < yROM.size(); i++){
-      file << std::setprecision(15) << yROM[i] << std::endl;
+      file << std::setprecision(17) << yROM[i] << std::endl;
     }
     file.close();
   }

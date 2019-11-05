@@ -4,9 +4,9 @@
 #include "burgers1d_eigen.hpp"
 #include "burgers1d_input_parser.hpp"
 #include "eigen_observer.hpp"
-#include <chrono>
 
-int main(int argc, char *argv[]){
+int main(int argc, char *argv[])
+{
   // types
   using app_t		= Burgers1dEigen;
   using scalar_t	= typename app_t::scalar_type;
@@ -55,15 +55,7 @@ int main(int argc, char *argv[]){
     const auto U = svd.matrixU();
 
     std::cout << "Print basis to file" << std::endl;
-    std::ofstream file;
-    file.open(parser.basisFileName_);
-    for (auto i=0; i<U.rows(); i++){
-      for (auto j=0; j<U.cols(); j++){
-	file << std::fixed << std::setprecision(15) << U(i,j) << " ";
-      }
-      file << std::endl;
-    }
-    file.close();
+    printEigenDMatrixToFile(parser.basisFileName_, U);
     std::cout << "Done with basis" << std::endl;
   }
   else{
@@ -77,8 +69,15 @@ int main(int argc, char *argv[]){
 	    << std::fixed << std::setprecision(10)
 	    << elapsed.count() << std::endl;
 
-  // // print solution
-  // std::cout << std::setprecision(14) << *x.data() << std::endl;
+  {
+    // print final solution
+    std::ofstream file;
+    file.open("yFom.txt");
+    for(size_t i=0; i < x.size(); i++){
+      file << std::setprecision(15) << x[i] << std::endl;
+    }
+    file.close();
+  }
 
   return 0;
 }

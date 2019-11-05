@@ -19,7 +19,7 @@ def main(exeName, basisDirName):
   # - first col  = mesh size
   # - second col = rom size
   # - then       = timings
-  nRows = len(constants.numCell_cases) * len(constants.romSize_cases)
+  nRows = constants.num_meshes * len(constants.rom_sizes)
   nCols = constants.numSamplesForTiming+2
   data = np.zeros((nRows, nCols))
 
@@ -31,28 +31,28 @@ def main(exeName, basisDirName):
 
   # loop over mesh sizes
   iRow = -1
-  for iMesh in range(0, len(constants.numCell_cases)):
-    numCell = constants.numCell_cases[iMesh]
-    print("Current numCell = ", numCell)
+  for iMesh in range(0, constants.num_meshes):
+    currMeshSize = constants.mesh_sizes[iMesh]
+    print("Current currMeshSize = ", currMeshSize)
 
     # loop over ROM sizes
-    for iRom in range(0, len(constants.romSize_cases)):
+    for iRom in range(0, constants.num_rom_sizes):
       # iRow keeps strack of where to store into data
       iRow += 1
       # print current rom size
-      romSize = constants.romSize_cases[iRom]
+      romSize = constants.rom_sizes[iRom]
       print("Current romSize = ", romSize)
 
       # store mesh size and rom size
-      data[iRow][0] = numCell
+      data[iRow][0] = currMeshSize
       data[iRow][1] = romSize
 
       # create input file (we only need one since the same
       # is used to run multiple replicas)
-      myutils.createInputFileRom(numCell, romSize)
+      myutils.createInputFileRom(currMeshSize, romSize)
 
       # link basis file
-      subs1 = "numCell" + str(numCell)
+      subs1 = "meshSize" + str(currMeshSize)
       subs2 = "basis" + str(romSize)
       basisDir = basisParentDir + "/" + subs1 + "/" + subs2
       # always remove the link to basis to make sure we link the right one
@@ -64,7 +64,7 @@ def main(exeName, basisDirName):
         popen = subprocess.Popen(args, stdout=subprocess.PIPE)
         popen.wait()
         output = popen.stdout.read()
-        #print( str(output))
+        print( str(output))
         #os.system("./" + exeName + " input.txt")
 
         # find timing
@@ -77,7 +77,7 @@ def main(exeName, basisDirName):
         # save output data (e.g. state and gen coords) for one replica run only
         # since they are all equivalent, beside the timing
         if i==0:
-          destDir = "numCell" + str(numCell) + "/basis" + str(romSize)
+          destDir = "meshSize" + str(currMeshSize) + "/basis" + str(romSize)
           os.system("mkdir -p " + destDir)
           if os.path.isfile('yFomReconstructed.txt'):
             os.system("mv yFomReconstructed.txt " + destDir)

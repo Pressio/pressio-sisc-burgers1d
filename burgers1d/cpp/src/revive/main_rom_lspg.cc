@@ -92,7 +92,7 @@ int main(int argc, char *argv[])
   solver.setTolerance(1e-13);
 
   // integrate in time
-  pressio::ode::integrateNSteps(lspgProblem.stepperObj_, yROM, t0, dt, Nsteps, solver);
+  pressio::ode::integrateNSteps(lspgProblem.getStepperRef(), yROM, t0, dt, Nsteps, solver);
 
   // Record run time
   auto finishTime = std::chrono::high_resolution_clock::now();
@@ -108,7 +108,7 @@ int main(int argc, char *argv[])
 
   {
     // compute the fom corresponding to our rom final state
-    const auto yFomFinal = lspgProblem.yFomReconstructor_(yROM);
+    const auto yFomFinal = lspgProblem.getFomStateReconstructorCRef()(yROM);
     // print reconstructed fom state
     std::ofstream file;
     file.open("yFomReconstructed.txt");

@@ -4,6 +4,7 @@
 
 #include "UTILS_ALL"
 #include "CONTAINERS_ALL"
+#include <chrono>
 
 template <typename sc_t, typename int_t, typename dmat_t>
 dmat_t readBasis(std::string filename, int_t romSize)
@@ -23,5 +24,25 @@ dmat_t readBasis(std::string filename, int_t romSize)
 
   return eigM;
 }
+
+
+void printEigenDMatrixToFile(std::string fileName,
+			     const Eigen::MatrixXd & A)
+{
+  using int_t = int32_t;
+
+  std::ofstream file;
+  file.open(fileName);
+  for (int_t i=0; i<A.rows(); i++){
+    for (int_t j=0; j<A.cols(); j++){
+      file << std::fixed
+	   << std::setprecision(15)
+	   << A(i,j) << " ";
+    }
+    file << std::endl;
+  }
+  file.close();
+}
+
 
 #endif

@@ -40,7 +40,7 @@ fi
 WITHDBGPRINT=no
 
 # which branch to use for pressio
-pressioBranch=siscPaper
+pressioBranch=develop
 
 # which branch to use for pressio-builder
 pressioBuilderBranch=master
@@ -82,11 +82,11 @@ function check_minimum_vars_set_plot(){
     # check for common
     check_minimum_vars_set
 
-    if [ ${WHICHTASK} != lspg ] &&\
+    if [ ${WHICHTASK} != lspg ] && \
 	   [ ${WHICHTASK} != galerkin ];
     then
 	echo "--do is set to non-admissible value"
-	echo "choose one of: lspg, galerkin"
+	echo "choose one of: fom_velocity, lspg, galerkin"
 	exit 0
     fi
 }
@@ -96,11 +96,12 @@ function check_minimum_vars_set_python(){
     check_minimum_vars_set
 
     if [ ${WHICHTASK} != build ] &&\
+	   [ ${WHICHTASK} != fom_velocity ] &&\
 	   [ ${WHICHTASK} != lspg ] &&\
 	   [ ${WHICHTASK} != galerkin ];
     then
 	echo "--do is set to non-admissible value"
-	echo "choose one of: build, lspg, galerkin"
+	echo "choose one of: build, fom_velocity, lspg, galerkin"
 	exit 0
     fi
 }

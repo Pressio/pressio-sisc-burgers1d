@@ -2,6 +2,8 @@
 #ifndef BURGERS1D_CPP_EIGEN_OBSERVER_HPP
 #define BURGERS1D_CPP_EIGEN_OBSERVER_HPP
 
+#include "utils.hpp"
+
 template <typename state_t>
 struct EigenObserver
 {
@@ -48,18 +50,20 @@ struct EigenObserver
     return A_;
   }
 
-  void printSnapshotsToFile(std::string fileName) const {
-    std::ofstream file;
-    file.open(fileName);
-    for (int_t i=0; i<A_.rows(); i++){
-      for (int_t j=0; j<A_.cols(); j++){
-	file << std::fixed
-	     << std::setprecision(15)
-	     << A_(i,j) << " ";
-      }
-      file << std::endl;
-    }
-    file.close();
+  void printSnapshotsToFile(std::string fileName) const
+  {
+    printEigenDMatrixToFile(fileName, A_);
+    // std::ofstream file;
+    // file.open(fileName);
+    // for (int_t i=0; i<A_.rows(); i++){
+    //   for (int_t j=0; j<A_.cols(); j++){
+    // 	file << std::fixed
+    // 	     << std::setprecision(15)
+    // 	     << A_(i,j) << " ";
+    //   }
+    //   file << std::endl;
+    // }
+    // file.close();
   }
 
 private:

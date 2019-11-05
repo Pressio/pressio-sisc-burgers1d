@@ -44,11 +44,11 @@ if [ $WHICHTASK = "build" ]; then
 fi
 
 #---------------------------
-# fom timing or basis
+# fom timing or basis or velocity sample
 #---------------------------
-if [[ $WHICHTASK == *"fom"* ]];
-then
-    # check if the build was already done
+if [[ $WHICHTASK == *"fom"* ]]; then
+
+    # check if the build is already done
     if [ ! -d ${CPPWORKINGDIR}/build ]; then
 	echo "there is no build in the target folder, do that first"
 	exit 0
@@ -62,28 +62,25 @@ then
     EXENAME=
     [[ $WHICHTASK == *"fom_bdf1"* ]] && EXENAME=burgers1d_fom_bdf1
     [[ $WHICHTASK == *"fom_rk4"* ]] && EXENAME=burgers1d_fom_rk4
+    [[ $WHICHTASK == *"fom_velocity"* ]] && EXENAME=burgers1d_fom_velocity
     [[ -f ${destDir}/${EXENAME} ]] && rm ${destDir}/${EXENAME}
     ln -s ${CPPWORKINGDIR}/build/${EXENAME} ${destDir}
 
-    # copy the template input
-    cp ${TOPDIR}/cpp/src/input.template ${destDir}
-
-    # copy python scripts there
-    cp ${TOPDIR}/cpp/run_scripts/myutils.py ${destDir}/
-
+    # copy the template input and python scripts
     cp ${TOPDIR}/common/*.py ${destDir}/
+    cp ${TOPDIR}/cpp/src/input.template ${destDir}
+    cp ${TOPDIR}/cpp/run_scripts/myutils.py ${destDir}/
 
     if [[ $WHICHTASK == *"timing"* ]]; then
 	cp ${TOPDIR}/cpp/run_scripts/run_fom_timing.py ${destDir}/
-    elif [[ $WHICHTASK == *"basis"* ]];
-    then
+    elif [[ $WHICHTASK == *"basis"* ]]; then
 	cp ${TOPDIR}/cpp/run_scripts/run_fom_basis.py ${destDir}/
     else
 	echo "error: unrecognized task for WHICHTASK=${WHICHTASK}. Terminating."
 	exit 11
     fi
 
-    # set python driver which depends on the task
+    # set python driver depending on the task
     PYTHONEXE=
     [[ $WHICHTASK == *"timing"* ]] && PYTHONEXE=run_fom_timing.py
     [[ $WHICHTASK == *"basis"* ]] && PYTHONEXE=run_fom_basis.py

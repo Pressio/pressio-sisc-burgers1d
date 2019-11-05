@@ -77,8 +77,7 @@ pressio4pyLspg.integrateNSteps(stepper, yRom, t0, dt, Nsteps, nlsO)
 
 endTime = time.time()
 elapsed = endTime-startTime
-
 print("Elapsed time: {0:10.10f} ".format(elapsed) )
 
-print ("Printing first 5 elements of gen coords")
-print (np.atleast_2d(yRom[:5]).T)
+print ("Printing generalized coords to file")
+np.savetxt("final_generalized_coords.txt", yRom, fmt='%.15f')

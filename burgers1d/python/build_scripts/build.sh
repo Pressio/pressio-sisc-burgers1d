@@ -2,7 +2,9 @@
 
 set -e
 
+#-------------------
 # go to working dir
+#-------------------
 cd ${PYWORKINGDIR}
 
 # clone pressio-builder
@@ -80,14 +82,11 @@ then
 	-dryrun=no \
 	-pressio-src=${PYWORKINGDIR}/tpls/pressio/pressio \
 	-target-dir=${PYWORKINGDIR}/tpls \
-	-package-name=rom \
 	-wipe-existing=yes \
 	-build-mode=Release \
-	-link-type=dynamic \
 	-cmake-custom-generator-file=${TOPDIR}/python/build_scripts/cmake_generators_for_pressio-builder.sh \
 	-cmake-generator-name=${PRESSIOGENFNCNAME} \
-	-eigen-path=${PYWORKINGDIR}/tpls/eigen/install \
-	-gtest-path=${PYWORKINGDIR}/tpls/gtest/install
+	-eigen-path=${PYWORKINGDIR}/tpls/eigen/install
 
     cd ${PYWORKINGDIR}
 else
@@ -109,10 +108,10 @@ then
     cd ${PYWORKINGDIR}/tpls/pressio4py
     if [ ! -d pressio4py ]; then
 	git clone git@github.com:fnrizzi/pressio4py.git
+	cd pressio4py
+	git checkout ${pressioFourPyBranch}
+	cd -
     fi
-    cd pressio4py
-    git checkout ${pressioFourPyBranch}
-    cd -
 
     # set paths for eigen, pybind11 and pressio
     EIGENPATH="${PYWORKINGDIR}/tpls/eigen/install/include/eigen3"

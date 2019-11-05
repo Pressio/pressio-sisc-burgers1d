@@ -5,26 +5,30 @@
 #include "Eigen/Dense"
 #include "Eigen/SparseCore"
 #include <iostream>
+#include <chrono>
 #include "UTILS_ALL"
 
 class Burgers1dEigen{
   using int_t	= int32_t;
   using sc_t	= double;
   using Tr	= Eigen::Triplet<sc_t>;
+  // column vector in Eigen
   using eigVec	= Eigen::Matrix<sc_t, -1, 1>;
+  // muVec is a vector to store parameters
   using muVec	= Eigen::Vector3d;
 
 public:
-  static constexpr auto spmat_layout = Eigen::ColMajor;
-
-  //// Eigen SparseMatrix has to have a signed integer type, use index_t
+  // Eigen SparseMatrix has to have a signed integer type, use int_t
+  static constexpr auto spmat_layout = Eigen::RowMajor;
   using eig_sp_mat   = Eigen::SparseMatrix<sc_t, spmat_layout, int_t>;
+
+  // eigen dense matrix
   using eig_dense_mat = Eigen::Matrix<sc_t, -1, -1, Eigen::ColMajor>;
 
   using scalar_type	= sc_t;
   using state_type	= eigVec;
   using velocity_type	= state_type;
-  using jacobian_type	= eig_sp_mat;
+  using jacobian_type	= eig_dense_mat;
 
   // for some reason, the best outcome is when the sparse is row-major
   // and the dense matrix is colmajor
@@ -47,44 +51,45 @@ public:
 public:
   void velocity(const state_type & u,
 		const scalar_type & t,
-		velocity_type & f) const{
+		velocity_type & f) const
+  {
     this->velocity_impl(u, t, f);
   }
 
   velocity_type velocity(const state_type & u,
-			 const scalar_type & t) const{
-    velocity_type f(Ncell_);
-    this->velocity_impl(u, t, f);
-    return f;
+			 const scalar_type & t) const
+  {
+    this->velocity_impl(u, t, f_);
+    return f_;
   }
 
   void jacobian(const state_type & u,
-		const scalar_type & t,
-		jacobian_type & jac) const{
+  		const scalar_type & t,
+  		jacobian_type & jac) const{
     this->jacobian_impl(u, t, jac);
   }
 
   jacobian_type jacobian(const state_type & u,
-			 const scalar_type & t) const{
+  			 const scalar_type & t) const{
     this->jacobian_impl(u, t, JJ_);
     return JJ_;
   }
 
-  void applyJacobian(const state_type & u,
-		     const dmatrix_type & B,
-		     const scalar_type & t,
-		     dmatrix_type & A) const{
-    this->jacobian_impl(u, t, JJ_);
-    A = JJ_ * B;
-  }
+  // void applyJacobian(const state_type & u,
+  // 		     const dmatrix_type & B,
+  // 		     const scalar_type & t,
+  // 		     dmatrix_type & A) const{
+  //   //this->jacobian_impl(u, t, JJ_);
+  //   A = JJ_ * B;
+  // }
 
-  dmatrix_type applyJacobian(const state_type & u,
-			     const dmatrix_type & B,
-			     const scalar_type & t) const{
-    dmatrix_type A( u.size(), B.cols() );
-    this->applyJacobian(u, B, t, A);
-    return A;
-  }
+  // dmatrix_type applyJacobian(const state_type & u,
+  // 			     const dmatrix_type & B,
+  // 			     const scalar_type & t) const{
+  //   dmatrix_type A( u.size(), B.cols() );
+  //   this->applyJacobian(u, B, t, A);
+  //   return A;
+  // }
 
 private:
   void setup();
@@ -101,41 +106,20 @@ private:
     for (int_t i=1; i<Ncell_; ++i){
       f(i) = oneHalf * dxInv_ * (u(i-1)*u(i-1) - u(i)*u(i));
     }
-    for (int_t i=0; i<Ncell_; ++i){
-      f(i) += mu_(1)*exp(mu_(2)*xGrid_(i));
-    }
+    f += expVec_;
+    // for (int_t i=0; i<Ncell_; ++i)
+    //   f(i) += expVec_(i);
   }
 
   template <
     typename _jac_type = jacobian_type,
     typename std::enable_if<
-      std::is_same<
-	_jac_type, eig_dense_mat
-	>::value
+      std::is_same< _jac_type, eig_sp_mat >::value
       >::type * = nullptr
     >
   void jacobian_impl(const state_type & u,
-		     const scalar_type & t,
-		     _jac_type & jac) const
-  {
-    jac(0,0) = -dxInv_*u(0);
-    for (int_t i=1; i<Ncell_; ++i){
-      jac(i, i-1) = dxInv_ * u(i-1);
-      jac(i, i) = -dxInv_ * u(i);
-    }
-  }
-
-  template <
-    typename _jac_type = jacobian_type,
-    typename std::enable_if<
-      std::is_same<
-	_jac_type, eig_sp_mat
-	>::value
-      >::type * = nullptr
-    >
-  void jacobian_impl(const state_type & u,
-		     const scalar_type & t,
-		     _jac_type & jac) const
+  		     const scalar_type & t,
+  		     _jac_type & jac) const
   {
     tripletList_[0] = Tr( 0, 0, -dxInv_*u(0));
     int_t k = 0;
@@ -148,6 +132,25 @@ private:
       jac.makeCompressed();
   }
 
+  template <
+    typename _jac_type = jacobian_type,
+    typename std::enable_if<
+      std::is_same<
+  	_jac_type, eig_dense_mat
+  	>::value
+      >::type * = nullptr
+    >
+  void jacobian_impl(const state_type & u,
+  		     const scalar_type & t,
+  		     _jac_type & jac) const
+  {
+    jac(0,0) = -dxInv_*u(0);
+    for (int_t i=1; i<Ncell_; ++i){
+      jac(i, i-1) = dxInv_ * u(i-1);
+      jac(i, i) = -dxInv_ * u(i);
+    }
+  }
+
 private:
   const scalar_type xL_ = 0.0;		// left side of domain
   const scalar_type xR_ = 100.0;	// right side of domain
@@ -155,12 +158,34 @@ private:
   int_t Ncell_ = {};			// # of cells
   scalar_type dx_ = {};			// cell size
   scalar_type dxInv_ = {};		// inv of cell size
-  eigVec xGrid_ = {};			// mesh points coordinates
 
-  mutable state_type state_ = {};		// state vector
+  eigVec xGrid_ = {};			// mesh points coordinates
+  eigVec expVec_ = {};			// mu(1)*exp(mu[2] * x)
+
+  mutable state_type state_ = {};	// state vector
+  mutable velocity_type f_ = {};	// velocity
   mutable jacobian_type JJ_ = {};	// jacobian matrix
   mutable std::vector<Tr> tripletList_ = {};
 
 };//end class
 
 #endif
+
+
+
+
+  // void _timingFnc(const state_type & u,
+  // 		  const scalar_type & t,
+  // 		  velocity_type & f) const
+  // {
+  //   constexpr auto one = ::pressio::utils::constants::one<sc_t>();
+  //   constexpr auto two = ::pressio::utils::constants::two<sc_t>();
+  //   constexpr auto oneHalf = one/two;
+
+  //   f(0) = oneHalf * dxInv_ * (mu_(0)*mu_(0) - u(0)*u(0));
+  //   for (int_t i=1; i<Ncell_; ++i){
+  //     f(i) = oneHalf * dxInv_ * (u(i-1)*u(i-1) - u(i)*u(i)) + std::sin(u(i));
+  //   }
+  //   for (int_t i=0; i<Ncell_; ++i)
+  //     f(i) += expVec_(i);
+  // }
