@@ -36,13 +36,6 @@ PYWORKINGDIR=${WORKINGDIR}/python
 # wipe everything if set to 1
 [[ $WIPEEXISTING == yes  ]] && wipe_existing_data_in_target_dir ${PYWORKINGDIR}
 
-# #---------------------------
-# # only build
-# #---------------------------
-# if [ $WHICHTASK = "build" ]; then
-#     source ${TOPDIR}/python/build_scripts/build.sh
-# fi
-
 #---------------------------
 # time
 #---------------------------
@@ -54,11 +47,12 @@ then
 
     # # copy all pything scripts there
     cp ${TOPDIR}/common/constants.py ${destDir}/
-    cp ${TOPDIR}/python/run_timing.py ${destDir}/
+    cp ${TOPDIR}/run_timing.py ${destDir}/
+    cp ${TOPDIR}/python/myutils.py ${destDir}/
     cp ${TOPDIR}/python/${WHICHTASK}.py ${destDir}/
 
     # enter there and run
     cd ${destDir}
-    python run_timing.py --exe="${WHICHTASK}"
+    python run_timing.py --exe="${WHICHTASK}" --lang "Python"
     cd ${TOPDIR}
 fi

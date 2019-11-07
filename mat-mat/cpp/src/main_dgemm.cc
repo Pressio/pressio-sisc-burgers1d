@@ -17,34 +17,42 @@ int main(int argc, char *argv[])
   constexpr auto layout = Eigen::ColMajor;
   using eig_dyn_mat	= Eigen::Matrix<scalar_t, -1, -1, layout>;
 
-  constexpr auto two = static_cast<scalar_t>(2);
-
   // parse input file
   InputParser parser;
   int32_t err = parser.parse(argc, argv);
   if (err == 1) return 1;
 
-  const auto rA = parser.matArows_;
-  const auto cA = parser.matAcols_;
-  const auto rB = parser.matBrows_;
-  const auto cB = parser.matBcols_;
+  const auto numDofs = parser.numDofs_;
+  const auto romSize = parser.romSize_;
 
-  eig_dyn_mat A(rA, cA);
+  //
+  // mimic the case for jacobian being dense and phi being dense
+  //
+
+  eig_dyn_mat A(numDofs, numDofs);
   //A = eig_dyn_mat::Random(rA, cA);
   A.setConstant(1);
 
-  eig_dyn_mat B(rB, cB);
-  //B = eig_dyn_mat::Random(rB, cB);
+  eig_dyn_mat B(numDofs, romSize);
   B.setConstant(2);
 
-  eig_dyn_mat C(rA, cB);
+  eig_dyn_mat C(numDofs, romSize);
+  Eigen::VectorXd f(numDofs);
+  //volatile double f[numDofs];
+  Eigen::VectorXd f2(numDofs); f2.setConstant(4);
 
-  // Record start time
   auto startTime = std::chrono::high_resolution_clock::now();
-
   for (auto i=1; i<=parser.numRepli_; ++i){
-    std::cout << i << std::endl;
-    C = A.transpose() * B;
+    //std::cout << i << std::endl;
+    //C = A.transpose() * B;
+
+    for (int i=0; i<numDofs; ++i){
+      f[i] += 0.005 * std::exp(2.)*std::sin(3.14);
+    }
+    for (int i=0; i<numDofs; ++i){
+      f[i] += f2[i];
+    }
+
   }
 
   // Record run time
@@ -60,7 +68,8 @@ int main(int argc, char *argv[])
 	    << std::fixed << std::setprecision(10)
 	    << eT_avg << std::endl;
 
-  const scalar_t gflop = (two*rA*cA*cB)*1e-9;
+  constexpr auto two = static_cast<scalar_t>(2);
+  const scalar_t gflop = 0.0; //(two*numDofs*numDofs*romSize)*1e-9;
   std::cout << "GFlopPerItem: "
 	    << std::fixed << std::setprecision(5)
 	    << gflop << std::endl;

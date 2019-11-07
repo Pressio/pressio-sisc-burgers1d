@@ -8,13 +8,11 @@ import os.path
 # store current directory
 pwd = os.getcwd()
 
-# sizes
-matRowSizes = np.array([10000])
-matColSizes = np.array([1])
+numDofs = np.array([50000])
+romSizes = np.array([50])
 
 # of times we do mat mat prod inside code
 numReplicas = 100
-
 
 # regex for getting code output
 # \d{1,} match one or more (any) digits before the .

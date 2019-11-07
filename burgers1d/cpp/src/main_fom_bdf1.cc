@@ -1,3 +1,5 @@
+#define EIGEN_USE_BLAS
+#define EIGEN_USE_LAPACKE
 
 #include "CONTAINERS_ALL"
 #include "ODE_INTEGRATORS"
@@ -59,8 +61,8 @@ int main(int argc, char *argv[]){
   lin_solver_t linearSolverObj;
 
   // define non-linear solver
-  using non_lin_solver_t = pressio::solvers::NewtonRaphson<scalar_t, lin_solver_t>;
-  non_lin_solver_t solverObj(linearSolverObj);
+  using non_lin_solver_t = pressio::solvers::NewtonRaphson<stepper_t, lin_solver_t, scalar_t>;
+  non_lin_solver_t solverObj(stepperObj, x, linearSolverObj);
   // by default, newton raphson exits when norm of correction is below tolerance
   solverObj.setTolerance(1e-13);
   solverObj.setMaxIterations(10);
@@ -82,15 +84,7 @@ int main(int argc, char *argv[]){
     const auto U = svd.matrixU();
 
     std::cout << "Print basis to file" << std::endl;
-    std::ofstream file;
-    file.open(parser.basisFileName_);
-    for (auto i=0; i<U.rows(); i++){
-      for (auto j=0; j<U.cols(); j++){
-	file << std::fixed << std::setprecision(15) << U(i,j) << " ";
-      }
-      file << std::endl;
-    }
-    file.close();
+    printEigenDMatrixToFile(parser.basisFileName_, U);
     std::cout << "Done with basis" << std::endl;
   }
   else{

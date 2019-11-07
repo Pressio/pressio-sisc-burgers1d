@@ -7,62 +7,62 @@ import os.path
 import re
 from argparse import ArgumentParser
 
-import constants
+import myutils, constants
 
-
-def main(exeName):
+def main(exeName, language):
 
   # data stored as:
-  # - first  col  = # A rows
-  # - second col  = # B cols
+  # - first  col  = numDofs
+  # - second col  = romSize
   # - third col   = timing
   # - fourth col  = gflop
   # - fifth col   = gflop/sec
-  nRows = len(constants.matRowSizes) * len(constants.matColSizes)
+  nRows = len(constants.numDofs) * len(constants.romSizes)
   nCols = 5
   data = np.zeros((nRows, nCols))
 
+  # args for the executable
+  argsCpp = ("./"+exeName, "input.txt")
+
+
   # loop over rows of A matrix
   kk = -1
-  for iRowsA in range(0, len(constants.matRowSizes)):
-    matArows = constants.matRowSizes[iRowsA]
-    print("Current matArows = ", matArows)
+  for iRowsA in range(0, len(constants.numDofs)):
+    matArows = constants.numDofs[iRowsA]
+    print("Current numDofs = ", matArows)
 
     # loop over column sizes
-    for iCols in range(0, len(constants.matColSizes)):
+    for iCols in range(0, len(constants.romSizes)):
       # iRow keeps strack of where to store into data
       kk += 1
 
       # print current rom size
-      matBcols = constants.matColSizes[iCols]
-      print("Current B cols = ", matBcols)
+      romSize = constants.romSizes[iCols]
+      print("Current rom size = ", romSize)
 
       # store
       data[kk][0] = matArows
-      data[kk][1] = matBcols
+      data[kk][1] = romSize
 
-      # create input file (we only need one since the same
-      # is used to run multiple replicas)
-      # A is square, B is skinny (for now)
-      matAcols = matArows
-      matBrows = matAcols
+      if language=="Cpp":
+        myutils.createInputFile(matArows, romSize, constants.numReplicas)
 
       # args to run (args changes since each replica
       # is done with different values of inputs)
-      args = ("python", exeName+".py",
-              str(matArows), str(matAcols),
-              str(matBrows), str(matBcols),
-              str(constants.numReplicas) )
+      argsPy = ("python", exeName+".py",
+                str(matArows), str(romSize),
+                str(constants.numReplicas) )
+
+      if language=="Python":
+        args = argsPy
+      else:
+        args = argsCpp
 
       popen = subprocess.Popen(args, stdout=subprocess.PIPE)
       popen.wait()
       output = popen.stdout.read()
-      #print(output)
-      # os.system("python "+exeName+".py"+" "+
-      #           str(numCell)+" "+
-      #           str(romSize)+" "+
-      #           str(constants.numSteps)+" "+
-      #           str(constants.dt) )
+      #print( str(output))
+      #os.system("./" + exeName + " input.txt")
 
       # find timing
       res = re.search(constants.timerRegExp, str(output))
@@ -91,8 +91,10 @@ def main(exeName):
   np.set_printoptions(edgeitems=10, linewidth=100000)
   print(data)
 
+
 if __name__== "__main__":
   parser = ArgumentParser()
   parser.add_argument("-exe", "--exe", dest="exeName")
+  parser.add_argument("-lang", "--lang", dest="language")
   args = parser.parse_args()
-  main(args.exeName)
+  main(args.exeName, args.language)

@@ -1,8 +1,4 @@
 
-matArows matArowsValue
-matAcols matAcolsValue
-
-matBrows matBrowsValue
-matBcols matBcolsValue
-
+numDofs numDofsValue
+romSize romSizeValue
 numReplicas numReplicasValue

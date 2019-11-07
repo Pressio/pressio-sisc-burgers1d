@@ -65,12 +65,12 @@ then
     cp ${TOPDIR}/cpp/src/input.template ${destDir}
 
     # copy python scripts there
-    cp ${TOPDIR}/cpp/run_scripts/myutils.py ${destDir}/
+    cp ${TOPDIR}/cpp/myutils.py ${destDir}/
     cp ${TOPDIR}/common/constants.py ${destDir}/
-    cp ${TOPDIR}/cpp/run_scripts/run_timing.py ${destDir}/
+    cp ${TOPDIR}/run_timing.py ${destDir}/
 
     # enter and run
     cd ${destDir}
-    python run_timing.py --exe ${EXENAME}
+    python run_timing.py --exe ${EXENAME} --lang "Cpp"
     cd ${TOPDIR}
 fi

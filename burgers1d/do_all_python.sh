@@ -103,8 +103,6 @@ then
     [[ $WHICHTASK = "galerkin" ]] && EXENAME=main_rom_galerkin
 
     # link the bindings library
-    [[ -f ${destDir}/pressio4py.so ]] && rm ${destDir}/pressio4py.so
-    ln -s ${PYWORKINGDIR}/build/pressio4py.so ${destDir}
     if [ $WHICHTASK = "lspg" ]; then
 	[[ -f ${destDir}/pressio4pyLspg.so ]] && rm ${destDir}/pressio4pyLspg.so
 	ln -s ${PYWORKINGDIR}/build/pressio4pyLspg.so ${destDir}

@@ -13,26 +13,26 @@ class Burgers1dEigen{
   using sc_t	= double;
   using Tr	= Eigen::Triplet<sc_t>;
   // column vector in Eigen
-  using eigVec	= Eigen::Matrix<sc_t, -1, 1>;
+  using eigVec	= Eigen::VectorXd;
   // muVec is a vector to store parameters
   using muVec	= Eigen::Vector3d;
 
 public:
   // Eigen SparseMatrix has to have a signed integer type, use int_t
   static constexpr auto spmat_layout = Eigen::RowMajor;
-  using eig_sp_mat   = Eigen::SparseMatrix<sc_t, spmat_layout, int_t>;
+  using eig_sp_mat	= Eigen::SparseMatrix<sc_t, spmat_layout, int_t>;
 
   // eigen dense matrix
-  using eig_dense_mat = Eigen::Matrix<sc_t, -1, -1, Eigen::ColMajor>;
+  using eig_dense_mat	= Eigen::Matrix<sc_t, -1, -1, Eigen::ColMajor>;
 
   using scalar_type	= sc_t;
   using state_type	= eigVec;
   using velocity_type	= state_type;
   using jacobian_type	= eig_dense_mat;
 
-  // for some reason, the best outcome is when the sparse is row-major
-  // and the dense matrix is colmajor
-  using dmatrix_type	= eig_dense_mat;
+  // best outcome is when the sparse is row-major and the dense matrix is colmajor
+  // or both are dense
+  using dense_matrix_type = eig_dense_mat;
 
 public:
   Burgers1dEigen(muVec params, int_t Ncell)
@@ -56,6 +56,11 @@ public:
     this->velocity_impl(u, t, f);
   }
 
+  void velocityEmpty(const state_type & u,
+		     const scalar_type & t,
+		     velocity_type & f) const
+  {}
+
   velocity_type velocity(const state_type & u,
 			 const scalar_type & t) const
   {
@@ -75,21 +80,21 @@ public:
     return JJ_;
   }
 
-  // void applyJacobian(const state_type & u,
-  // 		     const dmatrix_type & B,
-  // 		     const scalar_type & t,
-  // 		     dmatrix_type & A) const{
-  //   //this->jacobian_impl(u, t, JJ_);
-  //   A = JJ_ * B;
-  // }
+  void applyJacobian(const state_type & u,
+  		     const dense_matrix_type & B,
+  		     const scalar_type & t,
+  		     dense_matrix_type & A) const{
+    this->jacobian_impl(u, t, JJ_);
+    A = JJ_ * B;
+  }
 
-  // dmatrix_type applyJacobian(const state_type & u,
-  // 			     const dmatrix_type & B,
-  // 			     const scalar_type & t) const{
-  //   dmatrix_type A( u.size(), B.cols() );
-  //   this->applyJacobian(u, B, t, A);
-  //   return A;
-  // }
+  dense_matrix_type applyJacobian(const state_type & u,
+				  const dense_matrix_type & B,
+				  const scalar_type & t) const{
+    dense_matrix_type A( u.size(), B.cols() );
+    this->applyJacobian(u, B, t, A);
+    return A;
+  }
 
 private:
   void setup();
@@ -102,13 +107,11 @@ private:
     constexpr auto two = ::pressio::utils::constants::two<sc_t>();
     constexpr auto oneHalf = one/two;
 
-    f(0) = oneHalf * dxInv_ * (mu_(0)*mu_(0) - u(0)*u(0));
+    const auto coeff = oneHalf * dxInv_;
+    f(0) = coeff * (mu_(0)*mu_(0) - u(0)*u(0)) + expVec_(0);
     for (int_t i=1; i<Ncell_; ++i){
-      f(i) = oneHalf * dxInv_ * (u(i-1)*u(i-1) - u(i)*u(i));
+      f(i) = coeff * (u(i-1)*u(i-1) - u(i)*u(i)) + expVec_(i);
     }
-    f += expVec_;
-    // for (int_t i=0; i<Ncell_; ++i)
-    //   f(i) += expVec_(i);
   }
 
   template <
@@ -170,22 +173,3 @@ private:
 };//end class
 
 #endif
-
-
-
-
-  // void _timingFnc(const state_type & u,
-  // 		  const scalar_type & t,
-  // 		  velocity_type & f) const
-  // {
-  //   constexpr auto one = ::pressio::utils::constants::one<sc_t>();
-  //   constexpr auto two = ::pressio::utils::constants::two<sc_t>();
-  //   constexpr auto oneHalf = one/two;
-
-  //   f(0) = oneHalf * dxInv_ * (mu_(0)*mu_(0) - u(0)*u(0));
-  //   for (int_t i=1; i<Ncell_; ++i){
-  //     f(i) = oneHalf * dxInv_ * (u(i-1)*u(i-1) - u(i)*u(i)) + std::sin(u(i));
-  //   }
-  //   for (int_t i=0; i<Ncell_; ++i)
-  //     f(i) += expVec_(i);
-  // }

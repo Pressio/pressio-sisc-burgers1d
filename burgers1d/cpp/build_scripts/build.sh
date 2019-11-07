@@ -105,6 +105,5 @@ cmake -DCMAKE_C_COMPILER=${CC} \
       ${CPPSRC}
 make -j6
 
-
 # go back where we started
 cd ${TOPDIR}

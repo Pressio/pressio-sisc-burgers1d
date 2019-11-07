@@ -9,10 +9,8 @@
 struct InputParser{
   using scalar_t = double;
 
-  int32_t matArows_ = 0;
-  int32_t matAcols_ = 0;
-  int32_t matBrows_ = 0;
-  int32_t matBcols_ = 0;
+  int32_t numDofs_  = 0;
+  int32_t romSize_  = 0;
   int32_t numRepli_ = 0;
 
   InputParser() = default;
@@ -40,17 +38,11 @@ struct InputParser{
 	// column 0, index
 	in >> col1;
 	in >> col2;
-	if (col1 == "matArows"){
-	  matArows_ = std::stoi(col2);
+	if (col1 == "numDofs"){
+	  numDofs_ = std::stoi(col2);
 	}
-	if (col1 == "matAcols"){
-	  matAcols_ = std::stoi(col2);
-	}
-	if (col1 == "matBrows"){
-	  matBrows_ = std::stoi(col2);
-	}
-	if (col1 == "matBcols"){
-	  matBcols_ = std::stoi(col2);
+	if (col1 == "romSize"){
+	  romSize_ = std::stoi(col2);
 	}
 	if (col1 == "numReplicas"){
 	  numRepli_ = std::stoi(col2);
@@ -58,27 +50,17 @@ struct InputParser{
       }
     source.close();
 
-    std::cout << "A rows = "		<< matArows_	<< " \n"
-	      << "A cols = "		<< matAcols_	<< " \n"
-	      << "B rows = "		<< matBrows_	<< " \n"
-	      << "B cols = "		<< matBcols_	<< " \n"
+    std::cout << "numDofs = "		<< numDofs_	<< " \n"
+	      << "romSize = "		<< romSize_     << " \n"
 	      << "numRepl = "		<< numRepli_	<< " \n"
 	      << std::endl;
 
-    if (matArows_==0){
-      std::cerr << "Invalid # rows for A" << std::endl;
+    if (numDofs_==0){
+      std::cerr << "Invalid # dofs " << std::endl;
       return 1;
     }
-    if (matAcols_==0){
-      std::cerr << "Invalid # cols for A" << std::endl;
-      return 1;
-    }
-    if (matBrows_==0){
-      std::cerr << "Invalid # rows for B" << std::endl;
-      return 1;
-    }
-    if (matBcols_==0){
-      std::cerr << "Invalid # cols for B" << std::endl;
+    if (romSize_==0){
+      std::cerr << "Invalid romSize" << std::endl;
       return 1;
     }
 

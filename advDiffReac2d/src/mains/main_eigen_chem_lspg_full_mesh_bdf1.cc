@@ -88,9 +88,7 @@ int main(int argc, char *argv[]){
 
   // define LSPG type
   constexpr auto ode_case  = pressio::ode::ImplicitEnum::Euler;
-  using lspg_problem_type  = pressio::rom::DefaultLSPGTypeGenerator<
-				fom_t, ode_case, decoder_t, lspg_state_t>;
-  using lspg_stepper_t	   = typename lspg_problem_type::lspg_stepper_t;
+  using lspg_problem_type  = pressio::rom::DefaultLSPGTypeGenerator<fom_t, ode_case, decoder_t, lspg_state_t>;
   using lspg_generator     = pressio::rom::LSPGUnsteadyProblemGenerator<lspg_problem_type>;
   lspg_generator lspgProblem(appObj, yRef, decoderObj, xROM, zero);
 
@@ -100,6 +98,7 @@ int main(int argc, char *argv[]){
   linear_solver_t linSolverObj;
 
   // --- normal-equations-based GaussNewton solver ---
+  using lspg_stepper_t     = typename lspg_problem_type::lspg_stepper_t;
   using gnsolver_t   = pressio::solvers::iterative::GaussNewton<lspg_stepper_t, linear_solver_t>;
   gnsolver_t solver(lspgProblem.stepperObj_, xROM, linSolverObj);
   solver.setTolerance(1e-13);

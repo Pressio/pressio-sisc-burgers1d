@@ -25,12 +25,12 @@ int main(int argc, char *argv[])
   int_t err = parser.parse(argc, argv);
   if (err == 1) return 1;
 
-  const auto rA = parser.matArows_;
-  const auto cA = parser.matAcols_;
-  const auto rB = parser.matBrows_;
-  const auto cB = parser.matBcols_;
+  const auto rA = parser.numDofs_;
+  const auto cA = rA;
+  const auto rB = cA;
+  const auto cB = parser.romSize_;
 
-  // fill sparse matrix A to be pentadiagonal
+  // fill sparse matrix
   constexpr scalar_t Vdm1 = 343.232;
   constexpr scalar_t Vd   = 34.1232;
   constexpr scalar_t Vdp1 = 5654.55652;
@@ -53,14 +53,13 @@ int main(int argc, char *argv[])
   //B = eig_de_mat::Random(rB, cB);
   B.setConstant(1);
 
-  // Record start time
-  auto startTime = std::chrono::high_resolution_clock::now();
+  eig_de_mat C(rA, cB);
 
+  auto startTime = std::chrono::high_resolution_clock::now();
   for (auto i=1; i<=parser.numRepli_; ++i){
     std::cout << i << std::endl;
-    auto C = A.transpose() * B;
+    C = A * B;
   }
-  //std::cout << Eigen::MatrixXd(C) << std::endl;
 
   // Record run time
   auto finishTime = std::chrono::high_resolution_clock::now();

@@ -3,42 +3,44 @@
 import numpy as np
 import sys, time
 from scipy.sparse import csr_matrix, diags, spdiags
+import timeit
 
 np.set_printoptions(linewidth=400)
+np.show_config()
 
-nArows = int(sys.argv[1])
-nAcols = int(sys.argv[2])
-nBrows = int(sys.argv[3])
-nBcols = int(sys.argv[4])
-nReplic = int(sys.argv[5])
+numDofs = int(sys.argv[1])
+romSize = int(sys.argv[2])
+nReplic = int(sys.argv[3])
 
-print("A dims = ", nArows, nAcols)
-print("B dims = ", nBrows, nBcols)
+print("n dofs = ", numDofs)
+print("rom size = ", romSize)
 print(nReplic)
+
+rA = numDofs;
+cA = rA;
+rB = cA;
+cB = romSize;
 
 Vdm1 = 343.232;
 Vd   = 34.1232;
 Vdp1 = 5654.55652;
-ldiag = Vdm1*np.ones(nAcols-1)
-diag  = Vd*np.ones(nArows)
-udiag = Vdp1*np.ones(nAcols-1)
+ldiag = Vdm1*np.ones(cA-1)
+diag  = Vd*np.ones(rA)
+udiag = Vdp1*np.ones(cA-1)
 
-A = diags( [ldiag, diag, udiag], [-1,0,1],
-           shape=[nArows, nAcols],
+A = diags( [ldiag, diag, udiag],
+           [-1,0,1],
+           shape=[rA, cA],
            format='csr')
 
-#print(A.todense())
-#B0 = np.random.rand(nBrows, nBcols)
-B = np.ones((nBrows, nBcols), order='C')
-#B = B0
+B = np.ones((rB, cB), order='C')
+C = np.zeros((rA, cB), order='C')
 
-C = np.zeros((nArows, nBcols), order='C')
-
-# start timer
 startTime = time.time()
 
 for i in range(nReplic+1):
-  C = A.dot(B)
+  C[:] = A.dot(B)
+
 
 endTime = time.time()
 elapsed = endTime-startTime

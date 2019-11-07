@@ -1,4 +1,7 @@
 
+#define EIGEN_USE_BLAS
+#define EIGEN_USE_LAPACKE
+
 #include "CONTAINERS_ALL"
 #include "ODE_ALL"
 #include "ROM_GALERKIN"
@@ -9,18 +12,18 @@
 
 int main(int argc, char *argv[]){
   using fom_t		= Burgers1dEigen;
-  using scalar_t	= typename fom_t::scalar_type;
+  using sc_t		= typename fom_t::scalar_type;
 
-  using eig_dyn_vec	= Eigen::Matrix<scalar_t, -1, 1>;
+  using eig_dyn_vec	= Eigen::Matrix<sc_t, -1, 1>;
   using rom_state_t	= pressio::containers::Vector<eig_dyn_vec>;
 
   using native_state_t	= typename fom_t::state_type;
-  using native_dmat_t	= typename fom_t::dmatrix_type;
+  using native_dmat_t	= typename fom_t::dense_matrix_type;
   using decoder_jac_t	= pressio::containers::MultiVector<native_dmat_t>;
   using decoder_t	= pressio::rom::LinearDecoder<decoder_jac_t>;
 
-  constexpr auto zero = ::pressio::utils::constants::zero<scalar_t>();
-  constexpr auto one  = ::pressio::utils::constants::one<scalar_t>();
+  constexpr auto zero = ::pressio::utils::constants::zero<sc_t>();
+  constexpr auto one  = ::pressio::utils::constants::one<sc_t>();
 
   // parse input file
   InputParser parser;
@@ -32,8 +35,8 @@ int main(int argc, char *argv[]){
 
   // store modes computed before from file
   // store basis vectors into native format
-  const auto phiNative = readBasis<scalar_t, int32_t, native_dmat_t>(parser.basisFileName_,
-  								     parser.romSize_);
+  const auto phiNative = readBasis<sc_t, int32_t, native_dmat_t>(parser.basisFileName_,
+								 parser.romSize_);
   // wrap native basis with a pressio wrapper
   const decoder_jac_t phi(phiNative);
   const int32_t numBasis = phi.numVectors();
@@ -52,13 +55,13 @@ int main(int argc, char *argv[]){
 
   // Record start time
   auto startTime = std::chrono::high_resolution_clock::now();
-
   // define ROM problem
   constexpr auto ode_case  = pressio::ode::ExplicitEnum::RungeKutta4;
   using galerkin_t = pressio::rom::DefaultGalerkinExplicitTypeGenerator<ode_case, rom_state_t, fom_t, decoder_t>;
   using galerkin_prob = pressio::rom::GalerkinProblemGenerator<galerkin_t>;
   galerkin_prob galerkinProb(appobj, yRef, decoderObj, yROM, zero);
 
+  // get stepper object
   auto & stepper = galerkinProb.getStepperRef();
 
   // integrate in time
