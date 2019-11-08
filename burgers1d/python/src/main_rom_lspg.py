@@ -13,16 +13,8 @@ import pressio4pyOps
 np.set_printoptions(linewidth=400)
 
 
-@njit(["void(float64[::1], float64[::1])"], fastmath=True)
-def mycopy(src, dest):
-  n = len(src)
-  for i in range(n):
-    dest[i] = src[i]
-
-
 class MyLinSolver:
-  def __init__(self):
-    pass
+  def __init__(self): pass
 
   @staticmethod
   def solve(A,b,x):
@@ -30,13 +22,14 @@ class MyLinSolver:
     x[:], info = linalg.lapack.dgetrs(lumat, piv, b, 0, 0)
 
 
-def doLSPGForTargetSteps(nsteps, appObj, yRef, decoder, yRom, t0, ops, nlsMaxIt, nlsTol):
-  lspgObj = pressio4pyLspg.ProblemEuler(appObj, yRef, decoder, yRom, t0, ops)
+
+def doLSPGForTargetSteps(nsteps, appObj, yRef, decoder, yRom, t0, nlsMaxIt, nlsTol):
+  lspgObj = pressio4pyLspg.ProblemEuler(appObj, yRef, decoder, yRom, t0)
   stepper = lspgObj.getStepper()
   # pass sym since matrix for NEq is symmetric
   lsO = MyLinSolver()
   # non linear solver
-  nlsO = pressio4pyLspg.GaussNewton(stepper, yRom, lsO, ops)
+  nlsO = pressio4pyLspg.GaussNewton(stepper, yRom, lsO)
   nlsO.setMaxIterations(nlsMaxIt)
   nlsO.setTolerance(nlsTol)
   # do integration
@@ -60,14 +53,11 @@ appObj = Burgers1d(Ncell)
 # set reference state
 yRef = np.ones(Ncell)
 
-# object in charge of ops
-ops = pressio4pyOps.Ops()
-
 # load basis into numpy array
 phi = np.loadtxt("basis.txt")
 
 # create a decoder
-decoder = pressio4pyLspg.LinearDecoder(phi, ops)
+decoder = pressio4pyLspg.LinearDecoder(phi)
 # the LSPG (reduced) state
 yRom = np.zeros(romSize)
 
@@ -75,12 +65,12 @@ nlsTol, nlsMaxIt = 1e-13, 20
 t0 = 0.
 
 # do untimed warm up run for numba compilation
-doLSPGForTargetSteps(1, appObj, yRef, decoder, yRom, t0, ops, nlsMaxIt, nlsTol)
+doLSPGForTargetSteps(1, appObj, yRef, decoder, yRom, t0, nlsMaxIt, nlsTol)
 
 # the actual timing starts here after the warm up
 yRom *= 0
 startTime = time.time()
-doLSPGForTargetSteps(Nsteps, appObj, yRef, decoder, yRom, t0, ops, nlsMaxIt, nlsTol)
+doLSPGForTargetSteps(Nsteps, appObj, yRef, decoder, yRom, t0, nlsMaxIt, nlsTol)
 endTime = time.time()
 elapsed = endTime-startTime
 print("Elapsed time: {0:10.10f} ".format(elapsed) )

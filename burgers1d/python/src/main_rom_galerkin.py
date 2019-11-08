@@ -11,8 +11,8 @@ from burgers1d import Burgers1d
 import pressio4pyGalerkin
 import pressio4pyOps
 
-def doGalerkinForTargetSteps(nsteps, appObj, yRef, decoder, yRom, t0, ops):
-  galerkinObj = pressio4pyGalerkin.ProblemRK4(appObj, yRef, decoder, yRom, t0, ops)
+def doGalerkinForTargetSteps(nsteps, appObj, yRef, decoder, yRom, t0):
+  galerkinObj = pressio4pyGalerkin.ProblemRK4(appObj, yRef, decoder, yRom, t0)
   stepper = galerkinObj.getStepper()
   pressio4pyGalerkin.integrateNStepsRK4(stepper, yRom, t0, dt, nsteps)
 
@@ -33,18 +33,17 @@ appObj = Burgers1d(meshSize)
 # reference state
 yRef = np.ones(meshSize)
 
-ops = pressio4pyOps.Ops()
 phi = np.loadtxt("basis.txt")
-decoder = pressio4pyGalerkin.LinearDecoder(phi, ops)
+decoder = pressio4pyGalerkin.LinearDecoder(phi)
 yRom = np.zeros(romSize)
 
 # do untimed warm up run for numba compilation
-doGalerkinForTargetSteps(1, appObj, yRef, decoder, yRom, 0., ops)
+doGalerkinForTargetSteps(1, appObj, yRef, decoder, yRom, 0.)
 
 # the actual timing starts here after the warm up
 yRom *= 0
 startTime = time.time()
-doGalerkinForTargetSteps(Nsteps, appObj, yRef, decoder, yRom, 0., ops)
+doGalerkinForTargetSteps(Nsteps, appObj, yRef, decoder, yRom, 0.)
 endTime = time.time()
 elapsed = endTime-startTime
 print("Elapsed time: {0:10.10f} ".format(elapsed) )
