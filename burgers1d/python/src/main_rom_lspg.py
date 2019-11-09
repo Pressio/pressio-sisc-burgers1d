@@ -48,7 +48,7 @@ print(Nsteps)
 print(dt)
 
 # create app
-appObj = Burgers1d(Ncell)
+appObj = Burgers1d(Ncell, useDense=False)
 
 # set reference state
 yRef = np.ones(Ncell)

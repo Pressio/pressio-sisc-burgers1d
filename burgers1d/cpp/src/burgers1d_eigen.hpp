@@ -8,8 +8,11 @@
 #include <chrono>
 #include "UTILS_ALL"
 
-class Burgers1dEigen{
+class Burgers1dEigen
+{
+  // Eigen matrices have to have a signed integer type, use int32_t
   using int_t	= int32_t;
+
   using sc_t	= double;
   using Tr	= Eigen::Triplet<sc_t>;
   // column vector in Eigen
@@ -18,20 +21,18 @@ class Burgers1dEigen{
   using muVec	= Eigen::Vector3d;
 
 public:
-  // Eigen SparseMatrix has to have a signed integer type, use int_t
-  static constexpr auto spmat_layout = Eigen::RowMajor;
-  using eig_sp_mat	= Eigen::SparseMatrix<sc_t, spmat_layout, int_t>;
+  // eigen sparse matrix
+  static constexpr auto spmat_layout = Eigen::ColMajor;
+  using eig_sparse_mat	  = Eigen::SparseMatrix<sc_t, spmat_layout, int_t>;
 
   // eigen dense matrix
-  using eig_dense_mat	= Eigen::Matrix<sc_t, -1, -1, Eigen::ColMajor>;
+  static constexpr auto dmat_layout = Eigen::ColMajor;
+  using eig_dense_mat	  = Eigen::Matrix<sc_t, -1, -1, dmat_layout>;
 
-  using scalar_type	= sc_t;
-  using state_type	= eigVec;
-  using velocity_type	= state_type;
-  using jacobian_type	= eig_dense_mat;
-
-  // best outcome is when the sparse is row-major and the dense matrix is colmajor
-  // or both are dense
+  using scalar_type	  = sc_t;
+  using state_type	  = eigVec;
+  using velocity_type	  = state_type;
+  using jacobian_type	  = eig_sparse_mat;
   using dense_matrix_type = eig_dense_mat;
 
 public:
@@ -51,19 +52,12 @@ public:
 public:
   void velocity(const state_type & u,
 		const scalar_type & t,
-		velocity_type & f) const
-  {
+		velocity_type & f) const{
     this->velocity_impl(u, t, f);
   }
 
-  void velocityEmpty(const state_type & u,
-		     const scalar_type & t,
-		     velocity_type & f) const
-  {}
-
   velocity_type velocity(const state_type & u,
-			 const scalar_type & t) const
-  {
+			 const scalar_type & t) const{
     this->velocity_impl(u, t, f_);
     return f_;
   }
@@ -97,7 +91,28 @@ public:
   }
 
 private:
-  void setup();
+  void setup(){
+    constexpr auto zero = ::pressio::utils::constants::zero<sc_t>();
+    constexpr auto one = ::pressio::utils::constants::one<sc_t>();
+    constexpr auto two = ::pressio::utils::constants::two<sc_t>();
+    constexpr auto oneHalf = one/two;
+    dx_ = (xR_ - xL_)/static_cast<scalar_type>(Ncell_);
+    dxInv_ = one/dx_;
+
+    // grid
+    xGrid_.resize(Ncell_);
+    expVec_.resize(Ncell_);
+    for (int_t i=0; i<Ncell_; ++i){
+      xGrid_(i) = dx_*static_cast<sc_t>(i) + dx_*oneHalf;
+      expVec_(i) = mu_(1) * std::exp(mu_(2)*xGrid_(i));
+    }
+
+    // init condition
+    state_.resize(Ncell_); state_.setConstant(one);
+    f_.resize(Ncell_); f_.setConstant(zero);
+    JJ_.resize(Ncell_, Ncell_);
+    tripletList_.resize( (Ncell_-1)*2 + 1 );
+  };
 
   void velocity_impl(const state_type & u,
 		     const scalar_type & t,
@@ -114,10 +129,11 @@ private:
     }
   }
 
+  // the sparse jacobian impl
   template <
     typename _jac_type = jacobian_type,
     typename std::enable_if<
-      std::is_same< _jac_type, eig_sp_mat >::value
+      std::is_same<_jac_type, eig_sparse_mat>::value
       >::type * = nullptr
     >
   void jacobian_impl(const state_type & u,
@@ -135,24 +151,42 @@ private:
       jac.makeCompressed();
   }
 
+  // --------------------------------------------------------------
+  /* dense jacobian impl is based on the layout */
   template <
     typename _jac_type = jacobian_type,
     typename std::enable_if<
-      std::is_same<
-  	_jac_type, eig_dense_mat
-  	>::value
+      std::is_same<_jac_type, eig_dense_mat>::value and
+      eig_dense_mat::IsRowMajor == 0
       >::type * = nullptr
     >
   void jacobian_impl(const state_type & u,
   		     const scalar_type & t,
-  		     _jac_type & jac) const
-  {
+  		     _jac_type & jac) const{
+    for (int_t i=0; i<Ncell_-1; ++i){
+      jac(i, i)   = -dxInv_ * u(i);
+      jac(i+1, i) = dxInv_ * u(i);
+    }
+    jac(Ncell_-1,Ncell_-1) = -dxInv_*u(Ncell_-1);
+  }
+
+  template <
+    typename _jac_type = jacobian_type,
+    typename std::enable_if<
+      std::is_same<_jac_type, eig_dense_mat>::value
+      and eig_dense_mat::IsRowMajor == 1
+      >::type * = nullptr
+    >
+  void jacobian_impl(const state_type & u,
+  		     const scalar_type & t,
+  		     _jac_type & jac) const{
     jac(0,0) = -dxInv_*u(0);
     for (int_t i=1; i<Ncell_; ++i){
+      jac(i, i)   = -dxInv_ * u(i);
       jac(i, i-1) = dxInv_ * u(i-1);
-      jac(i, i) = -dxInv_ * u(i);
     }
   }
+  // --------------------------------------------------------------
 
 private:
   const scalar_type xL_ = 0.0;		// left side of domain

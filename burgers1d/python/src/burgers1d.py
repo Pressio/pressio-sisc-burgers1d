@@ -10,25 +10,26 @@ def velocityImplNumba(u, t, f, expVec, dxInvHalf, mu0):
   for i in range(1,len(u)):
     f[i] = dxInvHalf * (u[i-1]**2-u[i]**2) + expVec[i]
 
-
 @njit(["void(float64[::1], f8, float64[::1, :], f8, int32)"], fastmath=True)
 def jacobianImplNumba(u, t, J, dxInv, N):
-  J[0][0] = -dxInv*u[0]
-  for i in range(1, N):
-    J[i][i-1] = dxInv * u[i-1]
+  J[N-1][N-1] = -dxInv*u[N-1]
+  for i in range(0, N-1):
     J[i][i] = -dxInv * u[i]
-
+    J[i+1][i] = dxInv * u[i]
 
 @njit(["void(float64[:], float64[:], float64[:], f8)"], fastmath=True)
 def fillDiag(u, diag, ldiag, dxInv):
-  for i in range(len(u)):
+  n = len(u)
+  for i in range(n-1):
     diag[i] = -dxInv*u[i]
-    if i < len(u)-1:
-      ldiag[i] = dxInv*u[i]
+    ldiag[i] = dxInv*u[i]
+  diag[n-1] = -dxInv*u[n-1]
+
 
 
 class Burgers1d:
-  def __init__(self, Ncell):
+  def __init__(self, Ncell, useDense=True):
+    self.dense_ = useDense
     self.mu_    = np.array([5., 0.02, 0.02])
     self.xL_    = 0.
     self.xR_    = 100.
@@ -42,7 +43,8 @@ class Burgers1d:
     self.expVec_= np.zeros(self.Ncell_)
     self.diag_  = np.zeros(self.Ncell_)
     self.ldiag_ = np.zeros(self.Ncell_-1)
-    self.J_     = np.zeros((self.Ncell_, self.Ncell_), order='F')
+    if useDense:
+      self.J_   = np.zeros((self.Ncell_, self.Ncell_), order='F')
     self.setup()
 
   def setup(self):
@@ -62,24 +64,50 @@ class Burgers1d:
     else:
       velocityImplNumba(u, t, args[2], self.expVec_, self.dxInvHalf_, self.mu_[0])
 
-  # ###### for sparse Jacobian ######
-  # def jacobian(self, u, t):
-  #   self.diag_[:] = -self.dxInv_*u[:]
-  #   self.ldiag_[:] = self.dxInv_*u[0:-1]
-  #   #fillDiag(u, self.diag_, self.ldiag_, self.dxInv_)
-  #   return diags( [self.ldiag_, self.diag_], [-1,0], format="csr")
-
-  # def applyJacobian(self, *args):
-  #   # A = J*B, with J evaluated for given x,t
-  #   u, B, t = args[0], args[1], args[2]
-  #   if len(args) == 3:
-  #     return self.jacobian(u, t).dot(B)
-  #   else:
-  #     A = args[3]
-  #     A[:] = self.jacobian(u, t).dot(B)
-
-  ###### for dense Jacobian ######
   def jacobian(self, *args):
+    if len(args) == 2:
+      if self.dense_:
+        return self.jacobianDense(args)
+      else:
+        return self.jacobianSparse(args)
+    else:
+      if self.dense_:
+        self.jacobianDense(args)
+      else:
+        self.jacobianSparse(args)
+
+  def applyJacobian(self, *args):
+    if len(args) == 3:
+      if self.dense_:
+        return self.applyJacobianDense(args[0], args[1], args[2])
+      else:
+        return self.applyJacobianSparse(args[0], args[1], args[2])
+    else:
+      if self.dense_:
+        self.applyJacobianDense(args[0], args[1], args[2], args[3])
+      else:
+        self.applyJacobianSparse(args[0], args[1], args[2], args[3])
+
+  ##################################
+  ###### for sparse Jacobian ######
+  def jacobianSparse(self, u, t):
+    #self.diag_[:] = -self.dxInv_*u[:]
+    #self.ldiag_[:] = self.dxInv_*u[0:-1]
+    fillDiag(u, self.diag_, self.ldiag_, self.dxInv_)
+    return diags( [self.ldiag_, self.diag_], [-1,0], format='coo')
+
+  def applyJacobianSparse(self, *args):
+    # A = J*B, with J evaluated for given x,t
+    u, B, t = args[0], args[1], args[2]
+    if len(args) == 3:
+      return self.jacobianSparse(u, t).dot(B)
+    else:
+      A = args[3]
+      A[:] = self.jacobianSparse(u, t).dot(B)
+
+  ##################################
+  ###### for dense Jacobian ######
+  def jacobianDense(self, *args):
     u, t = args[0], args[1]
     if len(args) == 2:
       jacobianImplNumba(u, t, self.J_, self.dxInv_, self.Ncell_)
@@ -87,84 +115,14 @@ class Burgers1d:
     else:
       jacobianImplNumba(u, t, args[2], self.dxInv_, self.Ncell_)
 
-  def applyJacobian(self, *args):
+  def applyJacobianDense(self, *args):
     # A = J*B, with J evaluated for given x,t
     u, B, t = args[0], args[1], args[2]
     if len(args) == 3:
-      self.jacobian(u, t, self.J_)
+      self.jacobianDense(u, t, self.J_)
       return np.matmul(self.J_,B)
     else:
       A = args[3]
-      self.jacobian(u, t, self.J_)
+      self.jacobianDense(u, t, self.J_)
       A[:] = np.matmul(self.J_,B)
   ##################################
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# def velocityImplNumbaVec(u, t, f, expVec_, dxInv_, mu0):
-#   uSq_ = np.square(u)
-#   f[0] = 0.5 * dxInv_ * (mu0*mu0 - uSq_[0])
-#   f[1:] = 0.5 * dxInv_ * ( uSq_[0:-1] - uSq_[1:] )
-#   f += expVec_ + np.sin(u)
-
-  # def jacobianImpl(self, u, t):
-  #   #self.diag[:] = -self.dxInv_*u[:]
-  #   #self.ldiag[:] = self.dxInv_*u[0:-1]
-  #   fillDiag( u, self.diag, self.ldiag, self.dxInv_)
-  #   return diags( [self.ldiag, self.diag], [-1,0])
-
-# @jit(nopython=True)
-# def velocityImpl(self, u, t, f):
-#   #startTime = time.time()
-#   uSq_ = u #np.square(u)
-#   f[0] = 0.5 * self.dxInv_ * (self.mu0sq_ - uSq_[0])
-#   f[1:] = 0.5 * self.dxInv_ * ( uSq_[0:-1] - uSq_[1:] )
-#   f[:] += self.expVec_
-#   # endTime = time.time()
-#   # elapsed = endTime-startTime
-#   # print("f-time: {0:10.10f} ".format(elapsed) )
-
-  # def jacobianImpl(self, u, t):
-  #   self.J_[np.arange(self.Ncell_), np.arange(self.Ncell_)] = -self.dxInv_*u[:]
-  #   self.J_[np.arange(1, self.Ncell_),
-  #           np.arange(self.Ncell_-1)] = self.dxInv_*u[0:self.Ncell_-1]
-
-  #   # self.J_[0][0] = -self.dxInv_*u[0]
-  #   # for i in range(self.Ncell_):
-  #   #     self.J_[i][i-1] = self.dxInv_ * u[i-1]
-  #   #     self.J_[i][i] = -self.dxInv_ * u[i]
-  #   return self.J_
-
-# @jit(nopython=True)
-# def velocityImplVectorize(u, t, f, expVec_, dxInv_, mu0):
-#   uSq_ = np.square(u)
-#   f[0] = 0.5 * dxInv_ * (mu0*mu0 - uSq_[0])
-#   f[1:] = 0.5 * dxInv_ * ( uSq_[0:-1] - uSq_[1:] )
-#   f[:] += expVec_
-
-# def jacobianImplVectorize(u, t, J, dxInv, N):
-#   J[np.arange(N), np.arange(N)] = -dxInv*u[:]
-#   J[np.arange(1, N), np.arange(N-1)] = dxInv*u[0:N-1]
-
-# #   #J[0][0] = -self.dxInv_*u[0]
-# #   # for i in range(self.Ncell_):
-# #   #     self.J_[i][i-1] = self.dxInv_ * u[i-1]
-# #   #     self.J_[i][i] = -self.dxInv_ * u[i]
-# #   for i in range(N):
-# #     diag[i] = -dxInv*u[i]
-# #     if i < N: ldiag[i] = dxInv*u[i]
-# #   return diags( [ldiag, diag], [-1,0], shape=[N, N], format='csr')

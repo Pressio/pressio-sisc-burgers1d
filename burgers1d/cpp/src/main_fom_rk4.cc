@@ -68,19 +68,11 @@ int main(int argc, char *argv[])
   // Record end time
   auto finishTime = std::chrono::high_resolution_clock::now();
   std::chrono::duration<double> elapsed = finishTime - startTime;
-  std::cout << "Elapsed time: "
-	    << std::fixed << std::setprecision(10)
+  std::cout << "Elapsed time: "  << std::fixed << std::setprecision(10)
 	    << elapsed.count() << std::endl;
 
-  {
-    // print final solution
-    std::ofstream file;
-    file.open("yFom.txt");
-    for(size_t i=0; i < x.size(); i++){
-      file << std::setprecision(15) << x[i] << std::endl;
-    }
-    file.close();
-  }
+  // print final solution
+  printEigenVectorToFile("yFom.txt", *x.data());
 
   return 0;
 }

@@ -73,25 +73,13 @@ int main(int argc, char *argv[]){
   std::cout << "Elapsed time: "
   	    << std::fixed << std::setprecision(10)
   	    << elapsed.count() << std::endl;
-  {
-    // compute the fom corresponding to our rom final state
-    const auto yFomFinal = galerkinProb.getFomStateReconstructorCRef()(yROM);
-    std::ofstream file;
-    file.open("yFomReconstructed.txt");
-    for(size_t i=0; i < yFomFinal.size(); i++){
-      file << std::setprecision(15) << yFomFinal[i] << std::endl;
-    }
-    file.close();
-  }
-  {
-    // print generalized coords
-    std::ofstream file;
-    file.open("final_generalized_coords.txt");
-    for(size_t i=0; i < yROM.size(); i++){
-      file << std::setprecision(17) << yROM[i] << std::endl;
-    }
-    file.close();
-  }
+
+  // compute the fom corresponding to our rom final state
+  const auto yFomFinal = galerkinProb.getFomStateReconstructorCRef()(yROM);
+  printEigenVectorToFile("yFomReconstructed.txt", *yFomFinal.data());
+
+  // print generalized coords
+  printEigenVectorToFile("final_generalized_coords.txt", *yROM.data());
 
   return 0;
 }

@@ -98,15 +98,7 @@ int main(int argc, char *argv[]){
 	    << std::fixed << std::setprecision(10)
 	    << elapsed.count() << std::endl;
 
-  {
-    // print
-    std::ofstream file;
-    file.open("yFom.txt");
-    for(size_t i=0; i < x.size(); i++){
-      file << std::setprecision(15) << x[i] << std::endl;
-    }
-    file.close();
-  }
+  printEigenVectorToFile("yFom.txt", *x.data());
 
   return 0;
 }

@@ -21,10 +21,8 @@ dmat_t readBasis(std::string filename, int_t romSize)
     for (int_t j=0; j<eigM.cols(); j++)
       eigM(i,j) = A0[i][j];
   }
-
   return eigM;
 }
-
 
 void printEigenDMatrixToFile(std::string fileName,
 			     const Eigen::MatrixXd & A)
@@ -44,5 +42,18 @@ void printEigenDMatrixToFile(std::string fileName,
   file.close();
 }
 
+void printEigenVectorToFile(std::string fileName,
+			    const Eigen::VectorXd & v)
+{
+  using int_t = int32_t;
+
+  std::ofstream file;
+  file.open(fileName);
+  for (int_t i=0; i<v.size(); i++){
+    file << std::fixed << std::setprecision(15)
+	 << v(i) << std::endl;
+  }
+  file.close();
+}
 
 #endif
