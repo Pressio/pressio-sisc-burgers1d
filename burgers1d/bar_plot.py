@@ -142,32 +142,44 @@ def plotBarStacked(cppDic, pyDic, meshLabels, romSizes, romSizesStr):
     raise Exception('The style for the bar plot currently support 3 rom sizes only')
 
   # since we use stacked bar, we plot cpp and stack on top the difference
-  colors = {'cpp': 'k', 'py': 'r'}
+  colors = {'cpp': 'w', 'py': 'w'}
   hatches = {'cpp': 'xxx', 'py':'/////'}
 
   #---- first rom size -----
   # x locations for the bars
-  xLoc = [p-width*0.15 for p in pos]
+  xLoc = [p+width for p in pos]
   plotBarSet(xLoc, width, romSizesStr[0], cppDic, pyDic, colors, hatches)
 
   #---- second rom size ----
-  xLoc = [p+width for p in pos]
+  xLoc = [p+width*2.15 for p in pos]
   plotBarSet(xLoc, width, romSizesStr[1], cppDic, pyDic, colors, hatches)
 
   #---- second rom size ----
-  xLoc = [p+width*2.15 for p in pos]
+  xLoc = [p+width*3.3 for p in pos]
   plotBarSet(xLoc, width, romSizesStr[2], cppDic, pyDic, colors, hatches)
 
   #ax.set_ylabel('... bla bla')
-  ax.set_xlabel('Mesh Size')
+  #ax.set_xlabel('Mesh Size')
   # ticks for groups
-  ax.set_xticks([p + width*1 for p in pos])
-  ax.set_xticklabels(meshLabels)
+  xTicksRomSize1 = [p+width for p in pos]
+  xTlab1 = [romSizesStr[0] for i in range(4)]
+  xTicksRomSize2 = [p+width*2.15 for p in pos]
+  xTlab2 = [romSizesStr[1] for i in range(4)]
+  xTicksRomSize3 = [p+width*3.3 for p in pos]
+  xTlab3 = [romSizesStr[2] for i in range(4)]
 
-  # ticks for rom size1
-  #ax.set_xticks([p + 1.5 * width for p in pos])
-  #ax.set_xticklabels(meshLabels)
-  #ax.set_yticks([i for i in range(0, 60, 2)])
+  # fix this
+  ax.set_xticks(xTicksRomSize1 + xTicksRomSize2 + xTicksRomSize3)
+  ax.set_xticklabels(xTlab1+xTlab2+xTlab3)
+
+  # remove the vertical lines of the grid
+  ax.xaxis.grid(which="major", color='None', linestyle='-.', linewidth=0)
+
+  plt.text(x=-0.175, y=-0.1, s='Rom Size',size = 10,rotation=0,
+           horizontalalignment='center',verticalalignment='center')
+
+  plt.text(x=-0.175, y=-0.3, s='Mesh Size',size = 10,rotation=0,
+           horizontalalignment='center',verticalalignment='center')
 
   # Setting the x-axis and y-axis limits
   plt.xlim(min(pos)-width*3, max(pos)+width*6)
@@ -220,6 +232,7 @@ def main(cppDataDir, pyDataDir, romName, barType):
   # since cpp/py rom sizes are same, does not matter which one we use
   romSizes = cppRomSizes
   romSizesStr = [str(int(i)) for i in romSizes]
+  print(romSizesStr)
 
   # compute the avg timings
   cppDataAvg, pyDataAvg = computeMeanTimings(cppData), computeMeanTimings(pyData)
