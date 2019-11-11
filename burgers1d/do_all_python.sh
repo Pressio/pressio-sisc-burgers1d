@@ -80,11 +80,6 @@ then
 	[[ -f ${destDir}/pressio4pyGalerkin.so ]] && rm ${destDir}/pressio4pyGalerkin.so
 	ln -s ${PYWORKINGDIR}/build/pressio4pyGalerkin.so ${destDir}
     fi
-    # link the ops
-    if [[ -f ${destDir}/pressio4pyOps.py ]]; then
-       rm ${destDir}/pressio4pyOps.py
-    fi
-    ln -s ${PYWORKINGDIR}/build/pressio4pyOps.py ${destDir}
 
     # copy all pything scripts there
     cp ${TOPDIR}/common/constants.py ${destDir}/
