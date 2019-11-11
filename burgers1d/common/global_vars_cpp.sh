@@ -69,7 +69,7 @@ function check_minimum_vars_set(){
 	exit 11
     fi
     if [ -z $JACOBIANTYPE ]; then
-	echo "--dense-jac is empty, must be set to yes or no"
+	echo "--jac-type is empty, must be set to yes or no"
 	exit 11
     fi
 }
