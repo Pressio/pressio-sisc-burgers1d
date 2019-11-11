@@ -8,10 +8,9 @@ import sys, time
 from burgers1d import Burgers1d
 # pressio bindings modules
 import pressio4pyLspg
-import pressio4pyOps
+#import pressio4pyOps
 
 np.set_printoptions(linewidth=400)
-
 
 class MyLinSolver:
   def __init__(self): pass
@@ -20,7 +19,6 @@ class MyLinSolver:
   def solve(A,b,x):
     lumat, piv, info = linalg.lapack.dgetrf(A, overwrite_a=True)
     x[:], info = linalg.lapack.dgetrs(lumat, piv, b, 0, 0)
-
 
 
 def doLSPGForTargetSteps(nsteps, appObj, yRef, decoder, yRom, t0, nlsMaxIt, nlsTol):
@@ -47,7 +45,7 @@ print(Ncell)
 print(romSize)
 print(Nsteps)
 print(dt)
-print(useDense)
+print(jIsDense)
 
 # create app
 

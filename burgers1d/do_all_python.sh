@@ -98,7 +98,7 @@ then
     fi
 
     USEDENSE=0
-    [[ ${DENSEJACOBIAN} == yes ]] && USEDENSE=1
+    [[ ${JACOBIANTYPE} == dense ]] && USEDENSE=1
 
     # enter there and run
     cd ${destDir}

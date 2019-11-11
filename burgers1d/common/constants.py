@@ -6,7 +6,7 @@ from subprocess import Popen, list2cmdline, PIPE
 import os.path
 
 dt = 0.0005
-numSteps = 256
+numSteps = 2048
 finalTime = numSteps*dt
 
 # mesh sizes
