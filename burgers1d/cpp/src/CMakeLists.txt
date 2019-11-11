@@ -5,7 +5,12 @@ set (CMAKE_CXX_STANDARD 11)
 include_directories(${EIGEN_INCLUDE_DIR} ${PRESSIO_INCLUDE_DIR})
 link_directories(${BLAS_LIB_DIR})
 
-#add_definitions(-DEIGEN_USE_BLAS)
+add_definitions(-DEIGEN_USE_BLAS -DEIGEN_USE_LAPACKE)
+
+if(${HAVE_DENSE})
+  message("Dense matrices enabled")
+  add_definitions(-DUSE_DENSE)
+endif()
 
 set(HEADERS
   ${CMAKE_CURRENT_SOURCE_DIR}/burgers1d_eigen.hpp
@@ -30,24 +35,3 @@ target_link_libraries(burgers1d_fom_bdf1 openblas)
 # lspg
 add_executable(burgers1d_rom_lspg ${SOURCES_ROM_LSPG} ${HEADERS})
 target_link_libraries(burgers1d_rom_lspg openblas)
-
-
-
-
-
-
-
-
-
-
-
-# if(${HAVE_DENSE})
-#   message("You enabled Dense matrices")
-#   add_definitions(-DUSE_DENSE)
-# endif()
-
-#set(EIGEN_USE_BLAS ON)
-#set(EIGEN_USE_LAPACKE ON)
-#link_directories(${BLAS_LIB_DIR} ${LAPACK_LIB_DIR})
-#set(SOURCES_FOM_RK4  ${CMAKE_CURRENT_SOURCE_DIR}/burgers1d_eigen.cc main_fom_rk4.cc)
-#set(SOURCES_ROM_GALERKIN  ${CMAKE_CURRENT_SOURCE_DIR}/burgers1d_eigen.cc main_rom_galerkin.cc)

@@ -42,10 +42,15 @@ def createDicByRomSize(data):
   return dic
 
 
+#=====================================================================
+#
+#  do bar plot with side by side bars
+#
+#=====================================================================
 def plotBarRegular(cppDic, pyDic, meshLabels, romSizes, romSizesStr):
-  #-----------------------------
-  # Plotting the bars side by side
-  #-----------------------------
+  if len(romSizes) != 3:
+    raise Exception('The style for the bar plot currently support 3 rom sizes only')
+
   # Setting the positions and width for the bars
   pos = list(range(len(meshLabels)))
   width = 0.12 # the width of a bar
@@ -53,9 +58,6 @@ def plotBarRegular(cppDic, pyDic, meshLabels, romSizes, romSizesStr):
   fig, ax = plt.subplots(figsize=(10,6))
   plt.grid()
   ax.set_axisbelow(True)
-
-  if len(romSizes) != 3:
-    raise Exception('The style for the bar plot currently support 3 rom sizes only')
 
   # rom1
   romSize1 = romSizesStr[0]
@@ -84,26 +86,21 @@ def plotBarRegular(cppDic, pyDic, meshLabels, romSizes, romSizesStr):
   plt.bar([p+width*4.15 for p in pos], pyDic[romSize3], width,
           alpha=0.5, color='g', hatch='/////', edgecolor='k',label=leg)
 
-
   # Setting axis labels and ticks
   ax.set_ylabel('Overhead wrt fastest C++ run')
   ax.set_xlabel('Mesh Size')
-
   # ticks for groups
   ax.set_xticks([p + width*1.5 for p in pos])
   ax.set_xticklabels(meshLabels)
-
-  # ticks for rom size1
-  #ax.set_xticks([p + 1.5 * width for p in pos])
-  #ax.set_xticklabels(meshLabels)
-  #ax.set_yticks([i for i in range(0, 60, 2)])
-
   # Setting the x-axis and y-axis limits
   plt.xlim(min(pos)-width*3, max(pos)+width*6)
   #plt.ylim([0, max(green_data + blue_data + red_data) * 1.5])
   plt.legend(loc='upper left')
 
 
+#=====================================================================
+# plot overhead above the bars
+#=====================================================================
 def plotTextOverhead(xLoc, ovhead, cppVal, diffVal):
   for i in range(len(xLoc)):
     string = '{:3.0f}'.format(ovhead[i])
@@ -114,13 +111,19 @@ def plotTextOverhead(xLoc, ovhead, cppVal, diffVal):
              horizontalalignment='center',
              verticalalignment='center')
 
+#=====================================================================
+# plot one set of bars for cpp and python
+# this means that for both cpp and python and a given romsize,
+# we plot the bars at each meshsize
+#=====================================================================
 def plotBarSet(xLoc, width, romSize, cppDic, pyDic, barColors, hatches):
   cppVal = cppDic[romSize]
   diffVal= np.asarray(pyDic[romSize]) - np.asarray(cppVal)
   # compute overhead in % wrt cpp case
   ovhead = np.abs(diffVal)/np.asarray(cppVal)*100
   # display text for overhead as percent on top of bar
-  plotTextOverhead(xLoc, ovhead, cppVal, diffVal)
+  #plotTextOverhead(xLoc, ovhead, cppVal, diffVal)
+
   # plot bar cpp
   leg = 'c++, n=' + str(romSize)
   plt.bar(xLoc, cppVal, width, alpha=0.5, color=barColors['cpp'], hatch=hatches['cpp'], edgecolor='k')
@@ -129,60 +132,68 @@ def plotBarSet(xLoc, width, romSize, cppDic, pyDic, barColors, hatches):
   plt.bar(xLoc, diffVal, width, bottom=cppVal, alpha=0.5, color=barColors['py'], hatch=hatches['py'], edgecolor='k')
 
 
+#=====================================================================
+#
+#  do bar plot with stacking to show the differences
+#
+#=====================================================================
 def plotBarStacked(cppDic, pyDic, meshLabels, romSizes, romSizesStr):
+  # if len(romSizes) != 3:
+  #   raise Exception('The style for the bar plot currently support 3 rom sizes only')
+
+  # number of mesh sizes to deal with
+  numMeshes = len(meshLabels)
+
   # Setting the positions and width for the bars
-  pos = list(range(len(meshLabels)))
+  posArray = range(numMeshes)
+  pos = list(posArray)
   width = 0.12 # the width of a bar
 
-  fig, ax = plt.subplots(figsize=(10,6))
+  fig, ax = plt.subplots(figsize=(8,6))
   plt.grid()
-  ax.set_axisbelow(True)
+  #ax.set_axisbelow(True)
+  ax2 = ax.twiny()
+  fig.subplots_adjust(bottom=0.25)
 
-  if len(romSizes) != 3:
-    raise Exception('The style for the bar plot currently support 3 rom sizes only')
-
-  # since we use stacked bar, we plot cpp and stack on top the difference
   colors = {'cpp': 'w', 'py': 'w'}
-  hatches = {'cpp': 'xxx', 'py':'/////'}
+  hatches = {'cpp': '////', 'py':'xxx'}
 
-  #---- first rom size -----
-  # x locations for the bars
-  xLoc = [p+width for p in pos]
-  plotBarSet(xLoc, width, romSizesStr[0], cppDic, pyDic, colors, hatches)
-
-  #---- second rom size ----
-  xLoc = [p+width*2.15 for p in pos]
-  plotBarSet(xLoc, width, romSizesStr[1], cppDic, pyDic, colors, hatches)
-
-  #---- second rom size ----
-  xLoc = [p+width*3.3 for p in pos]
-  plotBarSet(xLoc, width, romSizesStr[2], cppDic, pyDic, colors, hatches)
-
-  #ax.set_ylabel('... bla bla')
-  #ax.set_xlabel('Mesh Size')
-  # ticks for groups
-  xTicksRomSize1 = [p+width for p in pos]
-  xTlab1 = [romSizesStr[0] for i in range(4)]
-  xTicksRomSize2 = [p+width*2.15 for p in pos]
-  xTlab2 = [romSizesStr[1] for i in range(4)]
-  xTicksRomSize3 = [p+width*3.3 for p in pos]
-  xTlab3 = [romSizesStr[2] for i in range(4)]
-
-  # fix this
-  ax.set_xticks(xTicksRomSize1 + xTicksRomSize2 + xTicksRomSize3)
-  ax.set_xticklabels(xTlab1+xTlab2+xTlab3)
+  #---- loop over rom sizes and plot ----
+  xTicksBars, xTlabels = [], []
+  for it in range(len(romSizes)):
+    # x locations for the bars
+    shift = width*it
+    xLoc = [p+shift for p in pos]
+    print(xLoc)
+    plotBarSet(xLoc, width, romSizesStr[it], cppDic, pyDic, colors, hatches)
+    xTicksBars += [p+shift for p in pos]
+    xTlabels += [romSizesStr[it] for i in range(numMeshes)]
 
   # remove the vertical lines of the grid
   ax.xaxis.grid(which="major", color='None', linestyle='-.', linewidth=0)
 
-  plt.text(x=-0.175, y=-0.1, s='Rom Size',size = 10,rotation=0,
-           horizontalalignment='center',verticalalignment='center')
+  ax.xaxis.set_ticks_position('bottom')
+  ax.xaxis.set_label_position('bottom')
+  ax.set_xticks(xTicksBars)
+  ax.set_xticklabels(xTlabels)
+  ax.xaxis.set_tick_params(rotation=90)
+  ax.set_xlabel('Rom Sizes')
 
-  plt.text(x=-0.175, y=-0.3, s='Mesh Size',size = 10,rotation=0,
-           horizontalalignment='center',verticalalignment='center')
+  # ticks for the meshes
+  meshTicks = posArray+1.5*width*np.ones(numMeshes)
+  ax2.set_xticks(meshTicks)
+  ax2.set_xticklabels(meshLabels)
+  ax2.xaxis.set_ticks_position('bottom')
+  ax2.xaxis.set_label_position('bottom')
+  ax2.spines['bottom'].set_position(('outward', 50))
+  ax2.set_xlabel('Mesh Sizes')
 
-  # Setting the x-axis and y-axis limits
-  plt.xlim(min(pos)-width*3, max(pos)+width*6)
+  # plt.text(x=-0.175, y=-0.3, s='Mesh Size',size = 10,rotation=0,
+  #          horizontalalignment='center',verticalalignment='center')
+
+  #plt.yscale('log')
+  ax.set_xlim(min(pos)-width*2, max(pos)+width*5)
+  ax2.set_xlim(min(pos)-width*2, max(pos)+width*5)
   #plt.ylim([0, max(green_data + blue_data + red_data) * 1.5])
   #plt.legend(loc='upper left')
 
@@ -239,11 +250,6 @@ def main(cppDataDir, pyDataDir, romName, barType):
   print(cppDataAvg)
   print(pyDataAvg)
 
-  # # rescale data by the min value
-  # minCppTime = np.min(cppDataAvg[:, 2:])
-  # cppDataAvg[:, 2:] /= minCppTime
-  # pyDataAvg[:, 2:] /= minCppTime
-
   # create dictionary for bar plotting
   cppDic, pyDic = createDicByRomSize(cppDataAvg), createDicByRomSize(pyDataAvg)
 
@@ -255,6 +261,7 @@ def main(cppDataDir, pyDataDir, romName, barType):
   else:
     raise Exception('Invalid choice for bar type {} '.format(barType))
   plt.show()
+
 
 
 #////////////////////////////////////////////

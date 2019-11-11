@@ -5,7 +5,6 @@ TOPDIR=${PWD}
 
 # which branch to use for pressio
 pressioBranch=develop
-
 # which branch to use for pressio-builder
 pressioBuilderBranch=master
 
@@ -23,7 +22,7 @@ CPPWORKINGDIR=
 WIPEEXISTING=no
 
 # if we want to solver burgers1d with dense vs sparse data (yes/no)
-DENSEJACOBIAN=no
+JACOBIANTYPE=
 
 # name of the task to run
 WHICHTASK=
@@ -57,7 +56,7 @@ function print_global_vars(){
     echo "WIPEEXISTING		= ${WIPEEXISTING}"
     echo "SETENVscript		= $SETENVscript"
     echo "TASKNAME		= $TASKNAME"
-    #echo "DENSEJACOBIAN		= $DENSEJACOBIAN"
+    echo "JACOBIANTYPE		= $JACOBIANTYPE"
     echo "ARCH			= $ARCH"
     echo "WITHDBGPRINT		= $WITHDBGPRINT"
     echo "Pressio branch		= $pressioBranch"
@@ -67,6 +66,10 @@ function print_global_vars(){
 function check_minimum_vars_set(){
     if [ -z $WORKINGDIR ]; then
 	echo "--working-dir is empty, must be set: exiting"
+	exit 11
+    fi
+    if [ -z $JACOBIANTYPE ]; then
+	echo "--dense-jac is empty, must be set to yes or no"
 	exit 11
     fi
 }
@@ -89,7 +92,6 @@ function check_minimum_vars_set_cpp(){
     check_minimum_vars_set
 
     if [ ${WHICHTASK} != build ] &&\
-	   [ ${WHICHTASK} != fom_velocity_timing ] &&\
 	   [ ${WHICHTASK} != fom_bdf1_timing ] &&\
 	   [ ${WHICHTASK} != fom_bdf1_basis ] &&\
 	   [ ${WHICHTASK} != lspg ] &&\
@@ -100,7 +102,6 @@ function check_minimum_vars_set_cpp(){
 	echo "--do is set to non-admissible value"
 	echo "choose one of: "\
 	     "build, "\
-	     "fom_velocity_timing "\
 	     "fom_bdf1_timing, fom_bdf1_basis, lspg "\
 	     "fom_rk4_timing,  fom_rk4_basis,  galerkin"
 	exit 0

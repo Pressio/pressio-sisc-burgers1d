@@ -46,37 +46,6 @@ fi
 #---------------------------
 # rom: lspg or galerkin
 #---------------------------
-if [ $WHICHTASK = "fom_velocity" ];
-then
-    # check if the build was already done
-    if [ ! -d ${PYWORKINGDIR}/build ]; then
-	echo "there is no build in the target folder, do that first"
-	exit 0
-    fi
-
-    # create folder inside workindir
-    destDir=${PYWORKINGDIR}/"data_"${WHICHTASK}
-    [[ ! -d ${destDir} ]] && mkdir ${destDir}
-
-    # alias the name of target executable
-    EXENAME=main_fom_velocity
-
-    # copy all pything scripts there
-    cp ${TOPDIR}/common/constants.py ${destDir}/
-    cp ${TOPDIR}/python/src/burgers1d.py ${destDir}/
-    cp ${TOPDIR}/python/src/main_fom_velocity.py ${destDir}/
-    cp ${TOPDIR}/python/run_scripts/run_fom_timing.py ${destDir}/
-
-    # enter there and run
-    cd ${destDir}
-    python run_fom_timing.py --exe=${EXENAME}
-    cd ${TOPDIR}
-fi
-
-
-#---------------------------
-# rom: lspg or galerkin
-#---------------------------
 if [ $WHICHTASK = "lspg" ] || [ $WHICHTASK = "galerkin" ];
 then
     # check if the build was already done
@@ -128,8 +97,11 @@ then
 	cp ${TOPDIR}/python/src/main_rom_galerkin.py ${destDir}/
     fi
 
+    USEDENSE=0
+    [[ ${DENSEJACOBIAN} == yes ]] && USEDENSE=1
+
     # enter there and run
     cd ${destDir}
-    python run_rom_timing.py --exe=${EXENAME} --basis-dir-name=${BASISDIRNAME}
+    python run_rom_timing.py --exe=${EXENAME} --basis-dir-name=${BASISDIRNAME} -dense-jac=${USEDENSE}
     cd ${TOPDIR}
 fi

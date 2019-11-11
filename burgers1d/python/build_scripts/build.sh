@@ -122,8 +122,7 @@ then
     [[ ! -d ${bdirname} ]] && mkdir ${bdirname}
     # enter
     cd ${bdirname}
-    cmake -DCMAKE_C_COMPILER=${CC} \
-	  -DCMAKE_CXX_COMPILER=${CXX} \
+    cmake -DCMAKE_CXX_COMPILER=${CXX} \
 	  -DCMAKE_VERBOSE_MAKEFILE:BOOL=TRUE \
 	  -DCMAKE_BUILD_TYPE=Release \
 	  -DEIGEN_INCLUDE_DIR=${EIGENPATH} \
@@ -148,9 +147,7 @@ if [ ! -d ${bdirname} ]; then
     mkdir ${bdirname}
 fi
 cd ${bdirname} && rm -rf *
-ln -s ${PYWORKINGDIR}/tpls/pressio4py/build/pressio4py.*.so pressio4py.so
 ln -s ${PYWORKINGDIR}/tpls/pressio4py/build/pressio4pyGalerkin.*.so pressio4pyGalerkin.so
 ln -s ${PYWORKINGDIR}/tpls/pressio4py/build/pressio4pyLspg.*.so pressio4pyLspg.so
-ln -s ${PYWORKINGDIR}/tpls/pressio4py/pressio4py/src/ops/pressio4pyOps.py pressio4pyOps.py
 
 cd ${TOPDIR}

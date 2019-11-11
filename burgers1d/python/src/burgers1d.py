@@ -29,6 +29,7 @@ def fillDiag(u, diag, ldiag, dxInv):
 
 class Burgers1d:
   def __init__(self, Ncell, useDense=True):
+    if useDense: print("Using dense jacobian")
     self.dense_ = useDense
     self.mu_    = np.array([5., 0.02, 0.02])
     self.xL_    = 0.

@@ -9,11 +9,7 @@ from argparse import ArgumentParser
 
 import constants
 
-#-------------------------------------------------------
-# scope: generate timings for Python Burgers1D rom
-#-------------------------------------------------------
-
-def main(exename, basisDirName):
+def main(exename, basisDirName, denseJac):
 
   # data stored as:
   # - first col  = mesh size
@@ -51,12 +47,20 @@ def main(exename, basisDirName):
 
       # args to run (args changes since each replica
       # is done with different values of inputs)
-      args = ("python", exename+".py",
-              str(meshSize), str(romSize),
-              str(constants.numSteps), str(constants.dt))
+      argsLspg = ("python", exename+".py",
+                  str(meshSize), str(romSize),
+                  str(constants.numSteps), str(constants.dt), str(denseJac))
+
+      argsGalerkin = ("python", exename+".py",
+                      str(meshSize), str(romSize),
+                      str(constants.numSteps), str(constants.dt))
 
       for i in range(0, constants.numSamplesForTiming):
-        popen = subprocess.Popen(args, stdout=subprocess.PIPE)
+        if ("lspg" in exename):
+          popen = subprocess.Popen(argsLspg, stdout=subprocess.PIPE)
+        else:
+          popen = subprocess.Popen(argsGalerkin, stdout=subprocess.PIPE)
+
         popen.wait()
         output = popen.stdout.read()
         #print(output)
@@ -81,7 +85,7 @@ def main(exename, basisDirName):
 if __name__== "__main__":
   parser = ArgumentParser()
   parser.add_argument("-exe", "--exe", dest="exename")
-  parser.add_argument("-basis-dir-name", "--basis-dir-name",
-                      dest="basisDirName")
+  parser.add_argument("-basis-dir-name", "--basis-dir-name", dest="basisDirName")
+  parser.add_argument("-dense-jac", "--dense-jac", dest="denseJac")
   args = parser.parse_args()
-  main(args.exename, args.basisDirName)
+  main(args.exename, args.basisDirName, args.denseJac)

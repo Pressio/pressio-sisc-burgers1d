@@ -42,13 +42,16 @@ Ncell   = int(sys.argv[1])
 romSize = int(sys.argv[2])
 Nsteps  = int(sys.argv[3])
 dt      = float(sys.argv[4])
+jIsDense  = int(sys.argv[5])
 print(Ncell)
 print(romSize)
 print(Nsteps)
 print(dt)
+print(useDense)
 
 # create app
-appObj = Burgers1d(Ncell, useDense=False)
+
+appObj = Burgers1d(Ncell, useDense=jIsDense)
 
 # set reference state
 yRef = np.ones(Ncell)
@@ -76,26 +79,3 @@ elapsed = endTime-startTime
 print("Elapsed time: {0:10.10f} ".format(elapsed) )
 print ("Printing generalized coords to file")
 np.savetxt("final_generalized_coords.txt", yRom, fmt='%.15f')
-
-
-
-
-# ############################################
-# lsO = MyLinSolver('sym')
-# startTime = time.time()
-# yFom = np.ones(Ncell)
-# yr = np.zeros(romSize)
-# for i in range(1000):
-#   f = appObj.velocity(yFom, 0)
-#   J = appObj.applyJacobian(yFom, phi, 0)
-#   jtj = np.dot(J.T, J)
-#   jtf = np.dot(J.T, f)
-#   lsO.solve(jtj, jtf, yr)
-#   #ja = appObj.applyJacobian(yFom, phi, 0.0)
-#   #ops.multiply2(phi, yFom, yRom, True)
-#   #decoder.applyMapping(yRom, yRef)
-
-# endTime = time.time()
-# elapsed = endTime-startTime
-# print("Elapsed time: {0:10.10f} ".format(elapsed) )
-# ############################################

@@ -20,20 +20,16 @@ for option; do
 	    SETENVscript=`expr "x$option" : "x-*with-env-script=\(.*\)"`
 	    ;;
 
-	-wipe-existing-data=* | --wipe-existing-data=* )
-	    WIPEEXISTING=`expr "x$option" : "x-*wipe-existing-data=\(.*\)"`
-	    ;;
-
-	-trilinos-pfx=* | --trilinos-pfx=* )
-	    TRILINOSPFX=`expr "x$option" : "x-*trilinos-pfx=\(.*\)"`
-	    ;;
-
 	-do=* | --do=* )
 	    WHICHTASK=`expr "x$option" : "x-*do=\(.*\)"`
 	    ;;
 
-	-dense-jac=* | --dense-jac=* )
-	    DENSEJACOBIAN=`expr "x$option" : "x-*dense-jac=\(.*\)"`
+	-jac-type=* | --jac-type=* )
+	    JACOBIANTYPE=`expr "x$option" : "x-*jac-type=\(.*\)"`
+	    ;;
+
+	-wipe-existing-data=* | --wipe-existing-data=* )
+	    WIPEEXISTING=`expr "x$option" : "x-*wipe-existing-data=\(.*\)"`
 	    ;;
 
 	-dbg-print=* | --dbg-print=* )
@@ -60,23 +56,22 @@ Configuration:
 -h, --help				display help and exit
 
 --working-dir=				the working directory where we build/run
+					default = none, must be set
 
 --with-env-script=<path-to-file>	full path to script to set the environment.
 					default = assumes environment is set.
 
---trilinos-pfx=				full path to installation of Trilinos
-					If not provided, I will build it
+--do=					which task to execute
+					default = none, must be set
+
+--jac-type=[sparse/dense]		if yes, use dense jacobian
+					default = nothing, must be set
 
 --wipe-existing-data=[yes/no]		if yes, all the following subfolders:
 						--target-dir/data_*
 						--target-dir/build_*
 					will be fully wiped and re-made.
 				   	default = no
-
---do=					which case/stage to execute
-
---dense-jac=[yes/no]			if yes, use dense jacobian
-					default = no
 
 --dbg-print=[yes/no]			if yes, enable pressio debug print
 					default = no

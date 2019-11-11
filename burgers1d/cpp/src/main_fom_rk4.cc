@@ -1,7 +1,4 @@
 
-#define EIGEN_USE_BLAS
-#define EIGEN_USE_LAPACKE
-
 #include "CONTAINERS_ALL"
 #include "ODE_ALL"
 #include "burgers1d_eigen.hpp"

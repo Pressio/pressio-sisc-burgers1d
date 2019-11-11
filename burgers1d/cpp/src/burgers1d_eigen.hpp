@@ -32,8 +32,12 @@ public:
   using scalar_type	  = sc_t;
   using state_type	  = eigVec;
   using velocity_type	  = state_type;
-  using jacobian_type	  = eig_sparse_mat;
   using dense_matrix_type = eig_dense_mat;
+#ifdef USE_DENSE
+  using jacobian_type	  = eig_dense_mat;
+#else
+  using jacobian_type	  = eig_sparse_mat;
+#endif
 
 public:
   Burgers1dEigen(muVec params, int_t Ncell)

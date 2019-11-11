@@ -82,7 +82,7 @@ EIGENPATH="${CPPWORKINGDIR}/tpls/eigen/install/include/eigen3"
 PRESSIOPATH="${CPPWORKINGDIR}/tpls/pressio/install/include"
 
 USEDENSE=OFF
-[[ ${DENSEJACOBIAN} == yes ]] && USEDENSE=ON
+[[ ${JACOBIANTYPE} == dense ]] && USEDENSE=ON
 
 # build Burgers1d C++ exes
 bdirname=build
