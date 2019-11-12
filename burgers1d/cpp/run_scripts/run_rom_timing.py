@@ -74,6 +74,12 @@ def main(exeName, basisDirName):
         # store
         data[iRow][i+2] = time
 
+        # while running, overwrite the timings
+        timingFile = exeName+"_timings.txt"
+        if os.path.isfile(timingFile):
+          os.system("rm -rf " + timingFile)
+        np.savetxt(timingFile, data, fmt='%.12f')
+
         # save output data (e.g. state and gen coords) for one replica run only
         # since they are all equivalent, beside the timing
         if i==0:
@@ -85,7 +91,12 @@ def main(exeName, basisDirName):
             os.system("mv final_generalized_coords.txt " + destDir)
           os.system("cp input.txt " + destDir)
 
-  np.savetxt(exeName+"_timings.txt", data, fmt='%.12f')
+  # write timings file
+  timingFile = exeName+"_timings.txt"
+  if os.path.isfile(timingFile):
+    os.system("rm -rf " + timingFile)
+  np.savetxt(timingFile, data, fmt='%.12f')
+
   np.set_printoptions(edgeitems=10, linewidth=100000)
   print(data)
 

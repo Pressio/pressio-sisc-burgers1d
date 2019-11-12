@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
 import sys, os, time
-import subprocess
+import subprocess, math
 import numpy as np
 import os.path, re
+from scipy import stats
 from argparse import ArgumentParser
 import matplotlib.pyplot as plt
 
@@ -17,14 +18,22 @@ def extractRomSizes(data):
   # the rom sizes should be in the second col of the data
   return np.unique(data[:, 1])
 
-def computeMeanTimings(data):
+def computeTimingsStat(data, statType):
   nRows, nCols = data.shape[0], data.shape[1]
   # multiple time values are stored from col 2 to ...
   # compute the mean along each row
   # we store
   res = np.zeros((nRows, 3)) #3 cols, we store mesh size, rom size, and mean time
   res[:,0:2] = data[:, 0:2]
-  res[:, 2]  = np.mean(data[:, 2:], axis=1)
+  if statType == "mean":
+    res[:, 2] = np.mean(data[:, 2:], axis=1)
+  elif statType == "gmean":
+    res[:, 2] = stats.mstats.gmean(data[:, 2:], axis=1)
+  elif statType == "q50":
+    res[:, 2] = np.percentile(data[:, 2:], 50, axis=1)
+  else:
+    raise Exception('Invalid choice for the statType = {}'.format(statType))
+
   return res
 
 def createDicByRomSize(data):
@@ -101,11 +110,11 @@ def plotBarRegular(cppDic, pyDic, meshLabels, romSizes, romSizesStr):
 #=====================================================================
 # plot overhead above the bars
 #=====================================================================
-def plotTextOverhead(xLoc, ovhead, cppVal, diffVal):
+def plotTextOverhead(xLoc, ovhead, cppVal, diffVal, maxY):
   for i in range(len(xLoc)):
     string = '{:3.0f}'.format(ovhead[i])
-    thisX, thisY = xLoc[i], cppVal[i]+diffVal[i]
-    plt.text(x=thisX, y=thisY+0.15, s=string+'%',
+    thisX, thisY = xLoc[i], np.maximum(cppVal[i]+diffVal[i], cppVal[i])
+    plt.text(x=thisX, y=thisY+0.065*maxY, s=string+'%',
              size = 8,
              rotation=90,
              horizontalalignment='center',
@@ -116,13 +125,13 @@ def plotTextOverhead(xLoc, ovhead, cppVal, diffVal):
 # this means that for both cpp and python and a given romsize,
 # we plot the bars at each meshsize
 #=====================================================================
-def plotBarSet(xLoc, width, romSize, cppDic, pyDic, barColors, hatches):
+def plotBarSet(xLoc, width, romSize, cppDic, pyDic, barColors, hatches, maxY):
   cppVal = cppDic[romSize]
   diffVal= np.asarray(pyDic[romSize]) - np.asarray(cppVal)
   # compute overhead in % wrt cpp case
   ovhead = np.abs(diffVal)/np.asarray(cppVal)*100
   # display text for overhead as percent on top of bar
-  #plotTextOverhead(xLoc, ovhead, cppVal, diffVal)
+  plotTextOverhead(xLoc, ovhead, cppVal, diffVal, maxY)
 
   # plot bar cpp
   leg = 'c++, n=' + str(romSize)
@@ -147,16 +156,22 @@ def plotBarStacked(cppDic, pyDic, meshLabels, romSizes, romSizesStr):
   # Setting the positions and width for the bars
   posArray = range(numMeshes)
   pos = list(posArray)
-  width = 0.12 # the width of a bar
+  width = 0.125 # the width of a bar
 
   fig, ax = plt.subplots(figsize=(8,6))
   plt.grid()
-  #ax.set_axisbelow(True)
   ax2 = ax.twiny()
   fig.subplots_adjust(bottom=0.25)
 
   colors = {'cpp': 'w', 'py': 'w'}
   hatches = {'cpp': '////', 'py':'xxx'}
+
+  # compute the value of the heighest bar
+  maxY = 0.
+  for it in range(len(romSizes)):
+    currRomSize = romSizesStr[it]
+    maxYcpp, maxYpy = np.max(cppDic[currRomSize]), np.max(pyDic[currRomSize])
+    maxY = np.max([maxY, maxYcpp, maxYpy])
 
   #---- loop over rom sizes and plot ----
   xTicksBars, xTlabels = [], []
@@ -164,10 +179,11 @@ def plotBarStacked(cppDic, pyDic, meshLabels, romSizes, romSizesStr):
     # x locations for the bars
     shift = width*it
     xLoc = [p+shift for p in pos]
-    print(xLoc)
-    plotBarSet(xLoc, width, romSizesStr[it], cppDic, pyDic, colors, hatches)
+    currRomSize = romSizesStr[it]
+    plotBarSet(xLoc, width, currRomSize, cppDic, pyDic, colors, hatches, maxY)
     xTicksBars += [p+shift for p in pos]
     xTlabels += [romSizesStr[it] for i in range(numMeshes)]
+
 
   # remove the vertical lines of the grid
   ax.xaxis.grid(which="major", color='None', linestyle='-.', linewidth=0)
@@ -180,7 +196,7 @@ def plotBarStacked(cppDic, pyDic, meshLabels, romSizes, romSizesStr):
   ax.set_xlabel('Rom Sizes')
 
   # ticks for the meshes
-  meshTicks = posArray+1.5*width*np.ones(numMeshes)
+  meshTicks = posArray+1.95*width*np.ones(numMeshes)
   ax2.set_xticks(meshTicks)
   ax2.set_xticklabels(meshLabels)
   ax2.xaxis.set_ticks_position('bottom')
@@ -190,11 +206,10 @@ def plotBarStacked(cppDic, pyDic, meshLabels, romSizes, romSizesStr):
 
   # plt.text(x=-0.175, y=-0.3, s='Mesh Size',size = 10,rotation=0,
   #          horizontalalignment='center',verticalalignment='center')
-
   #plt.yscale('log')
   ax.set_xlim(min(pos)-width*2, max(pos)+width*5)
   ax2.set_xlim(min(pos)-width*2, max(pos)+width*5)
-  #plt.ylim([0, max(green_data + blue_data + red_data) * 1.5])
+  plt.ylim([0, maxY*1.1])
   #plt.legend(loc='upper left')
 
 
@@ -203,7 +218,7 @@ def plotBarStacked(cppDic, pyDic, meshLabels, romSizes, romSizesStr):
 
 
 
-def main(cppDataDir, pyDataDir, romName, barType):
+def main(cppDataDir, pyDataDir, romName, barType, statType):
   # check that target directories exist
   if not os.path.isdir(cppDataDir):
     raise Exception('The data dir {} does not exist. '.format(cppDataDir))
@@ -246,7 +261,7 @@ def main(cppDataDir, pyDataDir, romName, barType):
   print(romSizesStr)
 
   # compute the avg timings
-  cppDataAvg, pyDataAvg = computeMeanTimings(cppData), computeMeanTimings(pyData)
+  cppDataAvg, pyDataAvg = computeTimingsStat(cppData, statType), computeTimingsStat(pyData, statType)
   print(cppDataAvg)
   print(pyDataAvg)
 
@@ -268,9 +283,14 @@ def main(cppDataDir, pyDataDir, romName, barType):
 if __name__== "__main__":
   parser = ArgumentParser()
   parser.add_argument("-cpp-data-dir", "--cpp-data-dir", dest="cppDataDir")
-  parser.add_argument("-py-data-dir", "--py-data-dir", dest="pyDataDir")
-  parser.add_argument("-method", "--method", dest="romName")
-  parser.add_argument("-bar-type", "--bar-type", dest="barType")
+  parser.add_argument("-py-data-dir",  "--py-data-dir", dest="pyDataDir")
+  parser.add_argument("-method",       "--method", dest="romName",
+                      help = "The ROM method you are trying to plot: lspg or galerkin" )
+  parser.add_argument("-bar-type",     "--bar-type", dest="barType",
+                      help = "Which bar plot type to plot, stacked or default.")
+  parser.add_argument("-stat-type",    "--stat-type", dest="statType",
+                      help = "Which statistic to compute from data: \
+                              mean, gmean (geometric mean), q50 (50th percentile).")
   args = parser.parse_args()
-  main(args.cppDataDir, args.pyDataDir, args.romName, args.barType)
+  main(args.cppDataDir, args.pyDataDir, args.romName, args.barType, args.statType)
 #////////////////////////////////////////////
