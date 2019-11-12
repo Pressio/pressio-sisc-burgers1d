@@ -84,6 +84,9 @@ PRESSIOPATH="${CPPWORKINGDIR}/tpls/pressio/install/include"
 USEDENSE=OFF
 [[ ${JACOBIANTYPE} == dense ]] && USEDENSE=ON
 
+USEBLAS=ON
+[[ ${WITHNATIVEEIGEN} == yes ]] && USEBLAS=OFF
+
 # build Burgers1d C++ exes
 bdirname=build
 #check if build dir exists
@@ -101,6 +104,7 @@ cmake -DCMAKE_C_COMPILER=${CC} \
       -DHAVE_DENSE:BOOL=${USEDENSE} \
       -DBLAS_LIB_DIR=${BLAS_ROOT}/lib \
       -DLAPACK_LIB_DIR=${LAPACK_ROOT}/lib \
+      -DHAVE_BLASLAPACK:BOOL=${USEBLAS}\
       -DCMAKE_CXX_FLAGS="-march=native"\
       ${CPPSRC}
 make -j6

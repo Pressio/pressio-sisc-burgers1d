@@ -28,6 +28,10 @@ for option; do
 	    JACOBIANTYPE=`expr "x$option" : "x-*jac-type=\(.*\)"`
 	    ;;
 
+	-native-eigen=* | --native-eigen=* )
+	    WITHNATIVEEIGEN=`expr "x$option" : "x-*native-eigen=\(.*\)"`
+	    ;;
+
 	-wipe-existing-data=* | --wipe-existing-data=* )
 	    WIPEEXISTING=`expr "x$option" : "x-*wipe-existing-data=\(.*\)"`
 	    ;;
@@ -66,6 +70,9 @@ Configuration:
 
 --jac-type=[sparse/dense]		if yes, use dense jacobian
 					default = nothing, must be set
+
+--native-eigen=[yes/no]			if yes, use native eigen, no blas/lapack
+					default = no
 
 --wipe-existing-data=[yes/no]		if yes, all the following subfolders:
 						--target-dir/data_*

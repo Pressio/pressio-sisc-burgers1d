@@ -32,8 +32,8 @@ int main(int argc, char *argv[]){
 
   // store modes computed before from file
   // store basis vectors into native format
-  const auto phiNative = readBasis<sc_t, int32_t, native_dmat_t>(parser.basisFileName_,
-								 parser.romSize_);
+  const auto phiNative = readBasis<sc_t, int32_t, native_dmat_t>(parser.basisFileName_, parser.romSize_);
+
   // wrap native basis with a pressio wrapper
   const decoder_jac_t phi(phiNative);
   const int32_t numBasis = phi.numVectors();

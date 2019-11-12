@@ -77,6 +77,17 @@ def main(exename, basisDirName, denseJac):
         # store
         data[iRow][i+2] = time
 
+        # save output data (e.g. state and gen coords) for one replica run only
+        # since they are all equivalent, beside the timing
+        if i==0:
+          destDir = "meshSize" + str(meshSize) + "/basis" + str(romSize)
+          os.system("mkdir -p " + destDir)
+          if os.path.isfile('yFomReconstructed.txt'):
+            os.system("mv yFomReconstructed.txt " + destDir)
+          if os.path.isfile('final_generalized_coords.txt'):
+            os.system("mv final_generalized_coords.txt " + destDir)
+
+
   np.savetxt(exename+"_timings.txt", data, fmt='%.12f')
   np.set_printoptions(edgeitems=10, linewidth=100000)
   print(data)

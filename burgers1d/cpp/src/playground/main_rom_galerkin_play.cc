@@ -127,3 +127,24 @@ int main(int argc, char *argv[]){
 
   return 0;
 }
+
+
+
+  // {
+  // native_dmat_t phiNative(parser.numCell_, parser.romSize_); phiNative.setConstant(1);
+  // const decoder_jac_t phi(phiNative);
+  // decoder_t decoderObj(phi);
+  // native_state_t yRef(parser.numCell_); yRef.setConstant(one);
+  // rom_state_t yFOM(parser.numCell_); yFOM.data()->setConstant(1);
+  // rom_state_t yROM(parser.romSize_);
+  // yROM.putScalar(zero);
+
+  // auto startTime = std::chrono::high_resolution_clock::now();
+  // for(auto i=0; i<10000; ++i){
+  //   //const auto f = appobj.velocity(*yFOM.data(), 0.);
+  //   decoderObj.applyMapping(yROM, yFOM);
+  // }
+  // auto finishTime = std::chrono::high_resolution_clock::now();
+  // std::chrono::duration<double> elapsed = finishTime - startTime;
+  // std::cout << "Elapsed time: "  << std::fixed << std::setprecision(10)  << elapsed.count() << std::endl;
+  // }

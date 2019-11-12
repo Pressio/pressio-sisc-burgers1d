@@ -7,9 +7,8 @@ from numba import jit, vectorize, njit, jitclass
 from numba import f8, float64, int32
 import profile
 
-from burgers1d import Burgers1d
+from burgers1d import Burgers1dDenseJacobian
 import pressio4pyGalerkin
-import pressio4pyOps
 
 def doGalerkinForTargetSteps(nsteps, appObj, yRef, decoder, yRom, t0):
   galerkinObj = pressio4pyGalerkin.ProblemRK4(appObj, yRef, decoder, yRom, t0)
@@ -27,8 +26,8 @@ print(romSize)
 print(Nsteps)
 print(dt)
 
-# create app
-appObj = Burgers1d(meshSize)
+# create app (for explicit Galerkin it does not matter the jacobian)
+appObj = Burgers1dDenseJacobian(meshSize)
 
 # reference state
 yRef = np.ones(meshSize)
@@ -50,3 +49,28 @@ print("Elapsed time: {0:10.10f} ".format(elapsed) )
 
 print ("Printing generalized coords to file")
 np.savetxt("final_generalized_coords.txt", yRom, fmt='%.16f')
+
+
+
+
+# ######################################
+# phi = np.ones((meshSize, romSize))
+# decoder = pressio4pyGalerkin.LinearDecoder(phi)
+# yRef = np.ones(meshSize)
+# yFOM = np.ones(meshSize)
+# yRom = np.zeros(romSize)
+
+# startTime = time.time()
+# for i in range(10000):
+#   #f = appObj.velocity(yFOM, 0)
+#   decoder.applyMapping(yRom, yFOM)
+#   #appObj.velocity(yFom, 0., f)
+#   #myVelFnc() #yRef, 0.0, f)
+#   #yRom = np.dot(phi.T, yFom)
+#   #decoder.phitvel(yFom, yRom)
+#   #velocityImplNumba(yRef, 0.0, f, yTmp, 0.01, 5.)
+
+# endTime = time.time()
+# elapsed = endTime-startTime
+# print("Elapsed time: {0:10.10f} ".format(elapsed) )
+# #####################################################
