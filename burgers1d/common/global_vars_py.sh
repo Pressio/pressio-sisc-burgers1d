@@ -76,6 +76,13 @@ function check_minimum_vars_set(){
 	echo "--jac-type is empty, must be set to dense or sparse"
 	exit 11
     fi
+    if [ ${JACOBIANTYPE} != dense ] &&\
+	   [ ${JACOBIANTYPE} != sparse ];
+    then
+	echo "--jac-type is set to non-admissible value"
+	echo "choose one of: dense, sparse"
+	exit 0
+    fi
 }
 
 function check_minimum_vars_set_plot(){

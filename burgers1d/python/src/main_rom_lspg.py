@@ -5,12 +5,11 @@ from scipy import linalg
 from numba import jit, njit
 import sys, time
 # local app class
-from burgers1d import Burgers1d
+from burgers1d import Burgers1dDenseJacobian, Burgers1dSparseJacobian
 # pressio bindings modules
 import pressio4pyLspg
-#import pressio4pyOps
 
-np.set_printoptions(linewidth=400)
+np.set_printoptions(precision=15, linewidth=400)
 
 class MyLinSolver:
   def __init__(self): pass
@@ -48,8 +47,9 @@ print(dt)
 print(jIsDense)
 
 # create app
-
-appObj = Burgers1d(Ncell, useDense=jIsDense)
+appObj = Burgers1dSparseJacobian(Ncell)
+if jIsDense == 1:
+  appObj = Burgers1dDenseJacobian(Ncell)
 
 # set reference state
 yRef = np.ones(Ncell)

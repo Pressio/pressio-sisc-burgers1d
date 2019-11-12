@@ -101,37 +101,7 @@ int main(int argc, char *argv[])
 
 
 
-  // // print summary from timers
-  // #ifdef HAVE_TEUCHOS_TIMERS
-  // pressio::utils::TeuchosPerformanceMonitor::stackedTimersReportSerial();
-  // #endif
-
-
-  // //----------------------------------------------------------------
-  // {
-  // auto startTime = std::chrono::high_resolution_clock::now();
-  // ::pressio::containers::Vector<native_state_t> yF(parser.numCell_); yF.putScalar(1.);
-  // lspg_state_t jTf(parser.romSize_);
-  // Eigen::PartialPivLU<native_dmat_t> solver;
-  // for (auto i=0; i<1000; ++i){
-  //   //auto J = appobj.jacobian(*yF.data(), 0.0);
-  //   auto f = appobj.velocity(*yF.data(), 0.0);
-  //   auto ja = appobj.applyJacobian(*yF.data(), *phi.data(), 0.0);
-  //   auto jtj = ja.transpose() * ja;
-  //   auto jtf = ja.transpose() * f;
-  //   solver.compute(jtj);
-  //   auto x = solver.solve(jtf);
-
-  //   //*yROM.data() = phi.data()->transpose() * (*yF.data());
-  //  //decoderObj.applyMapping(yROM, yF);
-  // }
-
-  // // Record run time
-  // auto finishTime = std::chrono::high_resolution_clock::now();
-  // std::chrono::duration<double> elapsed = finishTime - startTime;
-  // std::cout << "Elapsed time: "
-  // 	    << std::fixed << std::setprecision(10)
-  // 	    << elapsed.count() << std::endl;
-  // }
-  // //----------------------------------------------------------------
-  // return 0;
+// // print summary from timers
+// #ifdef HAVE_TEUCHOS_TIMERS
+// pressio::utils::TeuchosPerformanceMonitor::stackedTimersReportSerial();
+// #endif

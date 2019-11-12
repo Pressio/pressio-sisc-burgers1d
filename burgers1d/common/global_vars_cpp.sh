@@ -41,6 +41,8 @@ fi
 # if we want debug prints on
 WITHDBGPRINT=no
 
+# if to use blas/lapack for eigen
+WITHNATIVEEIGEN=no
 
 function wipe_existing_data_in_target_dir(){
     echo "Wiping $1/{data_*, build}"
@@ -57,6 +59,7 @@ function print_global_vars(){
     echo "SETENVscript		= $SETENVscript"
     echo "TASKNAME		= $TASKNAME"
     echo "JACOBIANTYPE		= $JACOBIANTYPE"
+    echo "WITHNATIVEEIGEN	= $WITHNATIVEEIGEN"
     echo "ARCH			= $ARCH"
     echo "WITHDBGPRINT		= $WITHDBGPRINT"
     echo "Pressio branch		= $pressioBranch"
@@ -69,8 +72,15 @@ function check_minimum_vars_set(){
 	exit 11
     fi
     if [ -z $JACOBIANTYPE ]; then
-	echo "--jac-type is empty, must be set to yes or no"
+	echo "--jac-type is empty, must be set to dense or sparse"
 	exit 11
+    fi
+    if [ ${JACOBIANTYPE} != dense ] &&\
+	   [ ${JACOBIANTYPE} != sparse ];
+    then
+	echo "--jac-type is set to non-admissible value"
+	echo "choose one of: dense, sparse"
+	exit 0
     fi
 }
 
