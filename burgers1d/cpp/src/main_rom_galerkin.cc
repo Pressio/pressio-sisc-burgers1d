@@ -54,7 +54,8 @@ int main(int argc, char *argv[]){
   auto startTime = std::chrono::high_resolution_clock::now();
   // define ROM problem
   constexpr auto ode_case  = pressio::ode::ExplicitEnum::RungeKutta4;
-  using galerkin_t = pressio::rom::DefaultGalerkinExplicitTypeGenerator<ode_case, rom_state_t, fom_t, decoder_t>;
+  using galerkin_t = pressio::rom::DefaultGalerkinExplicitTypeGenerator<
+    ode_case, rom_state_t, fom_t, decoder_t>;
   using galerkin_prob = pressio::rom::GalerkinProblemGenerator<galerkin_t>;
   galerkin_prob galerkinProb(appobj, yRef, decoderObj, yROM, zero);
 
@@ -62,7 +63,8 @@ int main(int argc, char *argv[]){
   auto & stepper = galerkinProb.getStepperRef();
 
   // integrate in time
-  pressio::ode::integrateNSteps(stepper, yROM, zero, parser.dt_, parser.numSteps_);
+  pressio::ode::integrateNSteps(stepper, yROM, zero,
+  				parser.dt_, parser.numSteps_);
 
   // Record end time
   auto finishTime = std::chrono::high_resolution_clock::now();
@@ -80,3 +82,24 @@ int main(int argc, char *argv[]){
 
   return 0;
 }
+
+
+
+  // //-------------------------------------------------------------
+  // yROM.putScalar(1.);
+  // int32_t nRounds = 5000;
+  // auto startTime = std::chrono::high_resolution_clock::now();
+  // ::pressio::containers::Vector<native_state_t> yFom(parser.numCell_);
+  // yFom.putScalar(1.);
+  // ::pressio::containers::Vector<native_state_t> f(parser.numCell_);
+  // f.putScalar(1.);
+  // for (auto i=0; i<nRounds; ++i){
+  //   //appobj.velocity(*yFom.data(), 0.0, *f.data());
+  //   *yROM.data() = phi.data()->transpose() * (*f.data());
+  //   decoderObj.applyMapping(yROM, yFom);
+  // }
+  // auto finishTime = std::chrono::high_resolution_clock::now();
+  // std::chrono::duration<double> elapsed = finishTime - startTime;
+  // std::cout << "Elapsed time: " << std::fixed << std::setprecision(10)
+  // 	    << elapsed.count() << std::endl;
+  // //-------------------------------------------------------------

@@ -64,7 +64,7 @@ def main(exeName, basisDirName):
         popen = subprocess.Popen(args, stdout=subprocess.PIPE)
         popen.wait()
         output = popen.stdout.read()
-        print( str(output))
+        #print( str(output))
         #os.system("./" + exeName + " input.txt")
 
         # find timing
