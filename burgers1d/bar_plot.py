@@ -18,7 +18,7 @@ def extractRomSizes(data):
   # the rom sizes should be in the second col of the data
   return np.unique(data[:, 1])
 
-def computeTimingsStat(data, statType):
+def computeTimingsStat(data, label, statType):
   nRows, nCols = data.shape[0], data.shape[1]
   # multiple time values are stored from col 2 to ...
   # compute the mean along each row
@@ -31,6 +31,19 @@ def computeTimingsStat(data, statType):
     res[:, 2] = stats.mstats.gmean(data[:, 2:], axis=1)
   elif statType == "q50":
     res[:, 2] = np.percentile(data[:, 2:], 50, axis=1)
+  elif statType == "worst":
+    # take min of cpp and max of python to show the worst case scenario
+    if label == "c++":
+      res[:, 2] = np.min(data[:, 2:], axis=1)
+    else:
+      res[:, 2] = np.max(data[:, 2:], axis=1)
+  elif statType == "best":
+    # take max of cpp and min of python to show the worst case scenario
+    if label == "c++":
+      res[:, 2] = np.max(data[:, 2:], axis=1)
+    else:
+      res[:, 2] = np.min(data[:, 2:], axis=1)
+
   else:
     raise Exception('Invalid choice for the statType = {}'.format(statType))
 
@@ -218,29 +231,15 @@ def plotBarStacked(cppDic, pyDic, meshLabels, romSizes, romSizesStr):
 
 
 
-def main(cppDataDir, pyDataDir, romName, barType, statType):
-  # check that target directories exist
-  if not os.path.isdir(cppDataDir):
-    raise Exception('The data dir {} does not exist. '.format(cppDataDir))
-  if not os.path.isdir(pyDataDir):
-    raise Exception('The data dir {} does not exist. '.format(pyDataDir))
-
-  # the name of the subfolder where data lives
-  dataSubDir = "data_" + romName
-  # the file name (it is same not matter if cpp or python)
-  cppFileName = "burgers1d_rom_" + romName + "_timings.txt"
-  pyFileName  = "main_rom_" + romName + "_timings.txt"
-
-  # check that data folders have the data in them
-  cppDataFilePath = cppDataDir + "/" + dataSubDir + "/" + cppFileName
-  pyDataFilePath  = pyDataDir  + "/" + dataSubDir + "/" + pyFileName
-  if not os.path.isfile(cppDataFilePath):
-    raise Exception('The file {} does not exist. '.format(cppDataFilePath))
-  if not os.path.isfile(pyDataFilePath):
-    raise Exception('The file {} does not exist. '.format(pyDataFilePath))
+def main(cppFile, pyFile, romName, barType, statType):
+  # check that files exists
+  if not os.path.isfile(cppFile):
+    raise Exception('The file {} does not exist. '.format(cppFile))
+  if not os.path.isfile(pyFile):
+    raise Exception('The file {} does not exist. '.format(pyFile))
 
   # load data
-  cppData, pyData = np.loadtxt(cppDataFilePath), np.loadtxt(pyDataFilePath)
+  cppData, pyData = np.loadtxt(cppFile), np.loadtxt(pyFile)
 
   # extract mesh sizes from cpp and python
   cppMeshSizes, pyMeshSizes = extractMeshSizes(cppData), extractMeshSizes(pyData)
@@ -261,7 +260,8 @@ def main(cppDataDir, pyDataDir, romName, barType, statType):
   print(romSizesStr)
 
   # compute the avg timings
-  cppDataAvg, pyDataAvg = computeTimingsStat(cppData, statType), computeTimingsStat(pyData, statType)
+  cppDataAvg = computeTimingsStat(cppData, "c++", statType)
+  pyDataAvg  = computeTimingsStat(pyData, "py", statType)
   print(cppDataAvg)
   print(pyDataAvg)
 
@@ -278,19 +278,20 @@ def main(cppDataDir, pyDataDir, romName, barType, statType):
   plt.show()
 
 
-
 #////////////////////////////////////////////
 if __name__== "__main__":
   parser = ArgumentParser()
-  parser.add_argument("-cpp-data-dir", "--cpp-data-dir", dest="cppDataDir")
-  parser.add_argument("-py-data-dir",  "--py-data-dir", dest="pyDataDir")
+  parser.add_argument("-cpp-file", "--cpp-file", dest="cppFile")
+  parser.add_argument("-py-file",  "--py-file", dest="pyFile")
   parser.add_argument("-method",       "--method", dest="romName",
                       help = "The ROM method you are trying to plot: lspg or galerkin" )
   parser.add_argument("-bar-type",     "--bar-type", dest="barType",
                       help = "Which bar plot type to plot, stacked or default.")
   parser.add_argument("-stat-type",    "--stat-type", dest="statType",
                       help = "Which statistic to compute from data: \
-                              mean, gmean (geometric mean), q50 (50th percentile).")
+                              mean, gmean (geometric mean), q50 (50th percentile), \
+                              worst (min of c++ and max of Python to show worst case),\
+                              best (max of c++ and min of Python to show best case)")
   args = parser.parse_args()
-  main(args.cppDataDir, args.pyDataDir, args.romName, args.barType, args.statType)
+  main(args.cppFile, args.pyFile, args.romName, args.barType, args.statType)
 #////////////////////////////////////////////

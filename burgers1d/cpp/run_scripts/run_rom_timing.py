@@ -72,7 +72,7 @@ def main(exeName, basisDirName):
         time = float(res.group().split()[2])
         print("time = ", time)
         # store
-        data[iRow][i+2] = time/float(constants.numSteps)
+        data[iRow][i+2] = time/float(constants.numStepsTiming)
 
         # while running, overwrite the timings
         timingFile = exeName+"_timings.txt"

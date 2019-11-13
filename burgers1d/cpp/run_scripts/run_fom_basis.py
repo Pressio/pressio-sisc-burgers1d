@@ -33,8 +33,8 @@ def main(exeName):
 
       # based on the size of rom and number of ode steps,
       # compute the sampling frequency
-      assert(constants.numSteps % romSize == 0)
-      samplingFreq = int(constants.numSteps/romSize)
+      assert(constants.numStepsBasis % romSize == 0)
+      samplingFreq = int(constants.numStepsBasis/romSize)
 
       # create input file
       myutils.createInputFileFomForBasis(currentMeshSize, samplingFreq)

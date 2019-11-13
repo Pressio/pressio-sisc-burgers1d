@@ -48,11 +48,11 @@ def main(exename, basisDirName, denseJac):
       # is done with different values of inputs)
       argsLspg = ("python", exename+".py",
                   str(meshSize), str(romSize),
-                  str(constants.numSteps), str(constants.dt), str(denseJac))
+                  str(constants.numStepsTiming), str(constants.dt), str(denseJac))
 
       argsGalerkin = ("python", exename+".py",
                       str(meshSize), str(romSize),
-                      str(constants.numSteps), str(constants.dt))
+                      str(constants.numStepsTiming), str(constants.dt))
 
       for i in range(0, constants.numSamplesForTiming):
         if ("lspg" in exename):
@@ -68,7 +68,7 @@ def main(exename, basisDirName, denseJac):
         time = float(res.group().split()[2])
         print("time = ", time)
         # store
-        data[iRow][i+2] = time/float(constants.numSteps)
+        data[iRow][i+2] = time/float(constants.numStepsTiming)
 
         # while running, overwrite the timings
         timingFile = exename+"_timings.txt"
@@ -112,5 +112,5 @@ if __name__== "__main__":
 # os.system("python "+exename+".py"+" "+
 #           str(meshSize)+" "+
 #           str(romSize)+" "+
-#           str(constants.numSteps)+" "+
+#           str(constants.numStepsTiming)+" "+
 #           str(constants.dt) )

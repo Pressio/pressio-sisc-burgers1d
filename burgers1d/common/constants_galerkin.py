@@ -6,8 +6,15 @@ from subprocess import Popen, list2cmdline, PIPE
 import os.path
 
 dt = 0.0005
-numSteps = 512
-finalTime = numSteps*dt
+# num of steps to generate basis
+numStepsBasis = 512
+finalTimeBasis = numStepsBasis*dt
+
+# num of steps for the timing (this can be different
+# than that for basis because we don't necessarily want
+# to run timings for a long time)
+numStepsTiming = 128
+finalTimeTiming = numStepsTiming*dt
 
 # mesh sizes
 mesh_sizes = np.array([1024, 2048, 4096, 8192, 16384, 32768])
