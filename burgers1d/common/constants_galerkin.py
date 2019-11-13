@@ -13,7 +13,7 @@ finalTimeBasis = numStepsBasis*dt
 # num of steps for the timing (this can be different
 # than that for basis because we don't necessarily want
 # to run timings for a long time)
-numStepsTiming = 128
+numStepsTiming = 512
 finalTimeTiming = numStepsTiming*dt
 
 # mesh sizes
