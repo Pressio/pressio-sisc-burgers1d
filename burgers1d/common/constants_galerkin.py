@@ -6,7 +6,7 @@ from subprocess import Popen, list2cmdline, PIPE
 import os.path
 
 dt = 0.0005
-numSteps = 4096
+numSteps = 512
 finalTime = numSteps*dt
 
 # mesh sizes
@@ -15,7 +15,7 @@ mesh_sizes = np.array([1024, 2048, 4096, 8192, 16384, 32768])
 num_meshes = len(mesh_sizes)
 
 # rom sizes: remember that ROM size has to be smaller than mesh
-rom_sizes = np.array([16,64,256,512])
+rom_sizes = np.array([32, 64, 128, 256, 512])
 # number of rom sizes
 num_rom_sizes = len(rom_sizes)
 
