@@ -87,7 +87,28 @@ USEDENSE=OFF
 USEBLAS=ON
 [[ ${WITHNATIVEEIGEN} == yes ]] && USEBLAS=OFF
 
-# build Burgers1d C++ exes
+# if blas/lapack is turned on, make sure I can find them
+if [[ ${USEBLAS} == ON ]];
+then
+    if [ -z ${BLAS_LIB_DIR} ]; then
+	echo "BLAS_LIB_DIR is empty, must be set: exiting"
+	exit 11
+    fi
+    if [ -z ${BLAS_LIB_NAME} ]; then
+	echo "BLAS_LIB_NAME is empty, must be set: exiting"
+	exit 11
+    fi
+
+    if [ -z ${LAPACK_LIB_DIR} ]; then
+	echo "LAPACK_LIB_DIR is empty, must be set: exiting"
+	exit 11
+    fi
+    if [ -z ${LAPACK_LIB_NAME} ]; then
+	echo "LAPACK_LIB_NAME is empty, must be set: exiting"
+	exit 11
+    fi
+fi
+
 bdirname=build
 #check if build dir exists
 if [ ! -d ${bdirname} ]; then
@@ -102,8 +123,13 @@ cmake -DCMAKE_C_COMPILER=${CC} \
       -DEIGEN_INCLUDE_DIR=${EIGENPATH} \
       -DPRESSIO_INCLUDE_DIR=${PRESSIOPATH} \
       -DHAVE_DENSE:BOOL=${USEDENSE} \
-      -DBLAS_LIB_DIR=${BLAS_ROOT}/lib \
-      -DLAPACK_LIB_DIR=${LAPACK_ROOT}/lib \
+      \
+      -DBLAS_LIB_DIR=${BLAS_LIB_DIR} \
+      -DBLAS_NAME=${BLAS_LIB_NAME} \
+      \
+      -DLAPACK_LIB_DIR=${LAPACK_LIB_DIR} \
+      -DLAPACK_NAME=${LAPACK_LIB_NAME} \
+      \
       -DHAVE_BLASLAPACK:BOOL=${USEBLAS}\
       -DCMAKE_CXX_FLAGS="-march=native"\
       ${CPPSRC}
