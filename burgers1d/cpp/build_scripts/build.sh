@@ -90,21 +90,21 @@ USEBLAS=ON
 # if blas/lapack is turned on, make sure I can find them
 if [[ ${USEBLAS} == ON ]];
 then
-    if [ -z ${BLAS_LIB_DIR} ]; then
-	echo "BLAS_LIB_DIR is empty, must be set: exiting"
+    if [ -z ${BLAS_LIBDIR} ]; then
+	echo "BLAS_LIBDIR is empty, must be set: exiting"
 	exit 11
     fi
-    if [ -z ${BLAS_LIB_NAME} ]; then
-	echo "BLAS_LIB_NAME is empty, must be set: exiting"
+    if [ -z ${BLAS_LIBNAME} ]; then
+	echo "BLAS_LIBNAME is empty, must be set: exiting"
 	exit 11
     fi
 
-    if [ -z ${LAPACK_LIB_DIR} ]; then
-	echo "LAPACK_LIB_DIR is empty, must be set: exiting"
+    if [ -z ${LAPACK_LIBDIR} ]; then
+	echo "LAPACK_LIBDIR is empty, must be set: exiting"
 	exit 11
     fi
-    if [ -z ${LAPACK_LIB_NAME} ]; then
-	echo "LAPACK_LIB_NAME is empty, must be set: exiting"
+    if [ -z ${LAPACK_LIBNAME} ]; then
+	echo "LAPACK_LIBNAME is empty, must be set: exiting"
 	exit 11
     fi
 fi
@@ -124,11 +124,11 @@ cmake -DCMAKE_C_COMPILER=${CC} \
       -DPRESSIO_INCLUDE_DIR=${PRESSIOPATH} \
       -DHAVE_DENSE:BOOL=${USEDENSE} \
       \
-      -DBLAS_LIB_DIR=${BLAS_LIB_DIR} \
-      -DBLAS_NAME=${BLAS_LIB_NAME} \
+      -DBLAS_LIBDIR=${BLAS_LIBDIR} \
+      -DBLAS_NAME=${BLAS_LIBNAME} \
       \
-      -DLAPACK_LIB_DIR=${LAPACK_LIB_DIR} \
-      -DLAPACK_NAME=${LAPACK_LIB_NAME} \
+      -DLAPACK_LIBDIR=${LAPACK_LIBDIR} \
+      -DLAPACK_NAME=${LAPACK_LIBNAME} \
       \
       -DHAVE_BLASLAPACK:BOOL=${USEBLAS}\
       -DCMAKE_CXX_FLAGS="-march=native"\

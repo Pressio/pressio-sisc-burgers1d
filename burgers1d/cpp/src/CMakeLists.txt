@@ -5,7 +5,7 @@ set (CMAKE_CXX_STANDARD 11)
 
 include_directories(${EIGEN_INCLUDE_DIR} ${PRESSIO_INCLUDE_DIR})
 if(${HAVE_BLASLAPACK})
-  link_directories(${BLAS_LIB_DIR} ${LAPACK_LIB_DIR})
+  link_directories(${BLAS_LIBDIR} ${LAPACK_LIBDIR})
   add_definitions(-DEIGEN_USE_BLAS -DEIGEN_USE_LAPACKE)
 endif()
 
