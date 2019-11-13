@@ -67,7 +67,8 @@ if [[ $WHICHTASK == *"fom"* ]]; then
     ln -s ${CPPWORKINGDIR}/build/${EXENAME} ${destDir}
 
     # copy the template input and python scripts
-    cp ${TOPDIR}/common/*.py ${destDir}/
+    [[ $WHICHTASK == *"bdf1"* ]] && cp ${TOPDIR}/common/constants_lspg.py ${destDir}/constants.py
+    [[ $WHICHTASK == *"rk4"* ]] && cp ${TOPDIR}/common/constants_galerkin.py ${destDir}/constants.py
     cp ${TOPDIR}/cpp/src/input.template ${destDir}
     cp ${TOPDIR}/cpp/run_scripts/myutils.py ${destDir}/
 
@@ -129,7 +130,8 @@ then
     # copy all python scripts there
     cp ${TOPDIR}/cpp/run_scripts/myutils.py ${destDir}/
     cp ${TOPDIR}/cpp/run_scripts/run_rom_timing.py ${destDir}/
-    cp ${TOPDIR}/common/*.py ${destDir}/
+    [[ $WHICHTASK = "lspg" ]] && cp ${TOPDIR}/common/constants_lspg.py ${destDir}/constants.py
+    [[ $WHICHTASK = "galerkin" ]] && cp ${TOPDIR}/common/constants_galerkin.py ${destDir}/constants.py
 
     # enter there and run
     cd ${destDir}

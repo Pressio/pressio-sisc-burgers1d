@@ -44,11 +44,11 @@ def main(exename):
       res = re.search(constants.timerRegExp, str(output))
       time = float(res.group().split()[2])
       # store time for this replica
-      data[iMesh][i+1] = time
+      data[iMesh][i+1] = time/float(constants.numSteps)
       print("time = ", time)
 
   # save to text
-  np.savetxt(exename+"_timings.txt", data, fmt='%.12f')
+  np.savetxt(exename+"_timings.txt", data, fmt='%.15f')
   # make sure the data table is not wrapped over multiple lines
   np.set_printoptions(edgeitems=10, linewidth=100000)
   print(data)

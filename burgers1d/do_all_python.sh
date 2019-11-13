@@ -57,6 +57,7 @@ then
     BASISDIRNAME=
     [[ $WHICHTASK = "lspg" ]] && BASISDIRNAME=fom_bdf1_basis
     [[ $WHICHTASK = "galerkin" ]] && BASISDIRNAME=fom_rk4_basis
+    # look for the basis inside the sibiling cpp folder
     if [ ! -d ${WORKINGDIR}/cpp/data_${BASISDIRNAME} ]; then
 	echo "there is not basis dir in the target folder, do that first"
 	exit 0
@@ -82,14 +83,15 @@ then
     fi
 
     # copy all pything scripts there
-    cp ${TOPDIR}/common/constants.py ${destDir}/
     cp ${TOPDIR}/python/run_scripts/run_rom_timing.py ${destDir}/
     cp ${TOPDIR}/python/src/burgers1d.py ${destDir}/
     if [ $WHICHTASK = "lspg" ]; then
 	cp ${TOPDIR}/python/src/main_rom_lspg.py ${destDir}/
+	cp ${TOPDIR}/common/constants_lspg.py ${destDir}/constants.py
     fi
     if [ $WHICHTASK = "galerkin" ]; then
 	cp ${TOPDIR}/python/src/main_rom_galerkin.py ${destDir}/
+	cp ${TOPDIR}/common/constants_galerkin.py ${destDir}/constants.py
     fi
 
     USEDENSE=0

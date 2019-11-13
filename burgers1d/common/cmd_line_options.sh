@@ -68,8 +68,9 @@ Configuration:
 --do=					which task to execute
 					default = none, must be set
 
---jac-type=[sparse/dense]		if yes, use dense jacobian
-					default = nothing, must be set
+--jac-type=[sparse/dense]		if yes, use dense jacobian.
+					Only matters for bdf1 or lspg.
+					default = sparse
 
 --native-eigen=[yes/no]			if yes, use native eigen, no blas/lapack
 					default = no

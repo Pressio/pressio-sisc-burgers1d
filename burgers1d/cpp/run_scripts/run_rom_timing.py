@@ -72,13 +72,13 @@ def main(exeName, basisDirName):
         time = float(res.group().split()[2])
         print("time = ", time)
         # store
-        data[iRow][i+2] = time
+        data[iRow][i+2] = time/float(constants.numSteps)
 
         # while running, overwrite the timings
         timingFile = exeName+"_timings.txt"
         if os.path.isfile(timingFile):
           os.system("rm -rf " + timingFile)
-        np.savetxt(timingFile, data, fmt='%.12f')
+        np.savetxt(timingFile, data, fmt='%.15f')
 
         # save output data (e.g. state and gen coords) for one replica run only
         # since they are all equivalent, beside the timing
@@ -95,7 +95,7 @@ def main(exeName, basisDirName):
   timingFile = exeName+"_timings.txt"
   if os.path.isfile(timingFile):
     os.system("rm -rf " + timingFile)
-  np.savetxt(timingFile, data, fmt='%.12f')
+  np.savetxt(timingFile, data, fmt='%.15f')
 
   np.set_printoptions(edgeitems=10, linewidth=100000)
   print(data)

@@ -34,8 +34,7 @@ def main(exename, basisDirName, denseJac):
       romSize = constants.rom_sizes[iRom]
       print("Current romSize = ", romSize)
 
-      data[iRow][0] = meshSize
-      data[iRow][1] = romSize
+      data[iRow][0], data[iRow][1] = meshSize, romSize
 
       # link basis here
       subs1 = "meshSize" + str(meshSize)
@@ -63,25 +62,19 @@ def main(exename, basisDirName, denseJac):
 
         popen.wait()
         output = popen.stdout.read()
-        #print(output)
-        # os.system("python "+exename+".py"+" "+
-        #           str(meshSize)+" "+
-        #           str(romSize)+" "+
-        #           str(constants.numSteps)+" "+
-        #           str(constants.dt) )
 
         # find timing
         res = re.search(constants.timerRegExp, str(output))
         time = float(res.group().split()[2])
         print("time = ", time)
         # store
-        data[iRow][i+2] = time
+        data[iRow][i+2] = time/float(constants.numSteps)
 
         # while running, overwrite the timings
         timingFile = exename+"_timings.txt"
         if os.path.isfile(timingFile):
           os.system("rm -rf " + timingFile)
-        np.savetxt(timingFile, data, fmt='%.12f')
+        np.savetxt(timingFile, data, fmt='%.15f')
 
         # save output data (e.g. state and gen coords) for one replica run only
         # since they are all equivalent, beside the timing
@@ -97,7 +90,7 @@ def main(exename, basisDirName, denseJac):
   timingFile = exename+"_timings.txt"
   if os.path.isfile(timingFile):
     os.system("rm -rf " + timingFile)
-  np.savetxt(timingFile, data, fmt='%.12f')
+  np.savetxt(timingFile, data, fmt='%.15f')
 
   np.set_printoptions(edgeitems=10, linewidth=100000)
   print(data)
@@ -110,3 +103,14 @@ if __name__== "__main__":
   parser.add_argument("-dense-jac", "--dense-jac", dest="denseJac")
   args = parser.parse_args()
   main(args.exename, args.basisDirName, args.denseJac)
+
+
+
+
+
+#print(output)
+# os.system("python "+exename+".py"+" "+
+#           str(meshSize)+" "+
+#           str(romSize)+" "+
+#           str(constants.numSteps)+" "+
+#           str(constants.dt) )

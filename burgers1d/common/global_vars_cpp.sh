@@ -22,7 +22,7 @@ CPPWORKINGDIR=
 WIPEEXISTING=no
 
 # if we want to solver burgers1d with dense vs sparse data (yes/no)
-JACOBIANTYPE=
+JACOBIANTYPE=empty
 
 # name of the task to run
 WHICHTASK=
@@ -49,7 +49,6 @@ function wipe_existing_data_in_target_dir(){
     rm -rf $1/build $1/data_*
 }
 
-
 function print_global_vars(){
     echo "TOPDIR			= $TOPDIR"
     echo "CPPSRC			= $CPPSRC"
@@ -71,7 +70,11 @@ function check_minimum_vars_set(){
 	echo "--working-dir is empty, must be set: exiting"
 	exit 11
     fi
-    if [ -z $JACOBIANTYPE ]; then
+}
+
+
+function check_jacobian_var(){
+    if [ $JACOBIANTYPE = empty ]; then
 	echo "--jac-type is empty, must be set to dense or sparse"
 	exit 11
     fi
@@ -84,22 +87,19 @@ function check_minimum_vars_set(){
     fi
 }
 
-function check_minimum_vars_set_plot(){
-    # check for common
-    check_minimum_vars_set
-
-    if [ ${WHICHTASK} != lspg ] &&\
-	   [ ${WHICHTASK} != galerkin ];
-    then
-	echo "--do is set to non-admissible value"
-	echo "choose one of: lspg, galerkin"
-	exit 0
-    fi
-}
 
 function check_minimum_vars_set_cpp(){
     # check for common
     check_minimum_vars_set
+
+    # the jacobian type matters always except for rk4 or galerkin
+    if [ $WHICHTASK = "build" ] ||\
+	   [ $WHICHTASK = "fom_bdf1_timing" ] ||\
+	   [ $WHICHTASK = "fom_bdf1_basis" ] ||\
+	   [ $WHICHTASK = "lspg" ];
+    then
+	check_jacobian_var
+    fi
 
     if [ ${WHICHTASK} != build ] &&\
 	   [ ${WHICHTASK} != fom_bdf1_timing ] &&\
