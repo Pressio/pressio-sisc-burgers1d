@@ -70,88 +70,113 @@ def createDicByRomSize(data):
 #
 #=====================================================================
 def plotBarRegular(cppDic, pyDic, meshLabels, romSizes, romSizesStr):
-  if len(romSizes) != 3:
-    raise Exception('The style for the bar plot currently support 3 rom sizes only')
+  # if len(romSizes) != 3:
+  #   raise Exception('The style for the bar plot currently support 3 rom sizes only')
+
+  # number of mesh sizes to deal with
+  numMeshes = len(meshLabels)
+
+  # Setting the positions and width for the bars
+  posArray = range(numMeshes)
+  pos = list(posArray)
+  width = 0.125 # the width of a bar
 
   # Setting the positions and width for the bars
   pos = list(range(len(meshLabels)))
-  width = 0.12 # the width of a bar
+  width = 0.075 # the width of a bar
 
-  fig, ax = plt.subplots(figsize=(10,6))
+  fig, ax = plt.subplots(figsize=(8,6))
   plt.grid()
+  fig.subplots_adjust(bottom=0.25)
   ax.set_axisbelow(True)
 
-  # rom1
-  romSize1 = romSizesStr[0]
-  leg = 'c++, n=' + str(romSize1)
-  bar1=plt.bar([p-width*1.15 for p in pos], cppDic[romSize1], width,
-               alpha=0.5, color='r', hatch='xxx', edgecolor='k', label=leg)
-  leg = 'py, n=' + str(romSize1)
-  plt.bar([p-width*0.15 for p in pos], pyDic[romSize1], width, alpha=0.5,
-          color='r', hatch='/////', edgecolor='k', label=leg)
+  # # rom1
+  # romSize1 = romSizesStr[0]
+  # leg = 'c++, n=' + str(romSize1)
+  # bar1=plt.bar([p-width*1.15 for p in pos], cppDic[romSize1], width,
+  #              alpha=0.5, color='r', hatch='xxx', edgecolor='k', label=leg)
+  # leg = 'py, n=' + str(romSize1)
+  # plt.bar([p-width*0.15 for p in pos], pyDic[romSize1], width, alpha=0.5,
+  #         color='r', hatch='/////', edgecolor='k', label=leg)
 
-  # rom size 2
-  romSize2 = romSizesStr[1]
-  leg = 'c++, n=' + str(romSize2)
-  plt.bar([p+width for p in pos], cppDic[romSize2], width,
-          alpha=0.5, color='b', hatch='xxx', edgecolor='k',label=leg)
-  leg = 'py, n=' + str(romSize2)
-  plt.bar([p+width*2 for p in pos], pyDic[romSize2], width,
-          alpha=0.5, color='b', hatch='/////', edgecolor='k',label=leg)
+  # # rom size 2
+  # romSize2 = romSizesStr[1]
+  # leg = 'c++, n=' + str(romSize2)
+  # plt.bar([p+width for p in pos], cppDic[romSize2], width,
+  #         alpha=0.5, color='b', hatch='xxx', edgecolor='k',label=leg)
+  # leg = 'py, n=' + str(romSize2)
+  # plt.bar([p+width*2 for p in pos], pyDic[romSize2], width,
+  #         alpha=0.5, color='b', hatch='/////', edgecolor='k',label=leg)
 
-  # rom size 3
-  romSize3 = romSizesStr[2]
-  leg = 'c++, n=' + str(romSize3)
-  plt.bar([p+width*3.15 for p in pos], cppDic[romSize3], width,
-          alpha=0.5, color='g', hatch='xxx', edgecolor='k',label=leg)
-  leg = 'py, n=' + str(romSize3)
-  plt.bar([p+width*4.15 for p in pos], pyDic[romSize3], width,
-          alpha=0.5, color='g', hatch='/////', edgecolor='k',label=leg)
+  # # rom size 3
+  # romSize3 = romSizesStr[2]
+  # leg = 'c++, n=' + str(romSize3)
+  # plt.bar([p+width*3.15 for p in pos], cppDic[romSize3], width,
+  #         alpha=0.5, color='g', hatch='xxx', edgecolor='k',label=leg)
+  # leg = 'py, n=' + str(romSize3)
+  # plt.bar([p+width*4.15 for p in pos], pyDic[romSize3], width,
+  #         alpha=0.5, color='g', hatch='/////', edgecolor='k',label=leg)
 
-  # Setting axis labels and ticks
-  ax.set_ylabel('Overhead wrt fastest C++ run')
-  ax.set_xlabel('Mesh Size')
+  # # Setting axis labels and ticks
+  # ax.set_ylabel('Overhead wrt fastest C++ run')
+  # ax.set_xlabel('Mesh Size')
   # ticks for groups
   ax.set_xticks([p + width*1.5 for p in pos])
   ax.set_xticklabels(meshLabels)
-  # Setting the x-axis and y-axis limits
-  plt.xlim(min(pos)-width*3, max(pos)+width*6)
-  #plt.ylim([0, max(green_data + blue_data + red_data) * 1.5])
+  # # Setting the x-axis and y-axis limits
+  # plt.xlim(min(pos)-width*3, max(pos)+width*6)
+  # #plt.ylim([0, max(green_data + blue_data + red_data) * 1.5])
   plt.legend(loc='upper left')
 
 
 #=====================================================================
 # plot overhead above the bars
 #=====================================================================
-def plotTextOverhead(xLoc, ovhead, cppVal, diffVal, maxY):
-  for i in range(len(xLoc)):
-    string = '{:3.0f}'.format(ovhead[i])
-    thisX, thisY = xLoc[i], np.maximum(cppVal[i]+diffVal[i], cppVal[i])
-    plt.text(x=thisX, y=thisY+0.065*maxY, s=string+'%',
-             size = 8,
-             rotation=90,
-             horizontalalignment='center',
-             verticalalignment='center')
+# def plotTextOverhead(xLoc, ovhead, cppVal, diffVal, maxY):
+#   for i in range(len(xLoc)):
+#     string = '{:3.0f}'.format(ovhead[i])
+#     thisX, thisY = xLoc[i], np.maximum(cppVal[i]+diffVal[i], cppVal[i])
+#     plt.text(x=thisX, y=thisY+0.065*maxY, s=string+'%',
+#              size = 8,
+#              rotation=90,
+#              horizontalalignment='center',
+#              verticalalignment='center')
+
+def autolabel(ax, rects, ovhead):
+    for i in range(len(ovhead)):
+      rect = rects[i]
+      ovh = ovhead[i]
+      height = rect.get_height()
+      ax.annotate('{:2.1f}%'.format(ovhead[i]),
+                  xy=(rect.get_x() + rect.get_width() / 2, height),
+                  xytext=(0, 17),  # points vertical offset
+                  size=8,
+                  rotation=90,
+                  textcoords="offset points",
+                  ha='center', va='center')
 
 #=====================================================================
 # plot one set of bars for cpp and python
 # this means that for both cpp and python and a given romsize,
 # we plot the bars at each meshsize
 #=====================================================================
-def plotBarSet(xLoc, width, romSize, cppDic, pyDic, barColors, hatches, maxY):
+def plotBarSet(ax, xLoc, width, romSize, cppDic, pyDic, barColors, hatches, maxY):
   cppVal = cppDic[romSize]
   diffVal= np.asarray(pyDic[romSize]) - np.asarray(cppVal)
   # compute overhead in % wrt cpp case
   ovhead = np.abs(diffVal)/np.asarray(cppVal)*100
-  # display text for overhead as percent on top of bar
-  plotTextOverhead(xLoc, ovhead, cppVal, diffVal, maxY)
+  ## display text for overhead as percent on top of bar
+  #plotTextOverhead(xLoc, ovhead, cppVal, diffVal, maxY)
 
   # plot bar cpp
   leg = 'c++, n=' + str(romSize)
-  plt.bar(xLoc, cppVal, width, alpha=0.5, color=barColors['cpp'], hatch=hatches['cpp'], edgecolor='k')
+  cppH = ax.bar(xLoc, cppVal, width, alpha=0.5, color=barColors['cpp'], hatch=hatches['cpp'], edgecolor='k')
   # plot bar py
   leg = 'py, n=' + str(romSize)
-  plt.bar(xLoc, diffVal, width, bottom=cppVal, alpha=0.5, color=barColors['py'], hatch=hatches['py'], edgecolor='k')
+  diffH = ax.bar(xLoc, diffVal, width, bottom=cppVal, alpha=0.5,
+                  color=barColors['py'], hatch=hatches['py'], edgecolor='k')
+  # display text for overhead as percent on top of bar
+  autolabel(ax, cppH, ovhead)
 
 
 #=====================================================================
@@ -193,10 +218,9 @@ def plotBarStacked(cppDic, pyDic, meshLabels, romSizes, romSizesStr):
     shift = width*it
     xLoc = [p+shift for p in pos]
     currRomSize = romSizesStr[it]
-    plotBarSet(xLoc, width, currRomSize, cppDic, pyDic, colors, hatches, maxY)
+    plotBarSet(ax, xLoc, width, currRomSize, cppDic, pyDic, colors, hatches, maxY)
     xTicksBars += [p+shift for p in pos]
     xTlabels += [romSizesStr[it] for i in range(numMeshes)]
-
 
   # remove the vertical lines of the grid
   ax.xaxis.grid(which="major", color='None', linestyle='-.', linewidth=0)
@@ -226,11 +250,9 @@ def plotBarStacked(cppDic, pyDic, meshLabels, romSizes, romSizesStr):
   #plt.legend(loc='upper left')
 
 
-
-
-
-
-
+#=====================================================================
+#   main
+#=====================================================================
 def main(cppFile, pyFile, romName, barType, statType):
   # check that files exists
   if not os.path.isfile(cppFile):
