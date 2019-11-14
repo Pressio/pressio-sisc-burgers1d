@@ -28,6 +28,9 @@ def main(exename, basisDirName, denseJac):
     meshSize = constants.mesh_sizes[iMesh]
     print("Current meshSize = ", meshSize)
 
+    # get the number of steps to do for this case
+    currNumSteps = constants.numStepsTiming[meshSize]
+
     # loop over ROM sizes
     for iRom in range(0, constants.num_rom_sizes):
       iRow+=1
@@ -48,11 +51,11 @@ def main(exename, basisDirName, denseJac):
       # is done with different values of inputs)
       argsLspg = ("python", exename+".py",
                   str(meshSize), str(romSize),
-                  str(constants.numStepsTiming), str(constants.dt), str(denseJac))
+                  str(currNumSteps), str(constants.dt), str(denseJac))
 
       argsGalerkin = ("python", exename+".py",
                       str(meshSize), str(romSize),
-                      str(constants.numStepsTiming), str(constants.dt))
+                      str(currNumSteps), str(constants.dt))
 
       for i in range(0, constants.numSamplesForTiming):
         if ("lspg" in exename):
@@ -68,7 +71,7 @@ def main(exename, basisDirName, denseJac):
         time = float(res.group().split()[2])
         print("time = ", time)
         # store
-        data[iRow][i+2] = time/float(constants.numStepsTiming)
+        data[iRow][i+2] = time/float(currNumSteps)
 
         # while running, overwrite the timings
         timingFile = exename+"_timings.txt"
@@ -103,14 +106,3 @@ if __name__== "__main__":
   parser.add_argument("-dense-jac", "--dense-jac", dest="denseJac")
   args = parser.parse_args()
   main(args.exename, args.basisDirName, args.denseJac)
-
-
-
-
-
-#print(output)
-# os.system("python "+exename+".py"+" "+
-#           str(meshSize)+" "+
-#           str(romSize)+" "+
-#           str(constants.numStepsTiming)+" "+
-#           str(constants.dt) )

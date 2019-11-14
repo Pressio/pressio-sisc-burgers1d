@@ -51,9 +51,6 @@ fi
 #-------------
 # do pressio
 #-------------
-# (install with cmake which we need because of the cmakedefines)
-# only need rom package (others turned on automatically)
-# link-type: does not matter since Pressio is NOT compiled yet
 if [[ ! -d ${PYWORKINGDIR}/tpls/pressio ||\
 	 ! -d ${PYWORKINGDIR}/tpls/pressio/build ]];
 then
@@ -70,23 +67,34 @@ then
     git checkout ${pressioBranch}
     cd ..
 
-    # by default, the generator line is
-    PRESSIOGENFNCNAME=pressio_sisc_burgerspython
-    if [[ $WITHDBGPRINT == yes ]]; then
-	PRESSIOGENFNCNAME=pressio_sisc_burgerspython_dbgprint
-    fi
+    # # by default, the generator line is
+    # PRESSIOGENFNCNAME=pressio_sisc_burgerspython
+    # if [[ $WITHDBGPRINT == yes ]]; then
+    # 	PRESSIOGENFNCNAME=pressio_sisc_burgerspython_dbgprint
+    # fi
 
-    # install pressio
-    cd ${PYWORKINGDIR}/pressio-builder
-    ./main_pressio.sh \
-	-dryrun=no \
-	-pressio-src=${PYWORKINGDIR}/tpls/pressio/pressio \
-	-target-dir=${PYWORKINGDIR}/tpls \
-	-wipe-existing=yes \
-	-build-mode=Release \
-	-cmake-custom-generator-file=${TOPDIR}/python/build_scripts/cmake_generators_for_pressio-builder.sh \
-	-cmake-generator-name=${PRESSIOGENFNCNAME} \
-	-eigen-path=${PYWORKINGDIR}/tpls/eigen/install
+    mkdir ${PYWORKINGDIR}/tpls/pressio/build && cd build
+    echo ""
+    echo "Installing pressio"
+    cmake \
+	-D CMAKE_INSTALL_PREFIX:PATH=${PYWORKINGDIR}/tpls/pressio/install \
+	-D PRESSIO_ENABLE_TESTS:BOOL=OFF \
+	-D PRESSIO_ENABLE_TPL_EIGEN=ON \
+	-D PRESSIO_ENABLE_TPL_PYBIND11=ON \
+	../pressio
+    make install
+
+    # # install pressio
+    # cd ${PYWORKINGDIR}/pressio-builder
+    # ./main_pressio.sh \
+    # 	-dryrun=no \
+    # 	-pressio-src=${PYWORKINGDIR}/tpls/pressio/pressio \
+    # 	-target-dir=${PYWORKINGDIR}/tpls \
+    # 	-wipe-existing=yes \
+    # 	-build-mode=Release \
+    # 	-cmake-custom-generator-file=${TOPDIR}/python/build_scripts/cmake_generators_for_pressio-builder.sh \
+    # 	-cmake-generator-name=${PRESSIOGENFNCNAME} \
+    # 	-eigen-path=${PYWORKINGDIR}/tpls/eigen/install
 
     cd ${PYWORKINGDIR}
 else

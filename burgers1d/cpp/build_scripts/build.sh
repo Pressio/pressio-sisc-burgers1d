@@ -36,7 +36,6 @@ fi
 #-------------
 # do pressio
 #-------------
-# (install with cmake which we need because of the cmakedefines)
 if [[ ! -d ${CPPWORKINGDIR}/tpls/pressio ||\
 	 ! -d ${CPPWORKINGDIR}/tpls/pressio/build ]];
 then
@@ -51,23 +50,35 @@ then
     git checkout ${pressioBranch}
     cd ..
 
-    # the generator line
-    PRESSIOGENFNCNAME=pressio_sisc_burgerscpp
-    if [[ $WITHDBGPRINT == yes ]]; then
-	PRESSIOGENFNCNAME=pressio_sisc_burgerscpp_dbgprint
-    fi
+    # # the generator line
+    # PRESSIOGENFNCNAME=pressio_sisc_burgerscpp
+    # if [[ $WITHDBGPRINT == yes ]]; then
+    # 	PRESSIOGENFNCNAME=pressio_sisc_burgerscpp_dbgprint
+    # fi
 
-    # install pressio
-    cd ${CPPWORKINGDIR}/pressio-builder
-    ./main_pressio.sh \
-	-dryrun=no \
-	-pressio-src=${CPPWORKINGDIR}/tpls/pressio/pressio \
-	-target-dir=${CPPWORKINGDIR}/tpls \
-	-wipe-existing=yes \
-	-build-mode=Release \
-	-cmake-custom-generator-file=${TOPDIR}/cpp/build_scripts/cmake_generators_for_pressio-builder.sh \
-	-cmake-generator-name=${PRESSIOGENFNCNAME} \
-	-eigen-path=${CPPWORKINGDIR}/tpls/eigen/install
+    mkdir ${CPPWORKINGDIR}/tpls/pressio/build && cd build
+    echo ""
+    echo "Installing pressio"
+    cmake \
+	-D CMAKE_INSTALL_PREFIX:PATH=${CPPWORKINGDIR}/tpls/pressio/install \
+	-D PRESSIO_ENABLE_TESTS:BOOL=OFF \
+	-D PRESSIO_ENABLE_TPL_EIGEN=ON \
+	-D PRESSIO_ENABLE_TPL_BLAS=ON \
+	-D PRESSIO_ENABLE_TPL_LAPACK=ON \
+	../pressio
+    make install
+
+    # # install pressio
+    # cd ${CPPWORKINGDIR}/pressio-builder
+    # ./main_pressio.sh \
+    # 	-dryrun=no \
+    # 	-pressio-src=${CPPWORKINGDIR}/tpls/pressio/pressio \
+    # 	-target-dir=${CPPWORKINGDIR}/tpls \
+    # 	-wipe-existing=yes \
+    # 	-build-mode=Release \
+    # 	-cmake-custom-generator-file=${TOPDIR}/cpp/build_scripts/cmake_generators_for_pressio-builder.sh \
+    # 	-cmake-generator-name=${PRESSIOGENFNCNAME} \
+    # 	-eigen-path=${CPPWORKINGDIR}/tpls/eigen/install
 
     cd ${CPPWORKINGDIR}
 else
@@ -83,7 +94,6 @@ PRESSIOPATH="${CPPWORKINGDIR}/tpls/pressio/install/include"
 
 USEDENSE=OFF
 [[ ${JACOBIANTYPE} == dense ]] && USEDENSE=ON
-
 USEBLAS=ON
 [[ ${WITHNATIVEEIGEN} == yes ]] && USEBLAS=OFF
 
@@ -124,13 +134,12 @@ cmake -DCMAKE_C_COMPILER=${CC} \
       -DPRESSIO_INCLUDE_DIR=${PRESSIOPATH} \
       -DHAVE_DENSE:BOOL=${USEDENSE} \
       \
+      -DHAVE_BLASLAPACK:BOOL=${USEBLAS}\
       -DBLAS_LIBDIR=${BLAS_LIBDIR} \
       -DBLAS_NAME=${BLAS_LIBNAME} \
-      \
       -DLAPACK_LIBDIR=${LAPACK_LIBDIR} \
       -DLAPACK_NAME=${LAPACK_LIBNAME} \
       \
-      -DHAVE_BLASLAPACK:BOOL=${USEBLAS}\
       -DCMAKE_CXX_FLAGS="-march=native"\
       ${CPPSRC}
 make -j6

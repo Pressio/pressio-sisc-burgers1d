@@ -44,7 +44,7 @@ def main(exename):
       res = re.search(constants.timerRegExp, str(output))
       time = float(res.group().split()[2])
       # store time for this replica
-      data[iMesh][i+1] = time/float(constants.numStepsTiming)
+      data[iMesh][i+1] = time/float(constants.numStepsTiming[currentMeshSize])
       print("time = ", time)
 
   # save to text

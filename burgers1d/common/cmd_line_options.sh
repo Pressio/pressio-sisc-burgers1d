@@ -36,9 +36,9 @@ for option; do
 	    WIPEEXISTING=`expr "x$option" : "x-*wipe-existing-data=\(.*\)"`
 	    ;;
 
-	-dbg-print=* | --dbg-print=* )
-	    WITHDBGPRINT=`expr "x$option" : "x-*dbg-print=\(.*\)"`
-	    ;;
+	# -dbg-print=* | --dbg-print=* )
+	#     WITHDBGPRINT=`expr "x$option" : "x-*dbg-print=\(.*\)"`
+	#     ;;
 
 	# unrecognized option}
 	-*)
@@ -80,9 +80,9 @@ Configuration:
 						--target-dir/build_*
 					will be fully wiped and re-made.
 				   	default = no
-
---dbg-print=[yes/no]			if yes, enable pressio debug print
-					default = no
 EOF
   exit 0
 fi
+
+# --dbg-print=[yes/no]			if yes, enable pressio debug print
+# 					default = no

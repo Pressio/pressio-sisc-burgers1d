@@ -10,15 +10,15 @@ import constants
 # store current directory
 pwd = os.getcwd()
 
-def createInputFileFomTiming(numCell):
+def createInputFileFomTiming(meshSize):
   # copy template
   os.system('cp input.template input.txt')
 
   fin = open("input.txt", "rt")
   data = fin.read()
-  data = data.replace("numCellValue",   str(numCell) )
+  data = data.replace("numCellValue",   str(meshSize) )
   data = data.replace("dtValue",        str(constants.dt) )
-  data = data.replace("finalTimeValue", str(constants.finalTimeTiming) )
+  data = data.replace("finalTimeValue", str(constants.finalTimeTiming[meshSize]) )
   data = data.replace("observerOnValue",str(0) )
   data = data.replace("romOnValue",     str(0) )
   fin.close()
@@ -28,15 +28,15 @@ def createInputFileFomTiming(numCell):
   fin.close()
 
 
-def createInputFileFomForBasis(numCell, samplingFreq):
-  createInputFileFomTiming(numCell)
+def createInputFileFomForBasis(meshSize, samplingFreq):
+  createInputFileFomTiming(meshSize)
 
   # copy template
   os.system('cp input.template input.txt')
 
   fin = open("input.txt", "rt")
   data = fin.read()
-  data = data.replace("numCellValue",           str(numCell) )
+  data = data.replace("numCellValue",           str(meshSize) )
   data = data.replace("dtValue",                str(constants.dt) )
   data = data.replace("finalTimeValue",         str(constants.finalTimeBasis) )
   data = data.replace("observerOnValue",        str(1) )
@@ -51,15 +51,15 @@ def createInputFileFomForBasis(numCell, samplingFreq):
   fin.close()
 
 
-def createInputFileRom(numCell, romSize):
+def createInputFileRom(meshSize, romSize):
   # copy template
   os.system('cp input.template input.txt')
 
   fin = open("input.txt", "rt")
   data = fin.read()
-  data = data.replace("numCellValue",           str(numCell) )
+  data = data.replace("numCellValue",           str(meshSize) )
   data = data.replace("dtValue",                str(constants.dt) )
-  data = data.replace("finalTimeValue",         str(constants.finalTimeTiming) )
+  data = data.replace("finalTimeValue",         str(constants.finalTimeTiming[meshSize]) )
   data = data.replace("observerOnValue",        str(0) )
   data = data.replace("basisFileNameValue",     "basis.txt")
   data = data.replace("romOnValue",             str(1) )
