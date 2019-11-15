@@ -171,10 +171,10 @@ def plotBarSet(ax, xLoc, width, romSize, cppDic, pyDic, barColors, hatches, maxY
   # plot bar cpp
   leg = 'c++, n=' + str(romSize)
   cppH = ax.bar(xLoc, cppVal, width, alpha=0.5, color=barColors['cpp'], hatch=hatches['cpp'], edgecolor='k')
-  # plot bar py
+  # plot bar for the difference
   leg = 'py, n=' + str(romSize)
   diffH = ax.bar(xLoc, diffVal, width, bottom=cppVal, alpha=0.5,
-                  color=barColors['py'], hatch=hatches['py'], edgecolor='k')
+                  color=barColors['diff'], hatch=hatches['diff'], edgecolor='k')
   # display text for overhead as percent on top of bar
   autolabel(ax, cppH, ovhead)
 
@@ -190,7 +190,6 @@ def plotBarStacked(cppDic, pyDic, meshLabels, romSizes, romSizesStr):
 
   # number of mesh sizes to deal with
   numMeshes = len(meshLabels)
-
   # Setting the positions and width for the bars
   posArray = range(numMeshes)
   pos = list(posArray)
@@ -201,8 +200,8 @@ def plotBarStacked(cppDic, pyDic, meshLabels, romSizes, romSizesStr):
   ax2 = ax.twiny()
   fig.subplots_adjust(bottom=0.25)
 
-  colors = {'cpp': 'w', 'py': 'w'}
-  hatches = {'cpp': '////', 'py':'xxx'}
+  colors = {'cpp': 'w', 'py': 'w', 'diff': 'r'}
+  hatches = {'cpp': '////', 'py':'xxx', 'diff': '*****'}
 
   # compute the value of the heighest bar
   maxY = 0.
@@ -243,10 +242,11 @@ def plotBarStacked(cppDic, pyDic, meshLabels, romSizes, romSizesStr):
 
   # plt.text(x=-0.175, y=-0.3, s='Mesh Size',size = 10,rotation=0,
   #          horizontalalignment='center',verticalalignment='center')
-  #plt.yscale('log')
+  plt.yscale('log')
   ax.set_xlim(min(pos)-width*2, max(pos)+width*5)
   ax2.set_xlim(min(pos)-width*2, max(pos)+width*5)
-  plt.ylim([0, maxY*1.1])
+  plt.ylim([1e-2, 1000000])
+  #plt.ylim([0, maxY*1.1])
   #plt.legend(loc='upper left')
 
 
@@ -262,6 +262,10 @@ def main(cppFile, pyFile, romName, barType, statType):
 
   # load data
   cppData, pyData = np.loadtxt(cppFile), np.loadtxt(pyFile)
+
+  # convert from sec to milliseconds
+  cppData[:,2:] *= 1000
+  pyData[:,2:] *= 1000
 
   # extract mesh sizes from cpp and python
   cppMeshSizes, pyMeshSizes = extractMeshSizes(cppData), extractMeshSizes(pyData)
@@ -284,8 +288,6 @@ def main(cppFile, pyFile, romName, barType, statType):
   # compute the avg timings
   cppDataAvg = computeTimingsStat(cppData, "c++", statType)
   pyDataAvg  = computeTimingsStat(pyData, "py", statType)
-  print(cppDataAvg)
-  print(pyDataAvg)
 
   # create dictionary for bar plotting
   cppDic, pyDic = createDicByRomSize(cppDataAvg), createDicByRomSize(pyDataAvg)

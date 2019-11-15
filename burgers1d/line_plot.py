@@ -64,56 +64,61 @@ def createDicByRomSize(data):
   return dic
 
 
-def doPlot(cppDic, pyDic, meshSizes, meshLabels, romSizes, romSizesStr):
+def doPlot(cppDic, pyDic, meshSizes, meshLabels, romSizes, romSizesStr, fileName):
   # number of mesh sizes to deal with
   numMeshes = len(meshLabels)
 
   fig, ax = plt.subplots() #figsize=(8,6))
   plt.grid()
-
   colors = {'cpp': 'k', 'py': 'r'}
-  hatches = {'cpp': '////', 'py':'xxx'}
+  mark = { 0:'o', 1:'s', 2:'x', 3:'^'}
+  ms = 7
+  lw = 1.5
 
   #---- loop over rom sizes and plot ----
   for it in range(len(romSizes)):
     currRomSize = romSizesStr[it]
     cppData, pyData = cppDic[currRomSize], pyDic[currRomSize]
-    plt.plot(meshSizes, cppData, '-o', color=colors['cpp'], linewidth=2)
-    plt.plot(meshSizes, pyData,  '-s', color=colors['py'], linewidth=2)
+    # convert from seconds to ms
+    cppData, pyData = np.asarray(cppData)*1000, np.asarray(pyData)*1000
+    plt.plot(meshSizes, cppData, '-', marker=mark[it], markersize=ms,
+             markerfacecolor='none', color=colors['cpp'], linewidth=lw)
+    plt.plot(meshSizes, pyData,  '-', marker=mark[it], markersize=ms,
+             markerfacecolor='none', color=colors['py'], linewidth=lw)
 
-  # # remove the vertical lines of the grid
-  # ax.xaxis.grid(which="major", color='None', linestyle='-.', linewidth=0)
-
-  # ax.xaxis.set_ticks_position('bottom')
-  # ax.xaxis.set_label_position('bottom')
-  # ax.set_xticks(xTicksBars)
-  # ax.set_xticklabels(xTlabels)
-  # ax.xaxis.set_tick_params(rotation=90)
-  # ax.set_xlabel('Rom Sizes')
-
-  # # ticks for the meshes
-  # meshTicks = posArray+1.95*width*np.ones(numMeshes)
-  # ax2.set_xticks(meshTicks)
-  # ax2.set_xticklabels(meshLabels)
-  # ax2.xaxis.set_ticks_position('bottom')
-  # ax2.xaxis.set_label_position('bottom')
-  # ax2.spines['bottom'].set_position(('outward', 50))
-  # ax2.set_xlabel('Mesh Sizes')
-
-  # plt.text(x=-0.175, y=-0.3, s='Mesh Size',size = 10,rotation=0,
-  #          horizontalalignment='center',verticalalignment='center')
   plt.xscale('log')
   plt.yscale('log')
-  # ax.set_xlim(min(pos)-width*2, max(pos)+width*5)
-  # ax2.set_xlim(min(pos)-width*2, max(pos)+width*5)
-  # plt.ylim([0, maxY*1.1])
-  #plt.legend(loc='upper left')
+  plt.minorticks_off()
+  # # remove the vertical lines of the grid
+  # ax.xaxis.grid(which="major", color='None', linestyle='-.', linewidth=0)
+  ax.xaxis.set_ticks_position('bottom')
+  ax.xaxis.set_label_position('bottom')
+  ax.set_xticks(meshSizes)
+  ax.set_xticklabels(meshLabels)
+  ax.set_xlabel('Mesh Size', fontsize=15)
+
+  ax.set_ylabel('Time per iteration (ms)', fontsize=15)
+  plt.xticks(fontsize=14)
+  plt.yticks(fontsize=14)
+
+  # dummy things for the legend
+  plt.plot([10, 10], [-10, -10], '-', color=colors['cpp'], label='pressio')
+  plt.plot([10, 10], [-10, -10], '-', color=colors['py'], label='pressio4py')
+  nrs  = len(romSizes)
+  for i in range(nrs):
+    plt.plot([10, 10], [-10, -10], '-', marker=mark[nrs-i-1], color='k', markerfacecolor='none',
+             linewidth=0, label='n='+romSizesStr[nrs-i-1])
+
+  ax.set_xlim(600, 50000)#min(meshSizes)-128, max(meshSizes)+512)
+  plt.ylim([1e-2, 1000000])
+  plt.legend(loc='upper left', fontsize=11)
+  fig.savefig(fileName+".pdf", bbox_inches='tight', dpi=600)
 
 
 #=====================================================================
 #   main
 #=====================================================================
-def main(cppFile, pyFile, romName, statType):
+def main(cppFile, pyFile, romName, statType, fileName):
   # check that files exists
   if not os.path.isfile(cppFile):
     raise Exception('The file {} does not exist. '.format(cppFile))
@@ -151,7 +156,7 @@ def main(cppFile, pyFile, romName, statType):
   cppDic, pyDic = createDicByRomSize(cppDataAvg), createDicByRomSize(pyDataAvg)
 
   #do regular or stacked plot
-  doPlot(cppDic, pyDic, meshSizes, meshLabels, romSizes, romSizesStr)
+  doPlot(cppDic, pyDic, meshSizes, meshLabels, romSizes, romSizesStr, fileName)
   plt.show()
 
 #////////////////////////////////////////////
@@ -166,6 +171,8 @@ if __name__== "__main__":
                               mean, gmean (geometric mean), q50 (50th percentile), \
                               worst (min of c++ and max of Python to show worst case),\
                               best (max of c++ and min of Python to show best case)")
+  parser.add_argument("-filename",       "--filename", dest="fileName",
+                      help = "The file name to print figure")
   args = parser.parse_args()
-  main(args.cppFile, args.pyFile, args.romName, args.statType)
+  main(args.cppFile, args.pyFile, args.romName, args.statType, args.fileName)
 #////////////////////////////////////////////
