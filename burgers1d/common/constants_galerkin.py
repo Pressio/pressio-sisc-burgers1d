@@ -7,7 +7,7 @@ import os.path
 
 dt = 0.0005
 # num of steps to generate basis
-numStepsBasis = 2048
+numStepsBasis = 1024
 finalTimeBasis = numStepsBasis*dt
 
 # mesh sizes
@@ -31,12 +31,12 @@ for i in range(num_meshes):
 print(finalTimeTiming)
 
 # rom sizes: remember that ROM size has to be smaller than mesh
-rom_sizes = np.array([32, 64, 128, 256, 512])
+rom_sizes = np.array([32, 64, 128, 256])
 # number of rom sizes
 num_rom_sizes = len(rom_sizes)
 
 # number of samples to run to compute timing statistics
-numSamplesForTiming = 20
+numSamplesForTiming = 10
 
 # regex for getting timing from code output
 # \d{1,} match one or more (any) digits before the .

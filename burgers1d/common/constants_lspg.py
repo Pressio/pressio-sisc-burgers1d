@@ -12,16 +12,19 @@ numStepsBasis = 1024
 finalTimeBasis = numStepsBasis*dt
 
 # mesh sizes
-mesh_sizes = np.array([1024, 2048, 4096, 8192])
+mesh_sizes = np.array([1024, 2048, 4096, 8192, 16384, 32768])
 # number of mesh sizes
 num_meshes = len(mesh_sizes)
 
 # num of steps for the timing (can be mapped to each mesh size
 # so that for smaller meshes we run for longer to avoid noise issues on timing)
-numStepsTiming = { mesh_sizes[0]: numStepsBasis,
-                   mesh_sizes[1]: numStepsBasis/2,
-                   mesh_sizes[2]: numStepsBasis/4,
-                   mesh_sizes[3]: numStepsBasis/8}
+numStepsTiming = { mesh_sizes[0]: numStepsBasis/4,
+                   mesh_sizes[1]: numStepsBasis/8,
+                   mesh_sizes[2]: numStepsBasis/16,
+                   mesh_sizes[3]: numStepsBasis/32,
+                   mesh_sizes[4]: numStepsBasis/32,
+                   mesh_sizes[5]: numStepsBasis/64}
+
 # final time
 finalTimeTiming = {}
 for i in range(num_meshes):
@@ -31,12 +34,12 @@ print(finalTimeTiming)
 
 
 # rom sizes: remember that ROM size has to be smaller than mesh
-rom_sizes = np.array([16,32,64,128,256])
+rom_sizes = np.array([32,64,128,256])
 # number of rom sizes
 num_rom_sizes = len(rom_sizes)
 
 # number of samples to run to compute timing statistics
-numSamplesForTiming = 5
+numSamplesForTiming = 10
 
 # regex for getting timing from code output
 # \d{1,} match one or more (any) digits before the .
