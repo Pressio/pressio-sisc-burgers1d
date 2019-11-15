@@ -29,7 +29,7 @@ def main(exename, basisDirName, denseJac):
     print("Current meshSize = ", meshSize)
 
     # get the number of steps to do for this case
-    currNumSteps = constants.numStepsTiming[meshSize]
+    currNumSteps = int(constants.numStepsTiming[int(meshSize)])
 
     # loop over ROM sizes
     for iRom in range(0, constants.num_rom_sizes):
