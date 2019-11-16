@@ -54,9 +54,9 @@ int main(int argc, char *argv[]){
   auto startTime = std::chrono::high_resolution_clock::now();
   // define ROM problem
   constexpr auto ode_case  = pressio::ode::ExplicitEnum::RungeKutta4;
-  using galerkin_t = pressio::rom::DefaultGalerkinExplicitTypeGenerator<
+  using galerkin_t = pressio::rom::galerkin::DefaultProblemType<
     ode_case, rom_state_t, fom_t, decoder_t>;
-  using galerkin_prob = pressio::rom::GalerkinProblemGenerator<galerkin_t>;
+  using galerkin_prob = pressio::rom::galerkin::ProblemGenerator<galerkin_t>;
   galerkin_prob galerkinProb(appobj, yRef, decoderObj, yROM, zero);
 
   // get stepper object

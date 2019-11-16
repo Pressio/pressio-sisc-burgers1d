@@ -60,8 +60,8 @@ int main(int argc, char *argv[])
 
   // define LSPG type
   constexpr auto ode_case  = pressio::ode::ImplicitEnum::Euler;
-  using lspg_problem = pressio::rom::LSPGUnsteadyProblem<pressio::rom::DefaultLSPGUnsteady,
-  							 ode_case, fom_t, lspg_state_t, decoder_t>;
+  using lspg_problem = pressio::rom::lspg::unsteady::Problem<
+    pressio::rom::lspg::unsteady::Default, ode_case, fom_t, lspg_state_t, decoder_t>;
   using lspg_stepper_t = typename lspg_problem::lspg_stepper_t;
   lspg_problem lspgProblem(appobj, yRef, decoderObj, yROM, zero);
 
