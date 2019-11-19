@@ -8,7 +8,7 @@ pressioBranch=siscBurgers1d
 # which branch to use for pressio-builder
 pressioBuilderBranch=siscBurgers1d
 # which branch to use for pressio4py
-pressioFourPyBranch=master
+pressioFourPyBranch=siscBurgers1d
 
 # burgers1d python sources
 PYSRC=${TOPDIR}/python/src
