@@ -4,9 +4,9 @@
 TOPDIR=${PWD}
 
 # which branch to use for pressio
-pressioBranch=develop
+pressioBranch=siscBurgers1d
 # which branch to use for pressio-builder
-pressioBuilderBranch=master
+pressioBuilderBranch=siscBurgers1d
 # which branch to use for pressio4py
 pressioFourPyBranch=master
 
