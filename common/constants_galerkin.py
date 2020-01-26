@@ -7,7 +7,7 @@ import os.path
 
 dt = 0.0005
 # num of steps to generate basis
-numStepsBasis = 1024
+numStepsBasis = 4096
 finalTimeBasis = numStepsBasis*dt
 
 # mesh sizes
