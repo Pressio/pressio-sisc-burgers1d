@@ -94,24 +94,27 @@ def doPlot(cppDic, pyDic, meshSizes, meshLabels, romSizes, romSizesStr, fileName
   ax.xaxis.set_ticks_position('bottom')
   ax.xaxis.set_label_position('bottom')
   ax.set_xticks(meshSizes)
-  ax.set_xticklabels(meshLabels)
-  ax.set_xlabel('Mesh Size, N', fontsize=15)
+  ax.set_xticklabels(meshLabels, fontsize=17)
+  ax.set_xlabel('Mesh Size, N', fontsize=19)
 
-  ax.set_ylabel('Time per iteration (ms)', fontsize=15)
+  ax.set_ylabel('Time per iteration (ms)', fontsize=19)
   plt.xticks(fontsize=14)
   plt.yticks(fontsize=14)
+  plt.yticks(fontsize=17)
 
   # dummy things for the legend
   plt.plot([10, 10], [-10, -10], '-', color=colors['cpp'], label='pressio-C++')
   plt.plot([10, 10], [-10, -10], '-', color=colors['py'], label='pressio4py')
   nrs  = len(romSizes)
   for i in range(nrs):
-    plt.plot([10, 10], [-10, -10], '-', marker=mark[nrs-i-1], color='k', markerfacecolor='none',
+    plt.plot([10, 10], [-10, -10], '-',
+             marker=mark[nrs-i-1], color='k', markerfacecolor='none',
              linewidth=0, label='p='+romSizesStr[nrs-i-1])
 
   ax.set_xlim(600, 50000)#min(meshSizes)-128, max(meshSizes)+512)
   plt.ylim([1e-2, 1000000])
-  plt.legend(loc='upper left', fontsize=11)
+  plt.legend(loc='upper left', fontsize=12)
+  plt.tight_layout()
   fig.savefig(fileName+".pdf", bbox_inches='tight', dpi=600)
 
 
