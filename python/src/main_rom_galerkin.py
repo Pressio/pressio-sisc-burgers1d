@@ -30,8 +30,7 @@ print(dt)
 appObj = Burgers1dDenseJacobian(meshSize)
 # reference state
 yRef = np.ones(meshSize)
-# here phi is row-major, but when passed to pybind11, it is transformed
-# into col-major layout for Blas
+# load basis
 phi = np.loadtxt("basis.txt")
 decoder = pressio4pyGalerkin.LinearDecoder(phi)
 yRom = np.zeros(romSize)
