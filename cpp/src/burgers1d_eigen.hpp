@@ -22,7 +22,7 @@ class Burgers1dEigen
 
 public:
   // eigen sparse matrix
-  static constexpr auto spmat_layout = Eigen::ColMajor;
+  static constexpr auto spmat_layout = Eigen::RowMajor;
   using eig_sparse_mat	  = Eigen::SparseMatrix<sc_t, spmat_layout, int_t>;
 
   // eigen dense matrix

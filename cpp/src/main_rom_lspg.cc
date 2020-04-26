@@ -98,10 +98,3 @@ int main(int argc, char *argv[])
 
   return 0;
 }
-
-
-
-// // print summary from timers
-// #ifdef HAVE_TEUCHOS_TIMERS
-// pressio::utils::TeuchosPerformanceMonitor::stackedTimersReportSerial();
-// #endif
