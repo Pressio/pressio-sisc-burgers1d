@@ -6,7 +6,7 @@ from scipy import linalg
 import time
 
 
-@njit(["void(float64[::1], f8, float64[::1], float64[::1], f8, f8)"])
+@njit(["void(float64[:], f8, float64[:], float64[:], f8, f8)"])
 def velocityImplNumba(u, t, f, expVec, dxInvHalf, mu0):
   n = len(u)
   uSq = np.square(u)
@@ -15,7 +15,7 @@ def velocityImplNumba(u, t, f, expVec, dxInvHalf, mu0):
     f[i] = dxInvHalf * ( uSq[i-1] - uSq[i] ) + expVec[i]
 
 
-@njit(["void(float64[::1], f8, float64[::1, :], f8, int32)"])
+@njit(["void(float64[:], f8, float64[::1, :], f8, int32)"])
 def jacobianImplNumba(u, t, J, dxInv, N):
   J[N-1][N-1] = -dxInv*u[N-1]
   for i in range(0, N-1):
@@ -109,7 +109,7 @@ class Burgers1dSparseJacobian:
 
   def jacobian(self, u, t):
     fillDiag(u, self.diag_, self.ldiag_, self.dxInv_)
-    return diags( [self.ldiag_, self.diag_], [-1,0], format='coo')
+    return diags( [self.ldiag_, self.diag_], [-1,0], format='csr')
 
   def applyJacobian(self, u, B, t):
     J = self.jacobian(u, t)
